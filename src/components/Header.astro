@@ -7,7 +7,8 @@ const user = token ? verifyToken(token) : null;
 
 <header
     id="main-header"
-    class="fixed top-0 left-0 w-full z-50 transition-all duration-500 border-b border-transparent"
+    class="fixed top-0 left-0 w-full z-50 transition-all duration-500 border-b"
+    style="border-color: transparent; background-color: transparent;"
 >
     <div class="container h-20 flex items-center justify-between">
         <!-- Logo -->
@@ -35,11 +36,11 @@ const user = token ? verifyToken(token) : null;
         <div class="flex items-center gap-3">
             <!-- Search -->
             <button
-                class="p-2.5 rounded-full hover:bg-white/5 transition-colors duration-200 group"
+                class="icon-btn p-2.5 rounded-full transition-colors duration-200 group"
                 aria-label="Buscar"
             >
                 <svg
-                    class="w-5 h-5 text-white/70 group-hover:text-brand transition-colors"
+                    class="w-5 h-5 icon-color group-hover:text-brand transition-colors"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -58,11 +59,11 @@ const user = token ? verifyToken(token) : null;
                     <div class="flex items-center gap-2">
                         <a
                             href="/profile"
-                            class="p-2.5 rounded-full hover:bg-white/5 transition-colors duration-200 group"
+                            class="icon-btn p-2.5 rounded-full transition-colors duration-200 group"
                             aria-label="Mi Cuenta"
                         >
                             <svg
-                                class="w-5 h-5 text-white/70 group-hover:text-brand transition-colors"
+                                class="w-5 h-5 icon-color group-hover:text-brand transition-colors"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -81,7 +82,7 @@ const user = token ? verifyToken(token) : null;
                             title="Cerrar Sesión"
                         >
                             <svg
-                                class="w-5 h-5 text-white/70 group-hover:text-red-500 transition-colors"
+                                class="w-5 h-5 icon-color group-hover:text-red-500 transition-colors"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -98,11 +99,11 @@ const user = token ? verifyToken(token) : null;
                 ) : (
                     <a
                         href="/login"
-                        class="p-2.5 rounded-full hover:bg-white/5 transition-colors duration-200 group"
+                        class="icon-btn p-2.5 rounded-full transition-colors duration-200 group"
                         aria-label="Iniciar Sesión"
                     >
                         <svg
-                            class="w-5 h-5 text-white/70 group-hover:text-brand transition-colors"
+                            class="w-5 h-5 icon-color group-hover:text-brand transition-colors"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -121,11 +122,12 @@ const user = token ? verifyToken(token) : null;
             <!-- Cart -->
             <a
                 href="/cart"
-                class="relative p-2.5 rounded-full hover:bg-white/5 transition-colors duration-200 group"
+                id="cart-trigger"
+                class="relative icon-btn p-2.5 rounded-full transition-colors duration-200 group"
                 aria-label="Carrito"
             >
                 <svg
-                    class="w-5 h-5 text-white/70 group-hover:text-brand transition-colors"
+                    class="w-5 h-5 icon-color group-hover:text-brand transition-colors"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -138,7 +140,7 @@ const user = token ? verifyToken(token) : null;
                 </svg>
                 <span
                     id="cart-count"
-                    class="absolute -top-0.5 -right-0.5 bg-brand text-black text-[9px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full"
+                    class="absolute -top-1 -right-1 bg-brand text-black text-[10px] font-black min-w-[20px] h-5 flex items-center justify-center rounded-full leading-none px-1"
                     >0</span
                 >
             </a>
@@ -146,11 +148,11 @@ const user = token ? verifyToken(token) : null;
             <!-- Mobile Menu Button -->
             <button
                 id="mobile-menu-btn"
-                class="lg:hidden p-2.5 rounded-full hover:bg-white/5 transition-colors duration-200 group"
+                class="lg:hidden icon-btn p-2.5 rounded-full transition-colors duration-200 group"
                 aria-label="Menú"
             >
                 <svg
-                    class="w-5 h-5 text-white/70 group-hover:text-brand transition-colors"
+                    class="w-5 h-5 icon-color group-hover:text-brand transition-colors"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -169,7 +171,8 @@ const user = token ? verifyToken(token) : null;
 <!-- Mobile Menu Overlay -->
 <div
     id="mobile-menu"
-    class="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl transform translate-x-full transition-transform duration-300 lg:hidden"
+    class="fixed inset-0 z-[60] backdrop-blur-xl transform translate-x-full transition-transform duration-300 lg:hidden"
+    style="background-color: var(--bg-mobile-menu);"
 >
     <div class="flex flex-col h-full p-8">
         <div class="flex justify-between items-center mb-12">
@@ -243,7 +246,8 @@ const user = token ? verifyToken(token) : null;
 
 <style>
     .nav-link {
-        @apply text-white/90 hover:text-brand transition-colors duration-200 relative;
+        color: var(--text-secondary);
+        @apply hover:text-brand transition-colors duration-200 relative;
     }
     .nav-link::after {
         content: "";
@@ -252,59 +256,135 @@ const user = token ? verifyToken(token) : null;
     .nav-link:hover::after {
         @apply w-full;
     }
+
+    .icon-btn {
+        @apply hover:bg-black/5;
+    }
+    :global(.dark) .icon-btn {
+        @apply hover:bg-white/5;
+    }
+
+    .icon-color {
+        color: var(--text-icon);
+    }
 </style>
 
-<script>
-    // Glass effect on scroll
-    const header = document.getElementById("main-header");
-    window.addEventListener("scroll", () => {
-        if (!header) return;
-        if (window.scrollY > 50) {
-            header.classList.add(
-                "bg-black/95",
-                "backdrop-blur-2xl",
-                "border-white/10",
-            );
-            header.classList.remove("border-transparent");
-        } else {
-            header.classList.remove(
-                "bg-black/60",
-                "backdrop-blur-xl",
-                "border-white/5",
-            );
-            header.classList.add("border-transparent");
+<script is:inline>
+    function initHeader() {
+        // ── Force dark mode ──
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("theme", "dark");
+
+        // ── Glass effect on scroll ──
+        var header = document.getElementById("main-header");
+
+        function applyScrollState() {
+            if (!header) return;
+            if (window.scrollY > 50) {
+                header.style.backgroundColor = "var(--bg-header-scroll)";
+                header.style.backdropFilter = "blur(24px)";
+                header.style.webkitBackdropFilter = "blur(24px)";
+                header.style.borderColor = "var(--glass-border)";
+            } else {
+                header.style.backgroundColor = "transparent";
+                header.style.backdropFilter = "none";
+                header.style.webkitBackdropFilter = "none";
+                header.style.borderColor = "transparent";
+            }
         }
-    });
 
-    // Mobile menu toggle
-    const menuBtn = document.getElementById("mobile-menu-btn");
-    const menuClose = document.getElementById("mobile-menu-close");
-    const mobileMenu = document.getElementById("mobile-menu");
+        // Apply immediately (handles already-scrolled state after navigation)
+        applyScrollState();
+        window.addEventListener("scroll", applyScrollState);
 
-    menuBtn?.addEventListener("click", () => {
-        mobileMenu?.classList.remove("translate-x-full");
-        document.body.style.overflow = "hidden";
-    });
+        // ── Mobile menu toggle ──
+        var menuBtn = document.getElementById("mobile-menu-btn");
+        var menuClose = document.getElementById("mobile-menu-close");
+        var mobileMenu = document.getElementById("mobile-menu");
 
-    menuClose?.addEventListener("click", () => {
-        mobileMenu?.classList.add("translate-x-full");
-        document.body.style.overflow = "";
-    });
-
-    // Close mobile menu on link click
-    mobileMenu?.querySelectorAll("a").forEach((link) => {
-        link.addEventListener("click", () => {
-            mobileMenu?.classList.add("translate-x-full");
-            document.body.style.overflow = "";
-        });
-    });
-
-    // Logout
-    const logoutBtn = document.querySelector("#logout-btn");
-    logoutBtn?.addEventListener("click", async () => {
-        const response = await fetch("/api/auth/logout", { method: "POST" });
-        if (response.ok) {
-            window.location.href = "/";
+        if (menuBtn) {
+            var newMenuBtn = menuBtn.cloneNode(true);
+            menuBtn.parentNode.replaceChild(newMenuBtn, menuBtn);
+            newMenuBtn.addEventListener("click", function () {
+                if (mobileMenu) {
+                    mobileMenu.classList.remove("translate-x-full");
+                    document.body.style.overflow = "hidden";
+                }
+            });
         }
-    });
+
+        if (menuClose) {
+            var newMenuClose = menuClose.cloneNode(true);
+            menuClose.parentNode.replaceChild(newMenuClose, menuClose);
+            newMenuClose.addEventListener("click", function () {
+                if (mobileMenu) {
+                    mobileMenu.classList.add("translate-x-full");
+                    document.body.style.overflow = "";
+                }
+            });
+        }
+
+        if (mobileMenu) {
+            mobileMenu.querySelectorAll("a").forEach(function (link) {
+                link.addEventListener("click", function () {
+                    mobileMenu.classList.add("translate-x-full");
+                    document.body.style.overflow = "";
+                });
+            });
+        }
+
+        // ── Cart Count Update ──
+        function updateCartCount() {
+            var el = document.getElementById("cart-count");
+            if (!el) return;
+            try {
+                var cart = JSON.parse(
+                    localStorage.getItem("parra_cart") || "[]",
+                );
+                var total = cart.reduce(function (sum, item) {
+                    return sum + item.quantity;
+                }, 0);
+                el.textContent = total.toString();
+                el.style.display = total > 0 ? "flex" : "none";
+            } catch (e) {
+                console.error("Error updating cart count:", e);
+            }
+        }
+
+        // Initialize and listen for changes
+        updateCartCount();
+        // Remove old listener if any, then add fresh one
+        if (window["_cartCountHandler"]) {
+            window.removeEventListener(
+                "cart:updated",
+                window["_cartCountHandler"],
+            );
+        }
+        window["_cartCountHandler"] = updateCartCount;
+        window.addEventListener("cart:updated", updateCartCount);
+
+        // ── Logout ──
+        var logoutBtn = document.querySelector("#logout-btn");
+        if (logoutBtn) {
+            var newLogoutBtn = logoutBtn.cloneNode(true);
+            logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+            newLogoutBtn.addEventListener("click", async function () {
+                var response = await fetch("/api/auth/logout", {
+                    method: "POST",
+                });
+                if (response.ok) {
+                    window.location.href = "/";
+                }
+            });
+        }
+    }
+
+    // Run on initial load and on every View Transition navigation
+    document.addEventListener("astro:page-load", initHeader);
+    // Fallback for initial page load if astro:page-load already fired
+    if (document.readyState === "complete") {
+        initHeader();
+    } else {
+        document.addEventListener("DOMContentLoaded", initHeader);
+    }
 </script>

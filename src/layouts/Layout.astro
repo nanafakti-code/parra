@@ -1,6 +1,7 @@
 ---
-import { ViewTransitions } from "astro:transitions";
+import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
+import CartDrawer from "../components/CartDrawer.astro";
 
 interface Props {
 	title: string;
@@ -51,10 +52,85 @@ const canonicalURL = new URL(
 			rel="stylesheet"
 		/>
 
+		<!-- Theme initialization (FOUC prevention) -->
+		<script is:inline>
+			(function () {
+				const stored = localStorage.getItem("theme");
+				if (stored === "light") {
+					document.documentElement.classList.remove("dark");
+				} else {
+					document.documentElement.classList.add("dark");
+				}
+			})();
+		</script>
+
 		<title>{title} | PARRA</title>
-		<ViewTransitions />
+		<ClientRouter />
 	</head>
-	<body class="bg-surface-950 text-white font-body overflow-x-hidden">
+	<body class="font-body overflow-x-hidden">
 		<slot />
+		<CartDrawer />
+
+		<!-- Scroll Reveal Observer + Cart Bounce Helper -->
+		<script is:inline>
+			function initScrollReveal() {
+				// Respect reduced motion preference
+				if (
+					window.matchMedia("(prefers-reduced-motion: reduce)")
+						.matches
+				) {
+					document.querySelectorAll(".reveal").forEach(function (el) {
+						el.classList.add("visible");
+					});
+					return;
+				}
+
+				var observer = new IntersectionObserver(
+					function (entries) {
+						entries.forEach(function (entry) {
+							if (entry.isIntersecting) {
+								entry.target.classList.add("visible");
+								observer.unobserve(entry.target);
+							}
+						});
+					},
+					{
+						threshold: 0.15,
+						rootMargin: "0px 0px -40px 0px",
+					},
+				);
+
+				document
+					.querySelectorAll(".reveal:not(.visible)")
+					.forEach(function (el) {
+						observer.observe(el);
+					});
+			}
+
+			// Cart bounce helper — callable from any page
+			window.triggerCartBounce = function () {
+				var cartIcon = document.querySelector('[aria-label="Carrito"]');
+				if (cartIcon) {
+					cartIcon.classList.remove("cart-bounce");
+					// Force reflow to restart animation
+					void cartIcon.offsetWidth;
+					cartIcon.classList.add("cart-bounce");
+					cartIcon.addEventListener(
+						"animationend",
+						function () {
+							cartIcon.classList.remove("cart-bounce");
+						},
+						{ once: true },
+					);
+				}
+			};
+
+			document.addEventListener("astro:page-load", initScrollReveal);
+			if (document.readyState === "complete") {
+				initScrollReveal();
+			} else {
+				document.addEventListener("DOMContentLoaded", initScrollReveal);
+			}
+		</script>
 	</body>
 </html>

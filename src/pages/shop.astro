@@ -56,18 +56,19 @@ const filteredProducts = products || [];
     description="Explora nuestra colección de guantes de portero profesionales."
 >
     <Header />
-    <main class="min-h-screen bg-surface-950">
+    <main class="min-h-screen" style="background-color: var(--bg-primary);">
         <!-- Page Header -->
-        <section class="pt-12 pb-8">
+        <section class="pt-24 pb-8">
             <div class="container">
                 <div
-                    class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/30 mb-6"
+                    class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] mb-6"
+                    style="color: var(--text-muted);"
                 >
                     <a href="/" class="hover:text-brand transition-colors"
                         >Inicio</a
                     >
                     <span>/</span>
-                    <span class="text-white/60">Tienda</span>
+                    <span style="color: var(--text-secondary);">Tienda</span>
                 </div>
 
                 <div
@@ -81,7 +82,7 @@ const filteredProducts = products || [];
                             Equípate con lo mejor del mercado mundial.
                         </p>
                     </div>
-                    <span class="text-white/30 text-sm">
+                    <span class="text-sm" style="color: var(--text-muted);">
                         {filteredProducts.length} producto{
                             filteredProducts.length !== 1 ? "s" : ""
                         }
@@ -95,7 +96,8 @@ const filteredProducts = products || [];
             <div class="container">
                 <!-- Filter Bar -->
                 <div
-                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 pb-8 border-b border-white/5"
+                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 pb-8"
+                    style="border-bottom: 1px solid var(--border-color);"
                 >
                     <!-- Categories -->
                     <div class="flex flex-wrap gap-2">
@@ -111,7 +113,7 @@ const filteredProducts = products || [];
                                         "px-4 py-2 text-xs font-semibold uppercase tracking-wider border transition-all duration-200",
                                         currentSlug === cat.slug
                                             ? "bg-brand text-black border-brand"
-                                            : "border-white/10 text-white/40 hover:border-brand/50 hover:text-brand",
+                                            : "border-[var(--border-color)] text-[var(--text-muted)] hover:border-brand/50 hover:text-brand",
                                     ]}
                                 >
                                     {cat.name}
@@ -123,12 +125,13 @@ const filteredProducts = products || [];
                     <!-- Sort -->
                     <div class="flex items-center gap-3">
                         <span
-                            class="text-white/30 text-xs uppercase tracking-wider"
-                            >Ordenar:</span
+                            class="text-xs uppercase tracking-wider"
+                            style="color: var(--text-muted);">Ordenar:</span
                         >
                         <select
                             id="sort-select"
-                            class="bg-surface-900 border border-white/10 px-3 py-2 text-xs text-white/60 focus:outline-none focus:border-brand transition-colors"
+                            class="px-3 py-2 text-xs focus:outline-none focus:border-brand transition-colors"
+                            style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary);"
                         >
                             <option
                                 value="newest"
@@ -159,9 +162,13 @@ const filteredProducts = products || [];
                         </div>
                     ) : (
                         <div class="py-32 text-center">
-                            <div class="w-20 h-20 mx-auto mb-6 border border-white/10 flex items-center justify-center">
+                            <div
+                                class="w-20 h-20 mx-auto mb-6 flex items-center justify-center"
+                                style="border: 1px solid var(--border-color);"
+                            >
                                 <svg
-                                    class="w-8 h-8 text-white/20"
+                                    class="w-8 h-8"
+                                    style="color: var(--text-muted);"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -174,7 +181,10 @@ const filteredProducts = products || [];
                                     />
                                 </svg>
                             </div>
-                            <p class="text-white/30 uppercase tracking-[0.2em] text-sm">
+                            <p
+                                class="uppercase tracking-[0.2em] text-sm"
+                                style="color: var(--text-muted);"
+                            >
                                 No se encontraron productos en esta categoría.
                             </p>
                             <a
@@ -192,13 +202,22 @@ const filteredProducts = products || [];
     <Footer />
 </Layout>
 
-<script>
-    const sortSelect = document.getElementById(
-        "sort-select",
-    ) as HTMLSelectElement;
-    sortSelect?.addEventListener("change", () => {
-        const url = new URL(window.location.href);
-        url.searchParams.set("sort", sortSelect.value);
-        window.location.href = url.toString();
-    });
+<script is:inline>
+    function initShopPage() {
+        var sortSelect = document.getElementById("sort-select");
+        if (sortSelect) {
+            sortSelect.addEventListener("change", function () {
+                var url = new URL(window.location.href);
+                url.searchParams.set("sort", sortSelect.value);
+                window.location.href = url.toString();
+            });
+        }
+    }
+
+    document.addEventListener("astro:page-load", initShopPage);
+    if (document.readyState === "complete") {
+        initShopPage();
+    } else {
+        document.addEventListener("DOMContentLoaded", initShopPage);
+    }
 </script>

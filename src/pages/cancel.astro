@@ -1,0 +1,58 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Pago Cancelado">
+    <Header />
+    <main
+        class="min-h-screen py-24 flex items-center justify-center"
+        style="background-color: var(--bg-primary);"
+    >
+        <div class="container max-w-2xl text-center">
+            <div
+                class="w-24 h-24 bg-red-600/10 text-red-600 border border-red-600/30 flex items-center justify-center mx-auto mb-10 rounded-full"
+            >
+                <svg
+                    class="w-12 h-12"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </div>
+
+            <h1
+                class="font-display text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6"
+            >
+                PAGO <span class="text-red-600">CANCELADO</span>
+            </h1>
+
+            <p
+                class="text-lg mb-10 text-[var(--text-secondary)] leading-relaxed"
+            >
+                No se ha realizado ningún cargo. Puedes volver al carrito para
+                intentar el pago de nuevo o revisar tus artículos.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/cart" class="btn-glow inline-flex h-14 items-center">
+                    Volver al Carrito
+                </a>
+                <a
+                    href="/shop"
+                    class="btn-outline inline-flex h-14 items-center"
+                >
+                    Seguir Comprando
+                </a>
+            </div>
+        </div>
+    </main>
+    <Footer />
+</Layout>

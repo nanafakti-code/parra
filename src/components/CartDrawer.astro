@@ -1,0 +1,448 @@
+﻿---
+// src/components/CartDrawer.astro
+---
+
+<div
+    id="cart-drawer"
+    class="fixed inset-0 z-[100] invisible"
+    aria-hidden="true"
+>
+    <!-- Backdrop -->
+    <div
+        id="cart-backdrop"
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-300"
+    >
+    </div>
+
+    <!-- Panel -->
+    <div
+        id="cart-panel"
+        class="absolute right-0 top-0 h-full w-full max-w-md bg-[var(--bg-primary)] border-l border-[var(--border-color)] translate-x-full transition-transform duration-300 flex flex-col"
+        role="dialog"
+        aria-label="Carrito de compra"
+    >
+        <!-- Header -->
+        <div
+            class="p-6 border-b border-[var(--border-color)] flex items-center justify-between shrink-0"
+        >
+            <h2 class="font-display text-xl font-bold uppercase tracking-tight">
+                Tu <span class="text-brand">Carrito</span>
+            </h2>
+            <button
+                id="close-cart"
+                aria-label="Cerrar carrito"
+                class="p-2 hover:bg-white/5 rounded-full transition-colors"
+            >
+                <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Reservation timer banner -->
+        <div
+            id="cart-timer-banner"
+            class="hidden shrink-0 px-6 py-2 bg-amber-950/60 border-b border-amber-500/20 flex items-center gap-2"
+        >
+            <svg
+                class="w-4 h-4 text-amber-400 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0"></path>
+            </svg>
+            <p class="text-xs text-amber-300 font-medium">
+                Reserva activa expira en
+                <span id="cart-timer-countdown" class="font-bold tabular-nums"
+                    >15:00</span
+                >
+            </p>
+        </div>
+
+        <!-- Items list -->
+        <div
+            id="cart-drawer-items"
+            class="flex-1 overflow-y-auto p-6 space-y-3"
+        >
+            <div
+                id="cart-drawer-empty"
+                class="h-full flex flex-col items-center justify-center text-center space-y-4 py-12"
+            >
+                <div
+                    class="w-16 h-16 border border-[var(--border-color)] flex items-center justify-center"
+                >
+                    <svg
+                        class="w-8 h-8 text-[var(--text-muted)]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1.5"
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                        ></path>
+                    </svg>
+                </div>
+                <p
+                    class="text-sm text-[var(--text-secondary)] uppercase tracking-widest"
+                >
+                    Tu carrito esta vacio
+                </p>
+                <a href="/shop" class="btn-outline btn-sm text-xs"
+                    >Ir a la tienda</a
+                >
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div
+            id="cart-drawer-footer"
+            class="hidden shrink-0 p-6 border-t border-[var(--border-color)] bg-[var(--bg-secondary)] space-y-4"
+        >
+            <div class="flex justify-between items-center text-sm">
+                <span
+                    class="text-[var(--text-muted)] uppercase text-xs font-bold tracking-widest"
+                    >Subtotal</span
+                >
+                <span id="cart-drawer-subtotal" class="font-semibold">0,00</span
+                >
+            </div>
+            <div class="flex justify-between items-center text-sm">
+                <span
+                    class="text-[var(--text-muted)] uppercase text-xs font-bold tracking-widest"
+                    >Envio</span
+                >
+                <span class="text-brand font-semibold text-xs">Gratis</span>
+            </div>
+            <div
+                class="flex justify-between items-center pt-3 border-t border-[var(--border-color)]"
+            >
+                <span class="uppercase text-xs font-bold tracking-widest"
+                    >Total</span
+                >
+                <span id="cart-drawer-total" class="text-2xl font-bold"
+                    >0,00</span
+                >
+            </div>
+            <a
+                href="/checkout"
+                id="cart-checkout-btn"
+                class="btn-glow w-full h-12 flex items-center justify-center gap-2 mt-1"
+            >
+                Finalizar Pedido
+                <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+            </a>
+            <button
+                id="cart-clear-btn"
+                class="w-full text-center text-xs text-[var(--text-muted)] hover:text-red-400 transition-colors py-1"
+            >
+                Vaciar carrito
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    import {
+        getCart,
+        removeItem,
+        updateQty,
+        clearCart,
+        cartTotal,
+    } from "../lib/cart";
+    import type { CartItem } from "../lib/cart";
+
+    const SPINNER = `<svg class="w-3.5 h-3.5 animate-spin inline-block" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+    </svg>`;
+
+    let isOpen = false;
+    let busyKeys = new Set<string>();
+    let reserveExpiry: Date | null = null;
+    let timerInterval: ReturnType<typeof setInterval> | null = null;
+
+    const $ = <T extends Element>(id: string): T | null =>
+        document.getElementById(id) as T | null;
+
+    function fmt(n: number) {
+        return n.toFixed(2).replace(".", ",") + "\u20ac";
+    }
+
+    function ikey(item: CartItem): string {
+        return item.variantId && item.variantId !== ""
+            ? item.variantId
+            : item.id;
+    }
+
+    //  RENDER
+    function renderDrawer() {
+        const items = getCart();
+        const listEl = $<HTMLElement>("cart-drawer-items");
+        const emptyEl = $<HTMLElement>("cart-drawer-empty");
+        const footer = $<HTMLElement>("cart-drawer-footer");
+        const totalEl = $<HTMLElement>("cart-drawer-total");
+        const subEl = $<HTMLElement>("cart-drawer-subtotal");
+        const badge = $<HTMLElement>("cart-count");
+        const timer = $<HTMLElement>("cart-timer-banner");
+
+        if (!listEl || !emptyEl || !footer || !totalEl || !subEl) return;
+
+        // Badge
+        if (badge) {
+            const count = items.reduce((s, i) => s + i.quantity, 0);
+            badge.textContent = count.toString();
+            badge.classList.toggle("hidden", count === 0);
+        }
+
+        if (items.length === 0) {
+            listEl.innerHTML = "";
+            listEl.appendChild(emptyEl);
+            emptyEl.classList.remove("hidden");
+            footer.classList.add("hidden");
+            timer?.classList.add("hidden");
+            stopTimer();
+            return;
+        }
+
+        emptyEl.classList.add("hidden");
+        footer.classList.remove("hidden");
+
+        const total = cartTotal();
+        totalEl.textContent = fmt(total);
+        subEl.textContent = fmt(total);
+
+        // Timer: arrancar en el primer item
+        if (timer && !reserveExpiry) {
+            reserveExpiry = new Date(Date.now() + 15 * 60 * 1000);
+            startTimer();
+        }
+        timer?.classList.remove("hidden");
+
+        // Items HTML
+        listEl.innerHTML = items
+            .map((item) => {
+                const key = ikey(item);
+                const busy = busyKeys.has(key);
+                const price = fmt(item.price * item.quantity);
+                const atMax = item.stock > 0 && item.quantity >= item.stock;
+                const low =
+                    item.stock > 0 &&
+                    item.quantity >= Math.ceil(item.stock * 0.7);
+
+                return `<div
+                id="ci-${key}"
+                class="flex gap-3 group transition-opacity duration-200 ${busy ? "opacity-50 pointer-events-none" : ""}"
+                data-key="${key}"
+            >
+                <a href="/product/${item.slug}"
+                   class="w-[4.5rem] h-[4.5rem] bg-[var(--bg-secondary)] border border-[var(--border-color)] overflow-hidden shrink-0 block">
+                    <img src="${item.image}" alt="${item.name}" loading="lazy"
+                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"/>
+                </a>
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-start gap-2 mb-0.5">
+                        <a href="/product/${item.slug}"
+                           class="text-xs font-bold uppercase tracking-tight line-clamp-2 hover:text-brand transition-colors">
+                            ${item.name}
+                        </a>
+                        <button class="remove-btn shrink-0 p-1 text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                                data-id="${item.id}" data-variant="${item.variantId || ""}" data-key="${key}"
+                                aria-label="Eliminar">
+                            ${
+                                busy
+                                    ? SPINNER
+                                    : `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>`
+                            }
+                        </button>
+                    </div>
+                    ${item.size ? `<p class="text-[9px] text-brand font-bold uppercase tracking-widest mb-1">Talla ${item.size}</p>` : '<div class="mb-1"></div>'}
+                    ${low ? `<p class="text-[9px] text-amber-400 font-semibold mb-1">Ultimas unidades</p>` : ""}
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center border border-[var(--border-color)] divide-x divide-[var(--border-color)]">
+                            <button class="qty-btn w-7 h-7 flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-white/5 transition-colors text-base"
+                                    data-action="dec" data-id="${item.id}" data-variant="${item.variantId || ""}" data-key="${key}"
+                                    ${busy ? "disabled" : ""} aria-label="Quitar uno">
+                                ${busy ? SPINNER : ""}
+                            </button>
+                            <span class="text-xs font-bold w-8 text-center tabular-nums select-none">${item.quantity}</span>
+                            <button class="qty-btn w-7 h-7 flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-white/5 transition-colors text-base"
+                                    data-action="inc" data-id="${item.id}" data-variant="${item.variantId || ""}" data-key="${key}"
+                                    ${busy || atMax ? "disabled" : ""}
+                                    title="${atMax ? "Stock maximo" : ""}"
+                                    aria-label="Agregar uno">
+                                ${busy ? SPINNER : "+"}
+                            </button>
+                        </div>
+                        <span class="text-sm font-bold tabular-nums">${price}</span>
+                    </div>
+                </div>
+            </div>`;
+            })
+            .join("");
+
+        bindEvents();
+    }
+
+    function bindEvents() {
+        const listEl = $<HTMLElement>("cart-drawer-items");
+        if (!listEl) return;
+
+        listEl
+            .querySelectorAll<HTMLButtonElement>(".remove-btn")
+            .forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    const key = btn.dataset.key!;
+                    busyKeys.add(key);
+                    renderDrawer();
+                    await removeItem(
+                        btn.dataset.id!,
+                        btn.dataset.variant || undefined,
+                    );
+                    busyKeys.delete(key);
+                });
+            });
+
+        listEl
+            .querySelectorAll<HTMLButtonElement>(".qty-btn")
+            .forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    const key = btn.dataset.key!;
+                    const id = btn.dataset.id!;
+                    const vId = btn.dataset.variant || undefined;
+                    const action = btn.dataset.action!;
+                    const items = getCart();
+                    const item = items.find(
+                        (i) => (i.variantId || i.id) === key,
+                    );
+                    if (!item) return;
+
+                    const newQty =
+                        action === "inc"
+                            ? item.quantity + 1
+                            : item.quantity - 1;
+                    busyKeys.add(key);
+                    renderDrawer();
+                    await updateQty(id, vId, newQty);
+                    busyKeys.delete(key);
+                    renderDrawer();
+                });
+            });
+    }
+
+    //  TIMER
+    function startTimer() {
+        stopTimer();
+        timerInterval = setInterval(() => {
+            const el = $<HTMLElement>("cart-timer-countdown");
+            if (!el || !reserveExpiry) return;
+            const ms = Math.max(0, reserveExpiry.getTime() - Date.now());
+            if (ms === 0) {
+                stopTimer();
+                el.textContent = "Expirada";
+                (el as HTMLElement).style.color = "#ef4444";
+                return;
+            }
+            const m = Math.floor(ms / 60000);
+            const s = Math.floor((ms % 60000) / 1000);
+            el.textContent = `${m}:${s.toString().padStart(2, "0")}`;
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        reserveExpiry = null;
+    }
+
+    //  OPEN / CLOSE
+    function openCart() {
+        const drawer = $<HTMLElement>("cart-drawer");
+        const backdrop = $<HTMLElement>("cart-backdrop");
+        const panel = $<HTMLElement>("cart-panel");
+        if (!drawer || !backdrop || !panel) return;
+        isOpen = true;
+        drawer.classList.remove("invisible");
+        drawer.setAttribute("aria-hidden", "false");
+        backdrop.classList.remove("opacity-0");
+        panel.classList.remove("translate-x-full");
+        document.body.style.overflow = "hidden";
+        renderDrawer();
+    }
+
+    function closeCart() {
+        const drawer = $<HTMLElement>("cart-drawer");
+        const backdrop = $<HTMLElement>("cart-backdrop");
+        const panel = $<HTMLElement>("cart-panel");
+        if (!drawer || !backdrop || !panel) return;
+        isOpen = false;
+        backdrop.classList.add("opacity-0");
+        panel.classList.add("translate-x-full");
+        document.body.style.overflow = "";
+        setTimeout(() => {
+            drawer.classList.add("invisible");
+            drawer.setAttribute("aria-hidden", "true");
+        }, 310);
+    }
+
+    //  INIT
+    function init() {
+        $("close-cart")?.addEventListener("click", closeCart);
+        $("cart-backdrop")?.addEventListener("click", closeCart);
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && isOpen) closeCart();
+        });
+
+        $("cart-clear-btn")?.addEventListener("click", () => {
+            if (confirm("Vaciar el carrito y liberar todas las reservas?")) {
+                clearCart();
+                stopTimer();
+                $<HTMLElement>("cart-timer-banner")?.classList.add("hidden");
+            }
+        });
+
+        (window as any).openCart = openCart;
+        (window as any).closeCart = closeCart;
+
+        window.addEventListener("cart:updated", () => {
+            // Always re-render so content is fresh when drawer opens
+            renderDrawer();
+        });
+
+        renderDrawer();
+    }
+
+    document.addEventListener("astro:page-load", init);
+</script>

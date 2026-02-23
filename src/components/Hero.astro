@@ -2,20 +2,27 @@
 
 ---
 
-<section class="relative h-screen flex items-center overflow-hidden">
-    <!-- Background -->
-    <div class="absolute inset-0">
+<section
+    class="relative h-[65vh] md:h-[85vh] min-h-[400px] md:min-h-[500px] flex items-start pt-10 md:pt-16 overflow-hidden bg-black"
+>
+    <!-- Background Layer -->
+    <div class="absolute inset-0 z-0">
         <div
-            class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1614632537197-38a17061c2bd?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center scale-105"
+            class="absolute inset-0 bg-[url('https://instagram.fsvq4-1.fna.fbcdn.net/v/t51.82787-15/639931240_18027648557616241_424163390501171464_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=101&ig_cache_key=MzgzNzYyNzU5NzQ4MDM1NzcyMw%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTkyMC5zZHIuQzMifQ%3D%3D&_nc_ohc=iPc1oTXnNWAQ7kNvwFnePQN&_nc_oc=AdnmQfVClIp142L-cUxe5auK1Y8bAhum333-Q0wZzb0_CkY1c88j7akkhVqjN7093Bg&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fsvq4-1.fna&_nc_gid=HHLg8-W2_tYCtjxovSWLWw&oh=00_AfsDr40EkiGEyTjPMQ8Nex67ziin1MdCTHwWMhK6upmumg&oe=69A1883D')] bg-cover bg-center"
             style="animation: subtle-zoom 20s ease-in-out infinite alternate;"
         >
         </div>
+
+        <!-- Overlays for readability -->
+        <div class="absolute inset-0 bg-black/40"></div>
         <div
-            class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/30"
+            class="absolute inset-0"
+            style="background: var(--gradient-hero-side);"
         >
         </div>
         <div
-            class="absolute inset-0 bg-gradient-to-t from-surface-950 via-transparent to-transparent"
+            class="absolute inset-0"
+            style="background: var(--gradient-hero-bottom);"
         >
         </div>
     </div>
@@ -28,15 +35,15 @@
 
     <!-- Content -->
     <div class="container relative z-10">
-        <div class="max-w-3xl">
+        <div class="max-w-3xl text-left">
             <span
-                class="inline-block px-4 py-1.5 bg-brand/10 border border-brand/30 text-brand text-xs font-bold uppercase tracking-[0.3em] mb-8 opacity-0 animate-fade-up"
+                class="inline-block px-4 py-1.5 bg-brand/10 border border-brand/30 text-brand text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] mb-10 md:mb-8 opacity-0 animate-fade-up"
             >
                 Nueva Colección 2026
             </span>
 
             <h1
-                class="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-display font-bold uppercase leading-[0.85] mb-8 opacity-0 animate-fade-up anim-delay-100"
+                class="hero-title text-7xl sm:text-7xl md:text-8xl lg:text-9xl font-display font-bold uppercase leading-[0.85] tracking-tight md:tracking-tighter mb-10 md:mb-8 opacity-0 animate-fade-up anim-delay-100"
             >
                 DOMINA
                 <br />
@@ -44,7 +51,7 @@
             </h1>
 
             <p
-                class="text-lg md:text-xl text-white/60 max-w-lg mb-10 opacity-0 animate-fade-up anim-delay-200"
+                class="hero-subtitle text-base md:text-xl max-w-lg mb-12 md:mb-10 opacity-0 animate-fade-up anim-delay-200"
             >
                 Siente el agarre absoluto. Diseñados para porteros de elite que
                 no aceptan menos que la perfección.
@@ -77,35 +84,52 @@
 
     <!-- Marquee -->
     <div
-        class="absolute bottom-8 left-0 w-full overflow-hidden whitespace-nowrap opacity-[0.03] pointer-events-none"
+        class="absolute bottom-4 left-0 w-full overflow-hidden whitespace-nowrap opacity-[0.03] pointer-events-none"
     >
-        <div
-            class="text-[10rem] md:text-[14rem] font-display font-bold uppercase tracking-tighter inline-block animate-marquee"
-        >
-            PARRA PARRA PARRA PARRA PARRA&nbsp;
+        <div class="flex animate-marquee">
+            <span
+                class="text-[6rem] md:text-[14rem] font-display font-bold uppercase tracking-tighter leading-none shrink-0"
+            >
+                PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;
+            </span>
+            <span
+                class="text-[6rem] md:text-[14rem] font-display font-bold uppercase tracking-tighter leading-none shrink-0"
+            >
+                PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;
+            </span>
         </div>
     </div>
 
-    <!-- Scroll indicator -->
-    <div
-        class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-0 animate-fade-in anim-delay-500"
-    >
-        <span
-            class="text-[10px] uppercase tracking-[0.3em] text-white/30 font-medium"
-            >Scroll</span
-        >
-        <div class="w-[1px] h-8 bg-gradient-to-b from-white/30 to-transparent">
-        </div>
-    </div>
+    <style>
+        @keyframes subtle-zoom {
+            0% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1.12);
+            }
+        }
+
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-30px);
+            }
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .hero-title {
+            color: var(--text-primary);
+        }
+
+        .hero-subtitle {
+            color: var(--text-muted);
+        }
+    </style>
 </section>
-
-<style>
-    @keyframes subtle-zoom {
-        0% {
-            transform: scale(1.05);
-        }
-        100% {
-            transform: scale(1.12);
-        }
-    }
-</style>

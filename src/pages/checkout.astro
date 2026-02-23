@@ -6,11 +6,15 @@ import Footer from "../components/Footer.astro";
 
 <Layout title="Pago Seguro">
     <Header />
-    <main class="min-h-screen bg-surface-950 py-24">
+    <main
+        class="min-h-screen py-24"
+        style="background-color: var(--bg-primary);"
+    >
         <div class="container max-w-4xl">
             <!-- Breadcrumb -->
             <div
-                class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/30 mb-8"
+                class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] mb-8"
+                style="color: var(--text-muted);"
             >
                 <a href="/" class="hover:text-brand transition-colors">Inicio</a
                 >
@@ -19,7 +23,7 @@ import Footer from "../components/Footer.astro";
                     >Carrito</a
                 >
                 <span>/</span>
-                <span class="text-white/60">Checkout</span>
+                <span style="color: var(--text-secondary);">Checkout</span>
             </div>
 
             <h1 class="section-title mb-12">
@@ -54,7 +58,7 @@ import Footer from "../components/Footer.astro";
                     </div>
 
                     <form id="checkout-form" class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <input
                                 placeholder="Nombre"
                                 required
@@ -67,7 +71,7 @@ import Footer from "../components/Footer.astro";
                             />
                         </div>
                         <input placeholder="Dirección" required class="input" />
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <input
                                 placeholder="Ciudad"
                                 required
@@ -146,7 +150,8 @@ import Footer from "../components/Footer.astro";
                             </svg>
                         </div>
                         <p
-                            class="text-[10px] text-white/30 uppercase tracking-[0.2em] text-center"
+                            class="text-[10px] uppercase tracking-[0.2em] text-center"
+                            style="color: var(--text-muted);"
                         >
                             Transacción segura y encriptada
                         </p>
@@ -194,7 +199,10 @@ import Footer from "../components/Footer.astro";
                 <h2 class="section-title mb-4">
                     ¡Pedido <span class="text-brand">Confirmado</span>!
                 </h2>
-                <p class="text-white/40 mb-8 max-w-md mx-auto">
+                <p
+                    class="mb-8 max-w-md mx-auto"
+                    style="color: var(--text-muted);"
+                >
                     Gracias por confiar en PARRA. Recibirás un email con los
                     detalles de tu pedido.
                 </p>
@@ -208,31 +216,110 @@ import Footer from "../components/Footer.astro";
 </Layout>
 
 <script>
-    const orderBtn = document.getElementById("place-order-btn");
-    const formContainer = document.getElementById("checkout-form-container");
-    const successMsg = document.getElementById("success-message");
+    import { getCart, getSessionId } from "../lib/cart";
 
-    orderBtn?.addEventListener("click", async () => {
-        orderBtn.textContent = "Procesando...";
-        orderBtn.setAttribute("disabled", "true");
+    function initCheckoutPage() {
+        var orderBtn = document.getElementById(
+            "place-order-btn",
+        ) as HTMLButtonElement;
+        var checkoutForm = document.getElementById(
+            "checkout-form",
+        ) as HTMLFormElement;
 
-        try {
-            const response = await fetch("/api/orders", { method: "POST" });
-            if (response.ok) {
-                formContainer?.classList.add("hidden");
-                successMsg?.classList.remove("hidden");
-                window.scrollTo({ top: 0, behavior: "smooth" });
-            } else {
-                alert(
-                    "Hubo un problema al procesar tu pedido. Intenta de nuevo.",
-                );
-                orderBtn.textContent = "Pagar y Finalizar";
-                orderBtn.removeAttribute("disabled");
-            }
-        } catch (err) {
-            alert("Error de conexión. Intenta de nuevo.");
-            orderBtn.textContent = "Pagar y Finalizar";
-            orderBtn.removeAttribute("disabled");
+        if (orderBtn && checkoutForm) {
+            orderBtn.addEventListener("click", async function (e) {
+                e.preventDefault();
+
+                // Validate form
+                if (!checkoutForm.checkValidity()) {
+                    checkoutForm.reportValidity();
+                    return;
+                }
+
+                const items = getCart();
+                if (items.length === 0) {
+                    const { toast } = await import('../lib/toast');
+                    toast.warning('Tu carrito está vacío.');
+                    return;
+                }
+
+                const cartSessionId = getSessionId();
+                const formData = new FormData(checkoutForm);
+                const shippingInfo = {
+                    firstName: (
+                        document.querySelector(
+                            'input[placeholder="Nombre"]',
+                        ) as HTMLInputElement
+                    )?.value,
+                    lastName: (
+                        document.querySelector(
+                            'input[placeholder="Apellidos"]',
+                        ) as HTMLInputElement
+                    )?.value,
+                    address: (
+                        document.querySelector(
+                            'input[placeholder="Dirección"]',
+                        ) as HTMLInputElement
+                    )?.value,
+                    city: (
+                        document.querySelector(
+                            'input[placeholder="Ciudad"]',
+                        ) as HTMLInputElement
+                    )?.value,
+                    zip: (
+                        document.querySelector(
+                            'input[placeholder="Código Postal"]',
+                        ) as HTMLInputElement
+                    )?.value,
+                    phone: (
+                        document.querySelector(
+                            'input[placeholder="Teléfono"]',
+                        ) as HTMLInputElement
+                    )?.value,
+                };
+
+                const emailInput = document.querySelector(
+                    'input[type="email"]',
+                ) as HTMLInputElement;
+                const email = emailInput?.value || "guest@example.com"; // Should ideally have an email field
+
+                orderBtn.innerHTML =
+                    '<span class="flex items-center gap-2"><svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Redirigiendo a Stripe...</span>';
+                orderBtn.setAttribute("disabled", "true");
+
+                try {
+                    const response = await fetch("/api/stripe/create-session", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            items,
+                            shippingInfo,
+                            email,
+                            cartSessionId,
+                        }),
+                    });
+
+                    const data = await response.json();
+
+                    if (data.url) {
+                        window.location.href = data.url;
+                    } else {
+                        throw new Error(
+                            data.error || "Error al crear sesión de pago",
+                        );
+                    }
+                } catch (err) {
+                    const { toast } = await import('../lib/toast');
+                    toast.error(
+                        err.message ||
+                            "Error al procesar el pago. Intenta de nuevo."
+                    );
+                    orderBtn.textContent = "Pagar y Finalizar";
+                    orderBtn.removeAttribute("disabled");
+                }
+            });
         }
-    });
+    }
+
+    document.addEventListener("astro:page-load", initCheckoutPage);
 </script>

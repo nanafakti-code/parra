@@ -2,7 +2,10 @@
 const year = new Date().getFullYear();
 ---
 
-<footer class="bg-surface-900/30 border-t border-white/5">
+<footer
+    class="footer-wrapper"
+    style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color);"
+>
     <!-- Main Footer -->
     <div class="container py-16 md:py-20">
         <div
@@ -16,7 +19,7 @@ const year = new Date().getFullYear();
                 >
                     <span class="text-brand">PARRA</span>
                 </a>
-                <p class="text-white/40 text-sm leading-relaxed mb-8 max-w-xs">
+                <p class="footer-text text-sm leading-relaxed mb-8 max-w-xs">
                     Guantes de portero diseñados para quienes no aceptan menos
                     que la perfección. Agarre extremo, tecnología alemana.
                 </p>
@@ -24,7 +27,7 @@ const year = new Date().getFullYear();
                 <div class="flex gap-3">
                     <a
                         href="#"
-                        class="w-10 h-10 border border-white/10 flex items-center justify-center hover:border-brand hover:text-brand transition-all duration-300 group"
+                        class="social-icon w-10 h-10 flex items-center justify-center hover:border-brand hover:text-brand transition-all duration-300 group"
                         aria-label="Instagram"
                     >
                         <svg
@@ -38,7 +41,7 @@ const year = new Date().getFullYear();
                     </a>
                     <a
                         href="#"
-                        class="w-10 h-10 border border-white/10 flex items-center justify-center hover:border-brand hover:text-brand transition-all duration-300 group"
+                        class="social-icon w-10 h-10 flex items-center justify-center hover:border-brand hover:text-brand transition-all duration-300 group"
                         aria-label="Twitter"
                     >
                         <svg
@@ -52,7 +55,7 @@ const year = new Date().getFullYear();
                     </a>
                     <a
                         href="#"
-                        class="w-10 h-10 border border-white/10 flex items-center justify-center hover:border-brand hover:text-brand transition-all duration-300 group"
+                        class="social-icon w-10 h-10 flex items-center justify-center hover:border-brand hover:text-brand transition-all duration-300 group"
                         aria-label="YouTube"
                     >
                         <svg
@@ -66,7 +69,7 @@ const year = new Date().getFullYear();
                     </a>
                     <a
                         href="#"
-                        class="w-10 h-10 border border-white/10 flex items-center justify-center hover:border-brand hover:text-brand transition-all duration-300 group"
+                        class="social-icon w-10 h-10 flex items-center justify-center hover:border-brand hover:text-brand transition-all duration-300 group"
                         aria-label="TikTok"
                     >
                         <svg
@@ -84,7 +87,7 @@ const year = new Date().getFullYear();
             <!-- Shop Links -->
             <div>
                 <h4
-                    class="text-white font-display uppercase tracking-[0.15em] text-sm font-semibold mb-6"
+                    class="footer-heading font-display uppercase tracking-[0.15em] text-sm font-semibold mb-6"
                 >
                     Tienda
                 </h4>
@@ -92,35 +95,35 @@ const year = new Date().getFullYear();
                     <li>
                         <a
                             href="/shop"
-                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            class="footer-link text-sm hover:text-brand transition-colors duration-200"
                             >Todos los Guantes</a
                         >
                     </li>
                     <li>
                         <a
                             href="/shop?category=elite"
-                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            class="footer-link text-sm hover:text-brand transition-colors duration-200"
                             >Serie Elite</a
                         >
                     </li>
                     <li>
                         <a
                             href="/shop?category=entrenamiento"
-                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            class="footer-link text-sm hover:text-brand transition-colors duration-200"
                             >Entrenamiento</a
                         >
                     </li>
                     <li>
                         <a
                             href="/shop?category=infantil"
-                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            class="footer-link text-sm hover:text-brand transition-colors duration-200"
                             >Infantil</a
                         >
                     </li>
                     <li>
                         <a
                             href="/shop?category=accesorios"
-                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            class="footer-link text-sm hover:text-brand transition-colors duration-200"
                             >Accesorios</a
                         >
                     </li>
@@ -130,7 +133,7 @@ const year = new Date().getFullYear();
             <!-- Help Links -->
             <div>
                 <h4
-                    class="text-white font-display uppercase tracking-[0.15em] text-sm font-semibold mb-6"
+                    class="footer-heading font-display uppercase tracking-[0.15em] text-sm font-semibold mb-6"
                 >
                     Ayuda
                 </h4>
@@ -138,35 +141,35 @@ const year = new Date().getFullYear();
                     <li>
                         <a
                             href="#"
-                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            class="footer-link text-sm hover:text-brand transition-colors duration-200"
                             >Contacto</a
                         >
                     </li>
                     <li>
                         <a
                             href="#"
-                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            class="footer-link text-sm hover:text-brand transition-colors duration-200"
                             >Envíos y Devoluciones</a
                         >
                     </li>
                     <li>
                         <a
                             href="#"
-                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            class="footer-link text-sm hover:text-brand transition-colors duration-200"
                             >Guía de Tallas</a
                         >
                     </li>
                     <li>
                         <a
                             href="#"
-                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            class="footer-link text-sm hover:text-brand transition-colors duration-200"
                             >Preguntas Frecuentes</a
                         >
                     </li>
                     <li>
                         <a
                             href="#"
-                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            class="footer-link text-sm hover:text-brand transition-colors duration-200"
                             >Sobre Nosotros</a
                         >
                     </li>
@@ -176,11 +179,11 @@ const year = new Date().getFullYear();
             <!-- Newsletter -->
             <div>
                 <h4
-                    class="text-white font-display uppercase tracking-[0.15em] text-sm font-semibold mb-6"
+                    class="footer-heading font-display uppercase tracking-[0.15em] text-sm font-semibold mb-6"
                 >
                     Newsletter
                 </h4>
-                <p class="text-white/40 text-sm mb-4">
+                <p class="footer-text text-sm mb-4">
                     Suscríbete y obtén un 10% en tu primera compra.
                 </p>
                 <form class="flex flex-col gap-3">
@@ -199,22 +202,22 @@ const year = new Date().getFullYear();
     </div>
 
     <!-- Bottom Bar -->
-    <div class="border-t border-white/5">
+    <div style="border-top: 1px solid var(--border-color);">
         <div
-            class="container py-6 flex flex-col md:flex-row justify-between items-center gap-4"
+            class="container py-6 flex flex-col items-center gap-4 text-center md:flex-row md:justify-between md:text-left"
         >
-            <p class="text-white/20 text-xs uppercase tracking-[0.15em]">
+            <p class="footer-copyright text-xs uppercase tracking-[0.15em]">
                 &copy; {year} PARRA. Todos los derechos reservados.
             </p>
 
             <!-- Payment Icons -->
-            <div class="flex items-center gap-6 opacity-20">
-                <svg class="h-5" viewBox="0 0 780 500" fill="white"
+            <div class="flex items-center gap-6 opacity-30">
+                <svg class="h-5 payment-icon" viewBox="0 0 780 500"
                     ><path
                         d="M293.2 348.7l33.4-195.7h53.3L346.5 348.7H293.2zM589.2 156.8c-10.5-4-27-8.3-47.5-8.3-52.4 0-89.3 26.3-89.6 64-.3 27.9 26.3 43.4 46.4 52.7 20.6 9.5 27.5 15.6 27.4 24.1-.1 13-16.4 19-31.6 19-21.1 0-32.4-2.9-49.7-10.2l-6.8-3.1-7.4 43.2c12.3 5.4 35.2 10.1 58.9 10.3 55.7 0 91.9-26 92.3-66.3.2-22.1-13.9-38.9-44.6-52.8-18.6-9-30-15-29.9-24.1 0-8.1 9.6-16.7 30.4-16.7 17.4-.3 30 3.5 39.8 7.5l4.8 2.2 7.2-42.3zm136.5 2.5h-41c-12.7 0-22.2 3.5-27.8 16.1l-78.8 178h55.7l11.1-29.1h68l6.4 29.1h49.2L729.7 159.3h.0zm-65.4 127.2c2.5-6.4 36.8-94.4 36.8-94.4-.5.9 7.6-19.6 12.2-32.3l6.3 29.2 21.4 97.5H660.3zM247.1 153l-49 195.7-52.1-165.4c-6.1-18.8-17.9-30.3-37-30.3H17.5L16.5 159c21.8 5.3 41.5 13 58.5 22.7l48.6 173.9h56.1l85.5-203.7h-18.1z"
                     ></path></svg
                 >
-                <svg class="h-6" viewBox="0 0 780 500" fill="white"
+                <svg class="h-6 payment-icon" viewBox="0 0 780 500"
                     ><circle cx="312" cy="250" r="156" fill-opacity="0.8"
                     ></circle><circle
                         cx="468"
@@ -222,21 +225,44 @@ const year = new Date().getFullYear();
                         r="156"
                         fill-opacity="0.6"></circle></svg
                 >
-                <span class="text-white/60 text-xs font-bold tracking-wider"
+                <span class="footer-text text-xs font-bold tracking-wider"
                     >PayPal</span
                 >
             </div>
 
             <div
-                class="flex gap-6 text-xs text-white/20 uppercase tracking-[0.15em]"
+                class="flex gap-6 text-xs footer-copyright uppercase tracking-[0.15em]"
             >
-                <a href="#" class="hover:text-white/50 transition-colors"
+                <a href="#" class="hover:opacity-70 transition-opacity"
                     >Privacidad</a
                 >
-                <a href="#" class="hover:text-white/50 transition-colors"
+                <a href="#" class="hover:opacity-70 transition-opacity"
                     >Términos</a
                 >
             </div>
         </div>
     </div>
 </footer>
+
+<style>
+    .footer-heading {
+        color: var(--text-primary);
+    }
+    .footer-text {
+        color: var(--text-muted);
+    }
+    .footer-link {
+        color: var(--text-muted);
+    }
+    .footer-copyright {
+        color: var(--text-muted);
+        opacity: 0.6;
+    }
+    .social-icon {
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+    }
+    .payment-icon {
+        fill: var(--text-primary);
+    }
+</style>

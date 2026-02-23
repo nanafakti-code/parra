@@ -6,16 +6,17 @@ import Footer from "../components/Footer.astro";
 
 <Layout title="Mi Carrito">
     <Header />
-    <main class="min-h-screen bg-surface-950">
+    <main class="min-h-screen" style="background-color: var(--bg-primary);">
         <!-- Breadcrumb -->
-        <div class="container pt-12">
+        <div class="container pt-24">
             <div
-                class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/30 mb-8"
+                class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] mb-8"
+                style="color: var(--text-muted);"
             >
                 <a href="/" class="hover:text-brand transition-colors">Inicio</a
                 >
                 <span>/</span>
-                <span class="text-white/60">Carrito</span>
+                <span style="color: var(--text-secondary);">Carrito</span>
             </div>
             <h1 class="section-title mb-12">
                 Tu <span class="text-brand">Equipo</span>
@@ -33,11 +34,13 @@ import Footer from "../components/Footer.astro";
                         <!-- Skeleton Loading -->
                         <div class="animate-pulse space-y-4">
                             <div
-                                class="h-28 bg-surface-900 border border-white/5"
+                                class="h-28"
+                                style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);"
                             >
                             </div>
                             <div
-                                class="h-28 bg-surface-900 border border-white/5"
+                                class="h-28"
+                                style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);"
                             >
                             </div>
                         </div>
@@ -45,10 +48,12 @@ import Footer from "../components/Footer.astro";
 
                     <div id="empty-cart" class="hidden py-24 text-center">
                         <div
-                            class="w-20 h-20 mx-auto mb-6 border border-white/10 flex items-center justify-center"
+                            class="w-20 h-20 mx-auto mb-6 flex items-center justify-center"
+                            style="border: 1px solid var(--border-color);"
                         >
                             <svg
-                                class="w-8 h-8 text-white/20"
+                                class="w-8 h-8"
+                                style="color: var(--text-muted);"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -62,7 +67,8 @@ import Footer from "../components/Footer.astro";
                             </svg>
                         </div>
                         <p
-                            class="text-white/30 uppercase tracking-[0.2em] text-sm mb-8"
+                            class="uppercase tracking-[0.2em] text-sm mb-8"
+                            style="color: var(--text-muted);"
                         >
                             Tu carrito está vacío
                         </p>
@@ -94,16 +100,24 @@ import Footer from "../components/Footer.astro";
                         </h3>
 
                         <div class="space-y-4 mb-8 text-sm">
-                            <div class="flex justify-between text-white/40">
+                            <div
+                                class="flex justify-between text-sm"
+                                style="color: var(--text-muted);"
+                            >
                                 <span class="uppercase tracking-wider"
                                     >Subtotal</span
                                 >
                                 <span
                                     id="subtotal"
-                                    class="font-semibold text-white">€0.00</span
+                                    class="font-semibold"
+                                    style="color: var(--text-primary);"
+                                    >€0.00</span
                                 >
                             </div>
-                            <div class="flex justify-between text-white/40">
+                            <div
+                                class="flex justify-between text-sm"
+                                style="color: var(--text-muted);"
+                            >
                                 <span class="uppercase tracking-wider"
                                     >Envío</span
                                 >
@@ -112,7 +126,8 @@ import Footer from "../components/Footer.astro";
                                 >
                             </div>
                             <div
-                                class="pt-4 border-t border-white/5 flex justify-between"
+                                class="pt-4 flex justify-between"
+                                style="border-top: 1px solid var(--border-color);"
                             >
                                 <span
                                     class="text-lg font-bold uppercase tracking-wider"
@@ -184,78 +199,131 @@ import Footer from "../components/Footer.astro";
 </Layout>
 
 <script>
-    async function loadCart() {
-        try {
-            const response = await fetch("/api/cart");
-            const items = await response.json();
+    import { getCart, removeItem, updateQty, cartTotal } from "../lib/cart";
+    import type { CartItem } from "../lib/cart";
 
-            const list = document.getElementById("cart-items-list");
-            const empty = document.getElementById("empty-cart");
-            const subtotalEl = document.getElementById("subtotal");
-            const totalEl = document.getElementById("total");
+    let busyKeys = new Set<string>();
 
-            if (!list) return;
+    function ikey(item: CartItem) {
+        return item.variantId && item.variantId !== '' ? item.variantId : item.id;
+    }
 
-            if (!Array.isArray(items) || items.length === 0) {
-                list.classList.add("hidden");
-                empty?.classList.remove("hidden");
+    function fmt(n: number) {
+        return '€' + n.toFixed(2);
+    }
+
+    const SPINNER = `<svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+    </svg>`;
+
+    function initCartPage() {
+        const list        = document.getElementById("cart-items-list");
+        const empty       = document.getElementById("empty-cart");
+        const subtotalEl  = document.getElementById("subtotal");
+        const totalEl     = document.getElementById("total");
+        const cartContainer = document.getElementById("cart-container");
+
+        function render() {
+            const items = getCart();
+            if (!list || !empty || !subtotalEl || !totalEl || !cartContainer) return;
+
+            if (items.length === 0) {
+                cartContainer.classList.add("hidden");
+                empty.classList.remove("hidden");
                 return;
             }
 
-            list.innerHTML = items
-                .map(
-                    (item: any) => `
-        <div class="flex items-center gap-6 p-5 card group">
-          <div class="w-20 h-20 bg-surface-900 flex-shrink-0 overflow-hidden">
-            <img src="${item.product?.image || ""}" alt="${item.product?.name || ""}" class="w-full h-full object-cover" />
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex justify-between items-start mb-2 gap-4">
-              <h3 class="font-display font-semibold uppercase tracking-tight text-sm truncate">${item.product?.name || ""}</h3>
-              <span class="font-bold text-sm shrink-0">€${((item.product?.price || 0) * item.quantity).toFixed(2)}</span>
-            </div>
-            <div class="flex items-center justify-between text-white/30 text-[11px] uppercase tracking-wider">
-              <div class="flex items-center gap-4">
-                <span>Cant: ${item.quantity}</span>
-                ${item.variant ? `<span>Talla: ${item.variant.size}</span>` : ""}
-              </div>
-              <button class="hover:text-red-500 transition-colors flex items-center gap-1" onclick="removeItem('${item.id}')">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Eliminar
-              </button>
-            </div>
-          </div>
-        </div>
-      `,
-                )
-                .join("");
+            cartContainer.classList.remove("hidden");
+            empty.classList.add("hidden");
 
-            const total = items.reduce(
-                (sum: number, item: any) =>
-                    sum + (item.product?.price || 0) * item.quantity,
-                0,
-            );
-            if (subtotalEl) subtotalEl.textContent = `€${total.toFixed(2)}`;
-            if (totalEl) totalEl.textContent = `€${total.toFixed(2)}`;
-        } catch (err) {
-            console.error("Error loading cart:", err);
+            const total = cartTotal();
+            subtotalEl.textContent = fmt(total);
+            totalEl.textContent    = fmt(total);
+
+            list.innerHTML = items.map(item => {
+                const key  = ikey(item);
+                const busy = busyKeys.has(key);
+                const atMax = item.stock > 0 && item.quantity >= item.stock;
+
+                return `<div
+                    class="flex items-center gap-6 p-5 card group transition-opacity duration-200 ${busy ? 'opacity-50 pointer-events-none' : ''}"
+                    data-key="${key}"
+                >
+                    <div class="w-24 h-24 flex-shrink-0 overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-color)]">
+                        <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy"/>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-start mb-2 gap-4">
+                            <div>
+                                <h3 class="font-display font-bold uppercase tracking-tight text-base mb-1">${item.name}</h3>
+                                ${item.size ? `<p class="text-[10px] text-brand font-bold uppercase tracking-widest">Talla ${item.size}</p>` : ''}
+                                ${item.stock > 0 && item.quantity >= item.stock
+                                    ? `<p class="text-[10px] text-amber-400 font-semibold mt-0.5">Stock maximo alcanzado</p>`
+                                    : ''}
+                            </div>
+                            <span class="font-bold text-lg">${fmt(item.price * item.quantity)}</span>
+                        </div>
+                        <div class="flex items-center justify-between mt-4">
+                            <div class="flex items-center border border-[var(--border-color)] divide-x divide-[var(--border-color)]">
+                                <button class="qty-btn-page w-9 h-9 flex items-center justify-center text-[var(--text-muted)] hover:text-white transition-colors"
+                                    data-action="dec" data-id="${item.id}" data-variant="${item.variantId || ''}" data-key="${key}"
+                                    ${busy ? 'disabled' : ''}>
+                                    ${busy ? SPINNER : '−'}
+                                </button>
+                                <span class="text-sm font-bold w-10 text-center tabular-nums select-none">${item.quantity}</span>
+                                <button class="qty-btn-page w-9 h-9 flex items-center justify-center text-[var(--text-muted)] hover:text-white transition-colors"
+                                    data-action="inc" data-id="${item.id}" data-variant="${item.variantId || ''}" data-key="${key}"
+                                    ${busy || atMax ? 'disabled' : ''}
+                                    title="${atMax ? 'Stock maximo' : ''}">
+                                    ${busy ? SPINNER : '+'}
+                                </button>
+                            </div>
+                            <button class="remove-btn-page text-xs uppercase font-bold tracking-widest text-[var(--text-muted)] hover:text-red-500 transition-colors flex items-center gap-2"
+                                    data-id="${item.id}" data-variant="${item.variantId || ''}" data-key="${key}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            // Event Listeners
+            list.querySelectorAll<HTMLButtonElement>('.remove-btn-page').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const key = btn.dataset.key!;
+                    busyKeys.add(key);
+                    render();
+                    await removeItem(btn.dataset.id!, btn.dataset.variant || undefined);
+                    busyKeys.delete(key);
+                });
+            });
+
+            list.querySelectorAll<HTMLButtonElement>('.qty-btn-page').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const key    = btn.dataset.key!;
+                    const id     = btn.dataset.id!;
+                    const vId    = btn.dataset.variant || undefined;
+                    const action = btn.dataset.action!;
+                    const item   = getCart().find(i => ikey(i) === key);
+                    if (!item) return;
+                    const newQty = action === 'inc' ? item.quantity + 1 : item.quantity - 1;
+                    busyKeys.add(key);
+                    render();
+                    await updateQty(id, vId, newQty);
+                    busyKeys.delete(key);
+                    render();
+                });
+            });
         }
+
+        window.addEventListener('cart:updated', render);
+        render();
     }
 
-    (window as any).removeItem = async (itemId: string) => {
-        try {
-            await fetch("/api/cart", {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ itemId }),
-            });
-            loadCart();
-        } catch (err) {
-            console.error("Error removing item:", err);
-        }
-    };
-
-    loadCart();
+    document.addEventListener('astro:page-load', initCartPage);
 </script>

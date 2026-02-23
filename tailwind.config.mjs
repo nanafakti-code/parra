@@ -66,6 +66,20 @@ export default {
                     '0%': { opacity: '0', transform: 'scale(0.95)' },
                     '100%': { opacity: '1', transform: 'scale(1)' },
                 },
+                'reveal-up': {
+                    '0%': { opacity: '0', transform: 'translateY(40px)' },
+                    '100%': { opacity: '1', transform: 'translateY(0)' },
+                },
+                'cart-bounce': {
+                    '0%, 100%': { transform: 'scale(1)' },
+                    '30%': { transform: 'scale(1.3)' },
+                    '60%': { transform: 'scale(0.9)' },
+                    '80%': { transform: 'scale(1.1)' },
+                },
+                'shimmer': {
+                    '0%': { backgroundPosition: '-200% 0' },
+                    '100%': { backgroundPosition: '200% 0' },
+                },
             },
             animation: {
                 'fade-up': 'fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
@@ -75,6 +89,9 @@ export default {
                 'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
                 marquee: 'marquee 20s linear infinite',
                 'scale-in': 'scale-in 0.3s ease-out forwards',
+                'reveal-up': 'reveal-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                'cart-bounce': 'cart-bounce 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards',
+                'shimmer': 'shimmer 2s linear infinite',
             },
             backdropBlur: {
                 xs: '2px',

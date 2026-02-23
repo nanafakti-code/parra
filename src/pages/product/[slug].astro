@@ -95,11 +95,12 @@ const specs = [
         product.description?.slice(0, 160)}
 >
     <Header />
-    <main class="min-h-screen bg-surface-950">
+    <main class="min-h-screen" style="background-color: var(--bg-primary);">
         <!-- Breadcrumb -->
         <div class="container pt-8">
             <div
-                class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/30 mb-8"
+                class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] mb-8"
+                style="color: var(--text-muted);"
             >
                 <a href="/" class="hover:text-brand transition-colors">Inicio</a
                 >
@@ -121,7 +122,8 @@ const specs = [
                         </>
                     )
                 }
-                <span class="text-white/60">{product.name}</span>
+                <span style="color: var(--text-secondary);">{product.name}</span
+                >
             </div>
         </div>
 
@@ -133,7 +135,8 @@ const specs = [
                     <div class="space-y-4">
                         <!-- Main Image -->
                         <div
-                            class="aspect-square bg-surface-900 overflow-hidden border border-white/5 relative group"
+                            class="aspect-square overflow-hidden relative group"
+                            style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);"
                         >
                             <img
                                 id="main-image"
@@ -164,10 +167,10 @@ const specs = [
                                     {allImages.map((img, i) => (
                                         <button
                                             class:list={[
-                                                "thumb-btn w-20 h-20 flex-shrink-0 bg-surface-900 border overflow-hidden transition-all duration-200",
+                                                "thumb-btn w-20 h-20 flex-shrink-0 border overflow-hidden transition-all duration-200",
                                                 i === 0
                                                     ? "border-brand"
-                                                    : "border-white/10 hover:border-white/30",
+                                                    : "border-[var(--border-color)] hover:border-[var(--text-muted)]",
                                             ]}
                                             data-src={img.url}
                                         >
@@ -210,7 +213,10 @@ const specs = [
                             {
                                 hasDiscount && (
                                     <>
-                                        <span class="text-lg text-white/30 line-through">
+                                        <span
+                                            class="text-lg line-through"
+                                            style="color: var(--text-muted);"
+                                        >
                                             €{product.compare_price.toFixed(2)}
                                         </span>
                                         <span class="badge-sale">
@@ -224,7 +230,10 @@ const specs = [
                         {/* Short Description */}
                         {
                             product.short_description && (
-                                <p class="text-white/50 leading-relaxed mb-8">
+                                <p
+                                    class="leading-relaxed mb-8"
+                                    style="color: var(--text-secondary);"
+                                >
                                     {product.short_description}
                                 </p>
                             )
@@ -235,7 +244,10 @@ const specs = [
                             variants && variants.length > 0 && (
                                 <div class="mb-8">
                                     <div class="flex justify-between items-center mb-3">
-                                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
+                                        <span
+                                            class="text-xs font-bold uppercase tracking-[0.2em]"
+                                            style="color: var(--text-secondary);"
+                                        >
                                             Talla
                                         </span>
                                         <a
@@ -255,7 +267,7 @@ const specs = [
                                                     "size-btn w-14 h-14 border flex items-center justify-center text-sm font-bold uppercase transition-all duration-200",
                                                     i === 0
                                                         ? "border-brand bg-brand/10 text-brand"
-                                                        : "border-white/10 text-white/50 hover:border-brand/50 hover:text-brand",
+                                                        : "border-[var(--border-color)] text-[var(--text-muted)] hover:border-brand/50 hover:text-brand",
                                                     v.stock <= 0 &&
                                                         "opacity-30 pointer-events-none line-through",
                                                 ]}
@@ -270,7 +282,8 @@ const specs = [
                                     </div>
                                     <p
                                         id="stock-info"
-                                        class="text-xs text-white/30 mt-2"
+                                        class="text-xs mt-2"
+                                        style="color: var(--text-muted);"
                                     >
                                         {variants[0]?.stock > 0
                                             ? `${variants[0].stock} disponibles`
@@ -286,6 +299,12 @@ const specs = [
                                 id="add-to-cart-btn"
                                 class="btn-glow flex-1 flex items-center justify-center gap-3 h-14"
                                 data-product-id={product.id}
+                                data-price={product.price}
+                                data-name={product.name}
+                                data-image={product.image ||
+                                    (product.variants &&
+                                        product.variants[0]?.image) ||
+                                    ""}
                             >
                                 <svg
                                     class="w-5 h-5"
@@ -306,7 +325,8 @@ const specs = [
 
                         {/* Benefits Row */}
                         <div
-                            class="grid grid-cols-3 gap-4 mb-10 py-6 border-y border-white/5"
+                            class="grid grid-cols-3 gap-4 mb-10 py-6"
+                            style="border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);"
                         >
                             <div class="text-center">
                                 <svg
@@ -322,7 +342,8 @@ const specs = [
                                         d="M5 13l4 4L19 7"></path>
                                 </svg>
                                 <span
-                                    class="text-[10px] uppercase tracking-wider text-white/40"
+                                    class="text-[10px] uppercase tracking-wider"
+                                    style="color: var(--text-muted);"
                                     >Envío Gratis +60€</span
                                 >
                             </div>
@@ -341,7 +362,8 @@ const specs = [
                                     ></path>
                                 </svg>
                                 <span
-                                    class="text-[10px] uppercase tracking-wider text-white/40"
+                                    class="text-[10px] uppercase tracking-wider"
+                                    style="color: var(--text-muted);"
                                     >Devolución 30 días</span
                                 >
                             </div>
@@ -360,7 +382,8 @@ const specs = [
                                     ></path>
                                 </svg>
                                 <span
-                                    class="text-[10px] uppercase tracking-wider text-white/40"
+                                    class="text-[10px] uppercase tracking-wider"
+                                    style="color: var(--text-muted);"
                                     >Garantía incluida</span
                                 >
                             </div>
@@ -370,7 +393,7 @@ const specs = [
                         <div class="space-y-0" id="specs-accordion">
                             {
                                 specs.map((spec, i) => (
-                                    <div class="border-b border-white/5">
+                                    <div style="border-bottom: 1px solid var(--border-color);">
                                         <button
                                             class="accordion-trigger w-full flex justify-between items-center py-4 text-left"
                                             data-index={i}
@@ -379,7 +402,8 @@ const specs = [
                                                 {spec.title}
                                             </span>
                                             <svg
-                                                class="accordion-icon w-4 h-4 text-white/30 transition-transform duration-300"
+                                                class="accordion-icon w-4 h-4 transition-transform duration-300"
+                                                style="color: var(--text-muted);"
                                                 fill="none"
                                                 stroke="currentColor"
                                                 viewBox="0 0 24 24"
@@ -401,7 +425,10 @@ const specs = [
                                             ]}
                                             data-index={i}
                                         >
-                                            <p class="text-white/40 text-sm leading-relaxed pb-4">
+                                            <p
+                                                class="text-sm leading-relaxed pb-4"
+                                                style="color: var(--text-muted);"
+                                            >
                                                 {spec.content}
                                             </p>
                                         </div>
@@ -417,7 +444,10 @@ const specs = [
         <!-- Related Products -->
         {
             relatedProducts && relatedProducts.length > 0 && (
-                <section class="section border-t border-white/5">
+                <section
+                    class="section"
+                    style="border-top: 1px solid var(--border-color);"
+                >
                     <div class="container">
                         <h2 class="section-title mb-12">
                             También Te Puede{" "}
@@ -437,120 +467,143 @@ const specs = [
 </Layout>
 
 <script>
-    // Thumbnail gallery
-    document.querySelectorAll(".thumb-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            const src = (btn as HTMLElement).dataset.src;
-            const mainImg = document.getElementById(
-                "main-image",
-            ) as HTMLImageElement;
-            if (mainImg && src) {
-                mainImg.src = src;
-            }
-            document.querySelectorAll(".thumb-btn").forEach((b) => {
-                b.classList.remove("border-brand");
-                b.classList.add("border-white/10");
-            });
-            btn.classList.add("border-brand");
-            btn.classList.remove("border-white/10");
-        });
-    });
+    import { addItem } from "../../lib/cart";
 
-    // Size selector
-    document.querySelectorAll(".size-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            document.querySelectorAll(".size-btn").forEach((b) => {
-                b.classList.remove("border-brand", "bg-brand/10", "text-brand");
-                b.classList.add("border-white/10", "text-white/50");
-            });
-            btn.classList.add("border-brand", "bg-brand/10", "text-brand");
-            btn.classList.remove("border-white/10", "text-white/50");
-
-            const stock = parseInt((btn as HTMLElement).dataset.stock || "0");
-            const stockInfo = document.getElementById("stock-info");
-            if (stockInfo) {
-                stockInfo.textContent =
-                    stock > 0 ? `${stock} disponibles` : "Agotado";
-            }
-        });
-    });
-
-    // Accordion
-    document.querySelectorAll(".accordion-trigger").forEach((trigger) => {
-        trigger.addEventListener("click", () => {
-            const index = (trigger as HTMLElement).dataset.index;
-            const content = document.querySelector(
-                `.accordion-content[data-index="${index}"]`,
-            ) as HTMLElement;
-            const icon = trigger.querySelector(
-                ".accordion-icon",
-            ) as HTMLElement;
-
-            if (content) {
-                if (content.classList.contains("max-h-0")) {
-                    content.classList.remove("max-h-0");
-                    content.classList.add("max-h-96");
-                    icon?.classList.add("rotate-180");
-                } else {
-                    content.classList.add("max-h-0");
-                    content.classList.remove("max-h-96");
-                    icon?.classList.remove("rotate-180");
+    function initProductPage() {
+        // Thumbnail gallery
+        document.querySelectorAll(".thumb-btn").forEach(function (btnEl) {
+            const btn = btnEl as HTMLButtonElement;
+            btn.addEventListener("click", function () {
+                var src = btn.dataset.src;
+                var mainImg = document.getElementById(
+                    "main-image",
+                ) as HTMLImageElement;
+                if (mainImg && src) {
+                    mainImg.src = src;
                 }
-            }
+                document.querySelectorAll(".thumb-btn").forEach(function (b) {
+                    b.classList.remove("border-brand");
+                    b.classList.add("border-[var(--border-color)]");
+                });
+                btn.classList.add("border-brand");
+                btn.classList.remove("border-[var(--border-color)]");
+            });
         });
-    });
 
-    // Add to cart
-    const addToCartBtn = document.getElementById("add-to-cart-btn");
-    addToCartBtn?.addEventListener("click", async () => {
-        const productId = (addToCartBtn as HTMLElement).dataset.productId;
-        const selectedSize = document.querySelector(
-            ".size-btn.border-brand",
-        ) as HTMLElement;
-        const variantId = selectedSize?.dataset.variantId;
+        // Size selector
+        document.querySelectorAll(".size-btn").forEach(function (btnEl) {
+            const btn = btnEl as HTMLButtonElement;
+            btn.addEventListener("click", function () {
+                document.querySelectorAll(".size-btn").forEach(function (b) {
+                    b.classList.remove(
+                        "border-brand",
+                        "bg-brand/10",
+                        "text-brand",
+                    );
+                    b.classList.add(
+                        "border-[var(--border-color)]",
+                        "text-[var(--text-muted)]",
+                    );
+                });
+                btn.classList.add("border-brand", "bg-brand/10", "text-brand");
+                btn.classList.remove(
+                    "border-[var(--border-color)]",
+                    "text-[var(--text-muted)]",
+                );
 
-        addToCartBtn.textContent = "Añadiendo...";
-        addToCartBtn.setAttribute("disabled", "true");
+                var stock = parseInt(btn.dataset.stock || "0");
+                var stockInfo = document.getElementById("stock-info");
+                if (stockInfo) {
+                    stockInfo.textContent =
+                        stock > 0 ? stock + " disponibles" : "Agotado";
+                }
+            });
+        });
 
-        try {
-            const response = await fetch("/api/cart", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    productId,
-                    variantId: variantId || null,
-                    quantity: 1,
-                }),
+        // Accordion
+        document
+            .querySelectorAll(".accordion-trigger")
+            .forEach(function (triggerEl) {
+                const trigger = triggerEl as HTMLButtonElement;
+                trigger.addEventListener("click", function () {
+                    var index = trigger.dataset.index;
+                    var content = document.querySelector(
+                        '.accordion-content[data-index="' + index + '"]',
+                    );
+                    var icon = trigger.querySelector(".accordion-icon");
+
+                    if (content) {
+                        if (content.classList.contains("max-h-0")) {
+                            content.classList.remove("max-h-0");
+                            content.classList.add("max-h-96");
+                            if (icon) icon.classList.add("rotate-180");
+                        } else {
+                            content.classList.add("max-h-0");
+                            content.classList.remove("max-h-96");
+                            if (icon) icon.classList.remove("rotate-180");
+                        }
+                    }
+                });
             });
 
-            if (response.ok) {
-                addToCartBtn.innerHTML = `
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          ¡Añadido!
-        `;
-                setTimeout(() => {
-                    addToCartBtn.innerHTML = `
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
-            Añadir al Carrito
-          `;
-                    addToCartBtn.removeAttribute("disabled");
+        // Add to cart
+        var addToCartBtn = document.getElementById(
+            "add-to-cart-btn",
+        ) as HTMLButtonElement;
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener("click", async function () {
+                var productId = addToCartBtn.dataset.productId!;
+                var selectedSizeBtn = document.querySelector(
+                    ".size-btn.border-brand",
+                ) as HTMLButtonElement;
+
+                if (
+                    !selectedSizeBtn &&
+                    document.getElementById("size-selector")
+                ) {
+                    alert("Por favor, selecciona una talla");
+                    return;
+                }
+
+                const variantId = selectedSizeBtn?.dataset.variantId;
+                const size = selectedSizeBtn?.dataset.size;
+                const stock = parseInt(
+                    selectedSizeBtn?.dataset.stock ||
+                        addToCartBtn.dataset.stock ||
+                        "0",
+                );
+
+                const productName = addToCartBtn?.dataset.name || "Producto";
+                const productPrice = parseFloat(
+                    addToCartBtn?.dataset.price || "0",
+                );
+                const productImage = addToCartBtn?.dataset.image || "";
+                const productSlug =
+                    window.location.pathname.split("/").pop() || "";
+
+                await addItem({
+                    id: productId,
+                    variantId,
+                    name: productName,
+                    price: productPrice,
+                    image: productImage,
+                    size,
+                    stock,
+                    slug: productSlug,
+                    quantity: 1,
+                });
+
+                addToCartBtn.innerHTML =
+                    '<span class="flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> ¡Añadido!</span>';
+
+                setTimeout(function () {
+                    addToCartBtn.innerHTML =
+                        '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg> Añadir al Carrito';
                 }, 2000);
-            }
-        } catch (err) {
-            addToCartBtn.textContent = "Error";
-            setTimeout(() => {
-                addToCartBtn.innerHTML = `
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-          </svg>
-          Añadir al Carrito
-        `;
-                addToCartBtn.removeAttribute("disabled");
-            }, 2000);
+            });
         }
-    });
+    }
+
+    // Run on every page load (including View Transitions)
+    document.addEventListener("astro:page-load", initProductPage);
 </script>

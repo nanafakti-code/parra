@@ -1,0 +1,70 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="¡Gracias por tu compra!">
+    <Header />
+    <main
+        class="min-h-screen py-24 flex items-center justify-center"
+        style="background-color: var(--bg-primary);"
+    >
+        <div class="container max-w-2xl text-center">
+            <div
+                class="w-24 h-24 bg-brand text-black flex items-center justify-center mx-auto mb-10 rounded-full animate-bounce"
+            >
+                <svg
+                    class="w-12 h-12"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+
+            <h1
+                class="font-display text-5xl md:text-6xl font-black uppercase tracking-tighter mb-6"
+            >
+                ¡PEDIDO <span class="text-brand">CONFIRMADO</span>!
+            </h1>
+
+            <p
+                class="text-lg mb-10 text-[var(--text-secondary)] leading-relaxed"
+            >
+                Gracias por confiar en PARRA. Hemos recibido tu pago
+                correctamente. Tu pedido está siendo procesado por nuestros
+                expertos.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/shop" class="btn-glow inline-flex h-14 items-center">
+                    Seguir Comprando
+                </a>
+                <a
+                    href="/profile"
+                    class="btn-outline inline-flex h-14 items-center"
+                >
+                    Ver mis pedidos
+                </a>
+            </div>
+        </div>
+    </main>
+    <Footer />
+</Layout>
+
+<script>
+    import { clearCart } from "../lib/cart";
+
+    // Clear cart on successful checkout
+    document.addEventListener("astro:page-load", () => {
+        if (window.location.pathname === "/success") {
+            clearCart();
+        }
+    });
+</script>
