@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { stripe } from '../../../lib/stripe';
+import { getStripe } from '../../../lib/stripe';
 import { supabaseAdmin } from '../../../lib/supabase';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -14,7 +14,7 @@ export const POST: APIRoute = async ({ request }) => {
     let event;
 
     try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+        event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
     } catch (err: any) {
         console.error(`Webhook Error: ${err.message}`);
         return new Response(`Webhook Error: ${err.message}`, { status: 400 });
@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         try {
             // 1. Get order details from Stripe (includes line items)
-            const sessionWithLineItems = await stripe.checkout.sessions.retrieve(
+            const sessionWithLineItems = await getStripe().checkout.sessions.retrieve(
                 session.id,
                 { expand: ['line_items.data.price.product'] }
             );
