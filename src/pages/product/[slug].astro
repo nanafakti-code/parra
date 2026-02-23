@@ -1,0 +1,544 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Header from "../../components/Header.astro";
+import ProductCard from "../../components/ProductCard.astro";
+import Footer from "../../components/Footer.astro";
+import { supabase } from "../../lib/supabase";
+
+const { slug } = Astro.params;
+
+// Fetch main product
+const { data: product, error } = await supabase
+    .from("products")
+    .select("*, categories(name, slug)")
+    .eq("slug", slug)
+    .eq("is_active", true)
+    .single();
+
+if (!product) {
+    return Astro.redirect("/shop");
+}
+
+// Fetch product images
+const { data: images } = await supabase
+    .from("product_images")
+    .select("*")
+    .eq("product_id", product.id)
+    .order("display_order");
+
+// Fetch product variants (sizes)
+const { data: variants } = await supabase
+    .from("product_variants")
+    .select("*")
+    .eq("product_id", product.id)
+    .eq("is_active", true)
+    .order("size");
+
+// Fetch related products
+const { data: relatedProducts } = await supabase
+    .from("products")
+    .select("*, categories(name, slug)")
+    .eq("is_active", true)
+    .eq("category_id", product.category_id)
+    .neq("id", product.id)
+    .limit(4);
+
+const allImages = [
+    { url: product.image, alt_text: product.name },
+    ...(images || []),
+];
+
+const hasDiscount =
+    product.compare_price && product.compare_price > product.price;
+const discountPercent = hasDiscount
+    ? Math.round(
+          ((product.compare_price - product.price) / product.compare_price) *
+              100,
+      )
+    : 0;
+
+const specs = [
+    { title: "Descripción", content: product.description },
+    {
+        title: "Materiales",
+        content:
+            "Látex de contacto alemán premium. Dorso de malla transpirable con protección EVA. Cierre de muñeca ajustable con banda elástica reforzada.",
+    },
+    {
+        title: "Cuidado",
+        content:
+            "Lavar a mano con agua tibia y jabón neutro. Secar a la sombra. No usar secadora. Usar limpiador específico para guantes de portero para mantener la adherencia del látex.",
+    },
+    {
+        title: "Envío",
+        content:
+            "Envío gratuito en pedidos superiores a 60€. Entrega en 24-48h en Península. Devoluciones gratuitas en 30 días.",
+    },
+];
+---
+
+<Layout
+    title={product.name}
+    description={product.short_description ||
+        product.description?.slice(0, 160)}
+>
+    <Header />
+    <main class="min-h-screen bg-surface-950">
+        <!-- Breadcrumb -->
+        <div class="container pt-8">
+            <div
+                class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/30 mb-8"
+            >
+                <a href="/" class="hover:text-brand transition-colors">Inicio</a
+                >
+                <span>/</span>
+                <a href="/shop" class="hover:text-brand transition-colors"
+                    >Tienda</a
+                >
+                <span>/</span>
+                {
+                    product.categories && (
+                        <>
+                            <a
+                                href={`/shop?category=${product.categories.slug}`}
+                                class="hover:text-brand transition-colors"
+                            >
+                                {product.categories.name}
+                            </a>
+                            <span>/</span>
+                        </>
+                    )
+                }
+                <span class="text-white/60">{product.name}</span>
+            </div>
+        </div>
+
+        <!-- Product Detail -->
+        <section class="pb-20">
+            <div class="container">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+                    <!-- Image Gallery -->
+                    <div class="space-y-4">
+                        <!-- Main Image -->
+                        <div
+                            class="aspect-square bg-surface-900 overflow-hidden border border-white/5 relative group"
+                        >
+                            <img
+                                id="main-image"
+                                src={allImages[0]?.url}
+                                alt={product.name}
+                                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            />
+                            {
+                                product.is_featured && (
+                                    <span class="badge-pro absolute top-4 left-4">
+                                        PRO
+                                    </span>
+                                )
+                            }
+                            {
+                                hasDiscount && (
+                                    <span class="badge-sale absolute top-4 right-4">
+                                        -{discountPercent}%
+                                    </span>
+                                )
+                            }
+                        </div>
+
+                        <!-- Thumbnails -->
+                        {
+                            allImages.length > 1 && (
+                                <div class="flex gap-3 overflow-x-auto pb-2">
+                                    {allImages.map((img, i) => (
+                                        <button
+                                            class:list={[
+                                                "thumb-btn w-20 h-20 flex-shrink-0 bg-surface-900 border overflow-hidden transition-all duration-200",
+                                                i === 0
+                                                    ? "border-brand"
+                                                    : "border-white/10 hover:border-white/30",
+                                            ]}
+                                            data-src={img.url}
+                                        >
+                                            <img
+                                                src={img.url}
+                                                alt={
+                                                    img.alt_text || product.name
+                                                }
+                                                class="w-full h-full object-cover"
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
+                            )
+                        }
+                    </div>
+
+                    <!-- Product Info -->
+                    <div class="lg:py-4">
+                        {/* Category */}
+                        {
+                            product.categories && (
+                                <span class="text-brand text-xs font-bold uppercase tracking-[0.2em] mb-3 block">
+                                    {product.categories.name}
+                                </span>
+                            )
+                        }
+
+                        <h1
+                            class="font-display text-4xl md:text-5xl font-bold uppercase tracking-tight mb-6"
+                        >
+                            {product.name}
+                        </h1>
+
+                        {/* Price */}
+                        <div class="flex items-center gap-4 mb-6">
+                            <span class="text-3xl font-bold"
+                                >€{product.price.toFixed(2)}</span
+                            >
+                            {
+                                hasDiscount && (
+                                    <>
+                                        <span class="text-lg text-white/30 line-through">
+                                            €{product.compare_price.toFixed(2)}
+                                        </span>
+                                        <span class="badge-sale">
+                                            -{discountPercent}%
+                                        </span>
+                                    </>
+                                )
+                            }
+                        </div>
+
+                        {/* Short Description */}
+                        {
+                            product.short_description && (
+                                <p class="text-white/50 leading-relaxed mb-8">
+                                    {product.short_description}
+                                </p>
+                            )
+                        }
+
+                        {/* Size Selector */}
+                        {
+                            variants && variants.length > 0 && (
+                                <div class="mb-8">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <span class="text-xs font-bold uppercase tracking-[0.2em] text-white/60">
+                                            Talla
+                                        </span>
+                                        <a
+                                            href="#"
+                                            class="text-xs text-brand hover:underline"
+                                        >
+                                            Guía de tallas
+                                        </a>
+                                    </div>
+                                    <div
+                                        class="flex flex-wrap gap-2"
+                                        id="size-selector"
+                                    >
+                                        {variants.map((v: any, i: number) => (
+                                            <button
+                                                class:list={[
+                                                    "size-btn w-14 h-14 border flex items-center justify-center text-sm font-bold uppercase transition-all duration-200",
+                                                    i === 0
+                                                        ? "border-brand bg-brand/10 text-brand"
+                                                        : "border-white/10 text-white/50 hover:border-brand/50 hover:text-brand",
+                                                    v.stock <= 0 &&
+                                                        "opacity-30 pointer-events-none line-through",
+                                                ]}
+                                                data-size={v.size}
+                                                data-stock={v.stock}
+                                                data-variant-id={v.id}
+                                                disabled={v.stock <= 0}
+                                            >
+                                                {v.size}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <p
+                                        id="stock-info"
+                                        class="text-xs text-white/30 mt-2"
+                                    >
+                                        {variants[0]?.stock > 0
+                                            ? `${variants[0].stock} disponibles`
+                                            : "Agotado"}
+                                    </p>
+                                </div>
+                            )
+                        }
+
+                        {/* Add to Cart */}
+                        <div class="flex gap-3 mb-8">
+                            <button
+                                id="add-to-cart-btn"
+                                class="btn-glow flex-1 flex items-center justify-center gap-3 h-14"
+                                data-product-id={product.id}
+                            >
+                                <svg
+                                    class="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                                    ></path>
+                                </svg>
+                                Añadir al Carrito
+                            </button>
+                        </div>
+
+                        {/* Benefits Row */}
+                        <div
+                            class="grid grid-cols-3 gap-4 mb-10 py-6 border-y border-white/5"
+                        >
+                            <div class="text-center">
+                                <svg
+                                    class="w-5 h-5 text-brand mx-auto mb-2"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.5"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span
+                                    class="text-[10px] uppercase tracking-wider text-white/40"
+                                    >Envío Gratis +60€</span
+                                >
+                            </div>
+                            <div class="text-center">
+                                <svg
+                                    class="w-5 h-5 text-brand mx-auto mb-2"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.5"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    ></path>
+                                </svg>
+                                <span
+                                    class="text-[10px] uppercase tracking-wider text-white/40"
+                                    >Devolución 30 días</span
+                                >
+                            </div>
+                            <div class="text-center">
+                                <svg
+                                    class="w-5 h-5 text-brand mx-auto mb-2"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.5"
+                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                                    ></path>
+                                </svg>
+                                <span
+                                    class="text-[10px] uppercase tracking-wider text-white/40"
+                                    >Garantía incluida</span
+                                >
+                            </div>
+                        </div>
+
+                        {/* Specs Accordion */}
+                        <div class="space-y-0" id="specs-accordion">
+                            {
+                                specs.map((spec, i) => (
+                                    <div class="border-b border-white/5">
+                                        <button
+                                            class="accordion-trigger w-full flex justify-between items-center py-4 text-left"
+                                            data-index={i}
+                                        >
+                                            <span class="text-sm font-semibold uppercase tracking-wider">
+                                                {spec.title}
+                                            </span>
+                                            <svg
+                                                class="accordion-icon w-4 h-4 text-white/30 transition-transform duration-300"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M19 9l-7 7-7-7"
+                                                />
+                                            </svg>
+                                        </button>
+                                        <div
+                                            class:list={[
+                                                "accordion-content overflow-hidden transition-all duration-300",
+                                                i === 0
+                                                    ? "max-h-96"
+                                                    : "max-h-0",
+                                            ]}
+                                            data-index={i}
+                                        >
+                                            <p class="text-white/40 text-sm leading-relaxed pb-4">
+                                                {spec.content}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Products -->
+        {
+            relatedProducts && relatedProducts.length > 0 && (
+                <section class="section border-t border-white/5">
+                    <div class="container">
+                        <h2 class="section-title mb-12">
+                            También Te Puede{" "}
+                            <span class="text-brand">Gustar</span>
+                        </h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+                            {relatedProducts.map((p: any, i: number) => (
+                                <ProductCard product={p} index={i} />
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )
+        }
+    </main>
+    <Footer />
+</Layout>
+
+<script>
+    // Thumbnail gallery
+    document.querySelectorAll(".thumb-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const src = (btn as HTMLElement).dataset.src;
+            const mainImg = document.getElementById(
+                "main-image",
+            ) as HTMLImageElement;
+            if (mainImg && src) {
+                mainImg.src = src;
+            }
+            document.querySelectorAll(".thumb-btn").forEach((b) => {
+                b.classList.remove("border-brand");
+                b.classList.add("border-white/10");
+            });
+            btn.classList.add("border-brand");
+            btn.classList.remove("border-white/10");
+        });
+    });
+
+    // Size selector
+    document.querySelectorAll(".size-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".size-btn").forEach((b) => {
+                b.classList.remove("border-brand", "bg-brand/10", "text-brand");
+                b.classList.add("border-white/10", "text-white/50");
+            });
+            btn.classList.add("border-brand", "bg-brand/10", "text-brand");
+            btn.classList.remove("border-white/10", "text-white/50");
+
+            const stock = parseInt((btn as HTMLElement).dataset.stock || "0");
+            const stockInfo = document.getElementById("stock-info");
+            if (stockInfo) {
+                stockInfo.textContent =
+                    stock > 0 ? `${stock} disponibles` : "Agotado";
+            }
+        });
+    });
+
+    // Accordion
+    document.querySelectorAll(".accordion-trigger").forEach((trigger) => {
+        trigger.addEventListener("click", () => {
+            const index = (trigger as HTMLElement).dataset.index;
+            const content = document.querySelector(
+                `.accordion-content[data-index="${index}"]`,
+            ) as HTMLElement;
+            const icon = trigger.querySelector(
+                ".accordion-icon",
+            ) as HTMLElement;
+
+            if (content) {
+                if (content.classList.contains("max-h-0")) {
+                    content.classList.remove("max-h-0");
+                    content.classList.add("max-h-96");
+                    icon?.classList.add("rotate-180");
+                } else {
+                    content.classList.add("max-h-0");
+                    content.classList.remove("max-h-96");
+                    icon?.classList.remove("rotate-180");
+                }
+            }
+        });
+    });
+
+    // Add to cart
+    const addToCartBtn = document.getElementById("add-to-cart-btn");
+    addToCartBtn?.addEventListener("click", async () => {
+        const productId = (addToCartBtn as HTMLElement).dataset.productId;
+        const selectedSize = document.querySelector(
+            ".size-btn.border-brand",
+        ) as HTMLElement;
+        const variantId = selectedSize?.dataset.variantId;
+
+        addToCartBtn.textContent = "Añadiendo...";
+        addToCartBtn.setAttribute("disabled", "true");
+
+        try {
+            const response = await fetch("/api/cart", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    productId,
+                    variantId: variantId || null,
+                    quantity: 1,
+                }),
+            });
+
+            if (response.ok) {
+                addToCartBtn.innerHTML = `
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          ¡Añadido!
+        `;
+                setTimeout(() => {
+                    addToCartBtn.innerHTML = `
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            Añadir al Carrito
+          `;
+                    addToCartBtn.removeAttribute("disabled");
+                }, 2000);
+            }
+        } catch (err) {
+            addToCartBtn.textContent = "Error";
+            setTimeout(() => {
+                addToCartBtn.innerHTML = `
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          Añadir al Carrito
+        `;
+                addToCartBtn.removeAttribute("disabled");
+            }, 2000);
+        }
+    });
+</script>

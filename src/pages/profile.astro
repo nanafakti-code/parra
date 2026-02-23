@@ -1,0 +1,239 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { supabase } from "../lib/supabase";
+import { verifyToken } from "../lib/auth";
+
+const token = Astro.cookies.get("auth_token")?.value;
+if (!token) return Astro.redirect("/login");
+
+const payload: any = verifyToken(token);
+if (!payload) return Astro.redirect("/login");
+
+// Fetch user
+const { data: user } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", payload.userId)
+    .single();
+
+if (!user) return Astro.redirect("/login");
+
+// Fetch orders with items
+const { data: orders } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("user_id", payload.userId)
+    .order("created_at", { ascending: false });
+
+const ordersWithItems = [];
+for (const order of orders || []) {
+    const { data: items } = await supabase
+        .from("order_items")
+        .select("*, products(*)")
+        .eq("order_id", order.id);
+
+    ordersWithItems.push({
+        ...order,
+        items: (items || []).map((item: any) => ({
+            ...item,
+            product: item.products,
+        })),
+    });
+}
+---
+
+<Layout title="Mi Perfil">
+    <Header />
+    <main class="min-h-screen bg-surface-950 py-24">
+        <div class="container">
+            <div class="flex flex-col lg:flex-row gap-12 lg:gap-16">
+                <!-- Sidebar -->
+                <aside class="w-full lg:w-72 shrink-0 space-y-6">
+                    <div class="card p-8 text-center">
+                        <div
+                            class="w-16 h-16 bg-brand/10 border border-brand/20 flex items-center justify-center mx-auto mb-4 text-brand font-display text-xl font-bold"
+                        >
+                            {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <h2
+                            class="font-display text-xl font-bold uppercase tracking-tight mb-1"
+                        >
+                            {user.name}
+                        </h2>
+                        <p class="text-white/30 text-sm mb-4">{user.email}</p>
+                        <div
+                            class="text-[10px] uppercase tracking-[0.2em] text-white/20"
+                        >
+                            Miembro desde {
+                                new Date(user.created_at).toLocaleDateString(
+                                    "es-ES",
+                                )
+                            }
+                        </div>
+                    </div>
+
+                    <nav class="space-y-2">
+                        <a
+                            href="/profile"
+                            class="block p-4 bg-brand text-black font-bold uppercase tracking-wider text-xs text-center"
+                        >
+                            Mis Pedidos
+                        </a>
+                        <a
+                            href="/cart"
+                            class="block p-4 card text-white/40 hover:text-brand font-semibold uppercase tracking-wider text-xs text-center transition-colors"
+                        >
+                            Carrito Activo
+                        </a>
+                        {
+                            user.role === "admin" && (
+                                <a
+                                    href="/admin"
+                                    class="block p-4 card text-white/40 hover:text-brand font-semibold uppercase tracking-wider text-xs text-center transition-colors"
+                                >
+                                    Panel Admin
+                                </a>
+                            )
+                        }
+                    </nav>
+                </aside>
+
+                <!-- Orders -->
+                <div class="flex-1 min-w-0">
+                    <h2 class="section-title mb-10">
+                        Historial de <span class="text-brand">Pedidos</span>
+                    </h2>
+
+                    {
+                        ordersWithItems.length > 0 ? (
+                            <div class="space-y-6">
+                                {ordersWithItems.map((order: any) => (
+                                    <div class="card p-6 md:p-8">
+                                        <div class="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+                                            <div>
+                                                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/30 mb-1">
+                                                    Pedido
+                                                </p>
+                                                <p class="text-sm font-mono text-brand">
+                                                    {order.order_number ||
+                                                        `#${order.id.slice(-8).toUpperCase()}`}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/30 mb-1">
+                                                    Fecha
+                                                </p>
+                                                <p class="text-sm text-white/60">
+                                                    {new Date(
+                                                        order.created_at,
+                                                    ).toLocaleDateString(
+                                                        "es-ES",
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/30 mb-1">
+                                                    Estado
+                                                </p>
+                                                <span
+                                                    class:list={[
+                                                        "inline-block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
+                                                        order.status ===
+                                                        "delivered"
+                                                            ? "bg-brand/10 text-brand"
+                                                            : order.status ===
+                                                                "cancelled"
+                                                              ? "bg-red-500/10 text-red-500"
+                                                              : order.status ===
+                                                                  "pending"
+                                                                ? "bg-amber-500/10 text-amber-500"
+                                                                : "bg-blue-500/10 text-blue-500",
+                                                    ]}
+                                                >
+                                                    {order.status}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/30 mb-1">
+                                                    Total
+                                                </p>
+                                                <p class="text-lg font-bold">
+                                                    €
+                                                    {parseFloat(
+                                                        order.total,
+                                                    ).toFixed(2)}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-3 border-t border-white/5 pt-4">
+                                            {order.items.map((item: any) => (
+                                                <div class="flex items-center gap-4">
+                                                    <div class="w-12 h-12 bg-surface-900 overflow-hidden flex-shrink-0">
+                                                        <img
+                                                            src={
+                                                                item.product
+                                                                    ?.image ||
+                                                                item.product_image
+                                                            }
+                                                            alt={
+                                                                item.product
+                                                                    ?.name ||
+                                                                item.product_name
+                                                            }
+                                                            class="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="text-sm font-semibold uppercase truncate">
+                                                            {item.product
+                                                                ?.name ||
+                                                                item.product_name}
+                                                        </p>
+                                                        <p class="text-xs text-white/30 uppercase tracking-wider">
+                                                            {item.quantity} x €
+                                                            {parseFloat(
+                                                                item.unit_price,
+                                                            ).toFixed(2)}
+                                                            {item.size &&
+                                                                ` · Talla ${item.size}`}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div class="py-24 text-center card">
+                                <svg
+                                    class="w-12 h-12 text-white/10 mx-auto mb-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.5"
+                                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                                    />
+                                </svg>
+                                <p class="text-white/30 uppercase tracking-[0.2em] text-sm mb-6">
+                                    No has realizado ningún pedido todavía.
+                                </p>
+                                <a href="/shop" class="btn-primary inline-flex">
+                                    Ir a la tienda
+                                </a>
+                            </div>
+                        )
+                    }
+                </div>
+            </div>
+        </div>
+    </main>
+    <Footer />
+</Layout>

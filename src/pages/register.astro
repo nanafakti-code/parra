@@ -1,0 +1,174 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { verifyToken } from "../lib/auth";
+
+const token = Astro.cookies.get("auth_token")?.value;
+const user = token ? verifyToken(token) : null;
+if (user) return Astro.redirect("/profile");
+---
+
+<Layout title="Crear Cuenta">
+    <Header />
+    <main
+        class="min-h-screen bg-surface-950 flex items-center justify-center py-24 px-4"
+    >
+        <div class="w-full max-w-md">
+            <!-- Logo -->
+            <div class="text-center mb-10">
+                <a
+                    href="/"
+                    class="text-3xl font-display font-bold tracking-tight inline-block"
+                >
+                    <span class="text-brand">PARRA</span>
+                </a>
+                <p class="text-white/30 text-sm mt-2">Crea tu cuenta PARRA</p>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card p-8 md:p-10">
+                <form id="register-form" class="space-y-5">
+                    <div>
+                        <label
+                            class="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-2"
+                        >
+                            Nombre completo
+                        </label>
+                        <input
+                            type="text"
+                            name="name"
+                            class="input"
+                            placeholder="Tu nombre"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-2"
+                        >
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            name="email"
+                            class="input"
+                            placeholder="tu@email.com"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-2"
+                        >
+                            Contraseña
+                        </label>
+                        <input
+                            type="password"
+                            name="password"
+                            class="input"
+                            placeholder="Mínimo 6 caracteres"
+                            required
+                            minlength="6"
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-xs font-semibold uppercase tracking-wider text-white/60 mb-2"
+                        >
+                            Confirmar contraseña
+                        </label>
+                        <input
+                            type="password"
+                            name="confirmPassword"
+                            class="input"
+                            placeholder="Repite tu contraseña"
+                            required
+                            minlength="6"
+                        />
+                    </div>
+
+                    <div
+                        id="register-error"
+                        class="hidden text-red-500 text-xs text-center py-2 bg-red-500/10 border border-red-500/20"
+                    >
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn-glow w-full h-12 flex items-center justify-center"
+                    >
+                        Crear Cuenta
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <span class="text-white/30 text-sm">¿Ya tienes cuenta?</span
+                    >
+                    <a
+                        href="/login"
+                        class="text-brand text-sm font-semibold hover:underline ml-1"
+                    >
+                        Inicia sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+    <Footer />
+</Layout>
+
+<script>
+    const form = document.getElementById("register-form") as HTMLFormElement;
+    const errorEl = document.getElementById("register-error");
+
+    form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const name = formData.get("name") as string;
+        const email = formData.get("email") as string;
+        const password = formData.get("password") as string;
+        const confirmPassword = formData.get("confirmPassword") as string;
+
+        if (password !== confirmPassword) {
+            if (errorEl) {
+                errorEl.textContent = "Las contraseñas no coinciden";
+                errorEl.classList.remove("hidden");
+            }
+            return;
+        }
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.textContent = "Creando cuenta...";
+
+        try {
+            const response = await fetch("/api/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                window.location.href = "/login";
+            } else {
+                if (errorEl) {
+                    errorEl.textContent =
+                        data.error || "Error al crear la cuenta";
+                    errorEl.classList.remove("hidden");
+                }
+                if (submitBtn) submitBtn.textContent = "Crear Cuenta";
+            }
+        } catch (err) {
+            if (errorEl) {
+                errorEl.textContent = "Error de conexión. Inténtalo de nuevo.";
+                errorEl.classList.remove("hidden");
+            }
+            if (submitBtn) submitBtn.textContent = "Crear Cuenta";
+        }
+    });
+</script>

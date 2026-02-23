@@ -1,0 +1,238 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Pago Seguro">
+    <Header />
+    <main class="min-h-screen bg-surface-950 py-24">
+        <div class="container max-w-4xl">
+            <!-- Breadcrumb -->
+            <div
+                class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/30 mb-8"
+            >
+                <a href="/" class="hover:text-brand transition-colors">Inicio</a
+                >
+                <span>/</span>
+                <a href="/cart" class="hover:text-brand transition-colors"
+                    >Carrito</a
+                >
+                <span>/</span>
+                <span class="text-white/60">Checkout</span>
+            </div>
+
+            <h1 class="section-title mb-12">
+                Finalizar <span class="text-brand">Compra</span>
+            </h1>
+
+            <div
+                id="checkout-form-container"
+                class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16"
+            >
+                <!-- Shipping Info -->
+                <section class="space-y-6">
+                    <div class="flex items-center gap-3 text-brand mb-2">
+                        <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.5"
+                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                            ></path>
+                        </svg>
+                        <h2
+                            class="font-display text-lg font-semibold uppercase tracking-tight"
+                        >
+                            Datos de Envío
+                        </h2>
+                    </div>
+
+                    <form id="checkout-form" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <input
+                                placeholder="Nombre"
+                                required
+                                class="input"
+                            />
+                            <input
+                                placeholder="Apellidos"
+                                required
+                                class="input"
+                            />
+                        </div>
+                        <input placeholder="Dirección" required class="input" />
+                        <div class="grid grid-cols-2 gap-4">
+                            <input
+                                placeholder="Ciudad"
+                                required
+                                class="input"
+                            />
+                            <input
+                                placeholder="Código Postal"
+                                required
+                                class="input"
+                            />
+                        </div>
+                        <input
+                            placeholder="Teléfono"
+                            type="tel"
+                            class="input"
+                        />
+                    </form>
+                </section>
+
+                <!-- Payment -->
+                <section class="space-y-6">
+                    <div class="flex items-center gap-3 text-brand mb-2">
+                        <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.5"
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                            ></path>
+                        </svg>
+                        <h2
+                            class="font-display text-lg font-semibold uppercase tracking-tight"
+                        >
+                            Método de Pago
+                        </h2>
+                    </div>
+
+                    <div class="card p-6 space-y-4">
+                        <div
+                            class="flex items-center justify-between p-4 bg-brand/5 border border-brand/20"
+                        >
+                            <span
+                                class="font-semibold text-sm flex items-center gap-2"
+                            >
+                                <svg
+                                    class="w-4 h-4 text-brand"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                                    ></path>
+                                </svg>
+                                Tarjeta de Crédito
+                            </span>
+                            <svg
+                                class="w-4 h-4 text-brand"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <p
+                            class="text-[10px] text-white/30 uppercase tracking-[0.2em] text-center"
+                        >
+                            Transacción segura y encriptada
+                        </p>
+                    </div>
+
+                    <button
+                        id="place-order-btn"
+                        class="btn-glow w-full h-14 flex items-center justify-center gap-3 text-base"
+                    >
+                        Pagar y Finalizar
+                        <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </button>
+                </section>
+            </div>
+
+            <!-- Success State -->
+            <div id="success-message" class="hidden py-24 text-center">
+                <div
+                    class="w-20 h-20 bg-brand text-black flex items-center justify-center mx-auto mb-8"
+                >
+                    <svg
+                        class="w-10 h-10"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h2 class="section-title mb-4">
+                    ¡Pedido <span class="text-brand">Confirmado</span>!
+                </h2>
+                <p class="text-white/40 mb-8 max-w-md mx-auto">
+                    Gracias por confiar en PARRA. Recibirás un email con los
+                    detalles de tu pedido.
+                </p>
+                <a href="/profile" class="btn-outline inline-flex"
+                    >Ver mis pedidos</a
+                >
+            </div>
+        </div>
+    </main>
+    <Footer />
+</Layout>
+
+<script>
+    const orderBtn = document.getElementById("place-order-btn");
+    const formContainer = document.getElementById("checkout-form-container");
+    const successMsg = document.getElementById("success-message");
+
+    orderBtn?.addEventListener("click", async () => {
+        orderBtn.textContent = "Procesando...";
+        orderBtn.setAttribute("disabled", "true");
+
+        try {
+            const response = await fetch("/api/orders", { method: "POST" });
+            if (response.ok) {
+                formContainer?.classList.add("hidden");
+                successMsg?.classList.remove("hidden");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            } else {
+                alert(
+                    "Hubo un problema al procesar tu pedido. Intenta de nuevo.",
+                );
+                orderBtn.textContent = "Pagar y Finalizar";
+                orderBtn.removeAttribute("disabled");
+            }
+        } catch (err) {
+            alert("Error de conexión. Intenta de nuevo.");
+            orderBtn.textContent = "Pagar y Finalizar";
+            orderBtn.removeAttribute("disabled");
+        }
+    });
+</script>

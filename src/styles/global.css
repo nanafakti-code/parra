@@ -1,0 +1,173 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #39FF14 #0a0a0a;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-surface-950 text-white antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    @apply bg-brand text-black;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Oswald', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply relative px-8 py-4 bg-brand text-black font-bold uppercase tracking-widest text-sm transition-all duration-300 overflow-hidden active:scale-[0.98];
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 30px rgba(57, 255, 20, 0.4);
+  }
+
+  .btn-primary::before {
+    content: '';
+    @apply absolute inset-0 bg-white/20 translate-x-[-100%] skew-x-[-15deg] transition-transform duration-500;
+  }
+
+  .btn-primary:hover::before {
+    @apply translate-x-[200%];
+  }
+
+  .btn-outline {
+    @apply px-8 py-4 border-2 border-white text-white font-bold uppercase tracking-widest text-sm transition-all duration-300 hover:bg-white hover:text-black active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply px-6 py-3 text-white/70 font-medium uppercase tracking-wider text-xs transition-colors duration-200 hover:text-brand;
+  }
+
+  .btn-glow {
+    @apply relative px-8 py-4 bg-brand text-black font-bold uppercase tracking-widest text-sm animate-glow-pulse transition-all duration-300 active:scale-[0.98];
+  }
+
+  .btn-glow:hover {
+    box-shadow: 0 0 50px rgba(57, 255, 20, 0.5);
+  }
+
+  /* ── Cards ── */
+  .card {
+    @apply bg-surface-900/50 border border-white/5 backdrop-blur-sm transition-all duration-500 hover:border-brand/30;
+  }
+
+  .card:hover {
+    box-shadow: 0 0 40px rgba(57, 255, 20, 0.05);
+  }
+
+  .card-product {
+    @apply relative bg-surface-900/80 border border-white/5 overflow-hidden transition-all duration-500 hover:border-brand/40;
+  }
+
+  .card-product:hover {
+    box-shadow: 0 8px 40px rgba(57, 255, 20, 0.08);
+  }
+
+  /* ── Form Inputs ── */
+  .input {
+    @apply w-full bg-surface-900 border border-white/10 px-4 py-3 text-white text-sm placeholder:text-white/30 transition-all duration-300 focus:outline-none focus:border-brand;
+  }
+
+  .input:focus {
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.1);
+  }
+
+  /* ── Badge ── */
+  .badge {
+    @apply inline-block px-3 py-1 text-[10px] font-black uppercase tracking-widest;
+  }
+
+  .badge-new {
+    @apply badge bg-brand text-black;
+  }
+
+  .badge-pro {
+    @apply badge bg-white text-black;
+  }
+
+  .badge-sale {
+    @apply badge bg-amber-500 text-black;
+  }
+
+  /* ── Section ── */
+  .section {
+    @apply py-20 md:py-28;
+  }
+
+  .section-title {
+    @apply text-4xl md:text-5xl lg:text-6xl font-display font-bold uppercase tracking-tight;
+  }
+
+  .section-subtitle {
+    @apply text-white/50 text-base md:text-lg max-w-xl mt-4;
+  }
+
+  /* ── Skeleton Loader ── */
+  .skeleton {
+    @apply animate-pulse bg-white/5 rounded;
+  }
+
+  /* ── Accent Text ── */
+  .accent-text {
+    @apply text-brand;
+  }
+
+  /* ── Glass ── */
+  .glass {
+    @apply bg-black/60 backdrop-blur-xl border-b border-white/5;
+  }
+
+  /* ── Container override ── */
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-brand via-emerald-400 to-brand bg-clip-text text-transparent;
+  }
+
+  .anim-delay-100 {
+    animation-delay: 0.1s;
+  }
+
+  .anim-delay-200 {
+    animation-delay: 0.2s;
+  }
+
+  .anim-delay-300 {
+    animation-delay: 0.3s;
+  }
+
+  .anim-delay-400 {
+    animation-delay: 0.4s;
+  }
+
+  .anim-delay-500 {
+    animation-delay: 0.5s;
+  }
+}

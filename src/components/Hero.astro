@@ -1,0 +1,111 @@
+---
+
+---
+
+<section class="relative h-screen flex items-center overflow-hidden">
+    <!-- Background -->
+    <div class="absolute inset-0">
+        <div
+            class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1614632537197-38a17061c2bd?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center scale-105"
+            style="animation: subtle-zoom 20s ease-in-out infinite alternate;"
+        >
+        </div>
+        <div
+            class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/30"
+        >
+        </div>
+        <div
+            class="absolute inset-0 bg-gradient-to-t from-surface-950 via-transparent to-transparent"
+        >
+        </div>
+    </div>
+
+    <!-- Vertical accent line -->
+    <div
+        class="absolute left-8 top-1/4 bottom-1/4 w-[2px] bg-gradient-to-b from-transparent via-brand to-transparent opacity-30 hidden lg:block"
+    >
+    </div>
+
+    <!-- Content -->
+    <div class="container relative z-10">
+        <div class="max-w-3xl">
+            <span
+                class="inline-block px-4 py-1.5 bg-brand/10 border border-brand/30 text-brand text-xs font-bold uppercase tracking-[0.3em] mb-8 opacity-0 animate-fade-up"
+            >
+                Nueva Colección 2026
+            </span>
+
+            <h1
+                class="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-display font-bold uppercase leading-[0.85] mb-8 opacity-0 animate-fade-up anim-delay-100"
+            >
+                DOMINA
+                <br />
+                <span class="text-brand">EL ÁREA</span>
+            </h1>
+
+            <p
+                class="text-lg md:text-xl text-white/60 max-w-lg mb-10 opacity-0 animate-fade-up anim-delay-200"
+            >
+                Siente el agarre absoluto. Diseñados para porteros de elite que
+                no aceptan menos que la perfección.
+            </p>
+
+            <div
+                class="flex flex-wrap gap-4 opacity-0 animate-fade-up anim-delay-300"
+            >
+                <a href="/shop" class="btn-primary">
+                    <span>Comprar Ahora</span>
+                    <svg
+                        class="w-4 h-4 inline-block ml-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                </a>
+                <a href="/shop?category=elite" class="btn-outline">
+                    Serie Elite
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marquee -->
+    <div
+        class="absolute bottom-8 left-0 w-full overflow-hidden whitespace-nowrap opacity-[0.03] pointer-events-none"
+    >
+        <div
+            class="text-[10rem] md:text-[14rem] font-display font-bold uppercase tracking-tighter inline-block animate-marquee"
+        >
+            PARRA PARRA PARRA PARRA PARRA&nbsp;
+        </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div
+        class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-0 animate-fade-in anim-delay-500"
+    >
+        <span
+            class="text-[10px] uppercase tracking-[0.3em] text-white/30 font-medium"
+            >Scroll</span
+        >
+        <div class="w-[1px] h-8 bg-gradient-to-b from-white/30 to-transparent">
+        </div>
+    </div>
+</section>
+
+<style>
+    @keyframes subtle-zoom {
+        0% {
+            transform: scale(1.05);
+        }
+        100% {
+            transform: scale(1.12);
+        }
+    }
+</style>

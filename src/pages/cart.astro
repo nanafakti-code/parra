@@ -1,0 +1,261 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Mi Carrito">
+    <Header />
+    <main class="min-h-screen bg-surface-950">
+        <!-- Breadcrumb -->
+        <div class="container pt-12">
+            <div
+                class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/30 mb-8"
+            >
+                <a href="/" class="hover:text-brand transition-colors">Inicio</a
+                >
+                <span>/</span>
+                <span class="text-white/60">Carrito</span>
+            </div>
+            <h1 class="section-title mb-12">
+                Tu <span class="text-brand">Equipo</span>
+            </h1>
+        </div>
+
+        <div class="container pb-24">
+            <div
+                id="cart-container"
+                class="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16"
+            >
+                <!-- Cart Items -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div id="cart-items-list" class="space-y-4">
+                        <!-- Skeleton Loading -->
+                        <div class="animate-pulse space-y-4">
+                            <div
+                                class="h-28 bg-surface-900 border border-white/5"
+                            >
+                            </div>
+                            <div
+                                class="h-28 bg-surface-900 border border-white/5"
+                            >
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="empty-cart" class="hidden py-24 text-center">
+                        <div
+                            class="w-20 h-20 mx-auto mb-6 border border-white/10 flex items-center justify-center"
+                        >
+                            <svg
+                                class="w-8 h-8 text-white/20"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.5"
+                                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                                ></path>
+                            </svg>
+                        </div>
+                        <p
+                            class="text-white/30 uppercase tracking-[0.2em] text-sm mb-8"
+                        >
+                            Tu carrito está vacío
+                        </p>
+                        <a href="/shop" class="btn-primary inline-flex">
+                            Ir a la tienda
+                            <svg
+                                class="w-4 h-4 ml-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Summary Sidebar -->
+                <div class="lg:col-span-1">
+                    <div class="card p-8 sticky top-24">
+                        <h3
+                            class="font-display text-xl font-bold uppercase tracking-tight mb-8"
+                        >
+                            Resumen
+                        </h3>
+
+                        <div class="space-y-4 mb-8 text-sm">
+                            <div class="flex justify-between text-white/40">
+                                <span class="uppercase tracking-wider"
+                                    >Subtotal</span
+                                >
+                                <span
+                                    id="subtotal"
+                                    class="font-semibold text-white">€0.00</span
+                                >
+                            </div>
+                            <div class="flex justify-between text-white/40">
+                                <span class="uppercase tracking-wider"
+                                    >Envío</span
+                                >
+                                <span class="text-brand font-semibold"
+                                    >Gratis</span
+                                >
+                            </div>
+                            <div
+                                class="pt-4 border-t border-white/5 flex justify-between"
+                            >
+                                <span
+                                    class="text-lg font-bold uppercase tracking-wider"
+                                    >Total</span
+                                >
+                                <span
+                                    id="total"
+                                    class="text-lg font-bold text-brand"
+                                    >€0.00</span
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Coupon -->
+                        <div class="mb-8">
+                            <div class="flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Código descuento"
+                                    class="input flex-1 !text-xs !py-2.5"
+                                />
+                                <button
+                                    class="btn-outline !py-2.5 !px-4 !text-xs !border"
+                                >
+                                    Aplicar
+                                </button>
+                            </div>
+                        </div>
+
+                        <a
+                            href="/checkout"
+                            id="checkout-btn"
+                            class="btn-glow w-full flex items-center justify-center gap-3 h-14"
+                        >
+                            Tramitar Pedido
+                            <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                        </a>
+
+                        <div
+                            class="mt-6 flex items-center justify-center gap-4 opacity-20"
+                        >
+                            <span class="text-xs font-bold tracking-wider"
+                                >Visa</span
+                            >
+                            <span class="text-xs font-bold tracking-wider"
+                                >MC</span
+                            >
+                            <span class="text-xs font-bold tracking-wider"
+                                >PayPal</span
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <Footer />
+</Layout>
+
+<script>
+    async function loadCart() {
+        try {
+            const response = await fetch("/api/cart");
+            const items = await response.json();
+
+            const list = document.getElementById("cart-items-list");
+            const empty = document.getElementById("empty-cart");
+            const subtotalEl = document.getElementById("subtotal");
+            const totalEl = document.getElementById("total");
+
+            if (!list) return;
+
+            if (!Array.isArray(items) || items.length === 0) {
+                list.classList.add("hidden");
+                empty?.classList.remove("hidden");
+                return;
+            }
+
+            list.innerHTML = items
+                .map(
+                    (item: any) => `
+        <div class="flex items-center gap-6 p-5 card group">
+          <div class="w-20 h-20 bg-surface-900 flex-shrink-0 overflow-hidden">
+            <img src="${item.product?.image || ""}" alt="${item.product?.name || ""}" class="w-full h-full object-cover" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-start mb-2 gap-4">
+              <h3 class="font-display font-semibold uppercase tracking-tight text-sm truncate">${item.product?.name || ""}</h3>
+              <span class="font-bold text-sm shrink-0">€${((item.product?.price || 0) * item.quantity).toFixed(2)}</span>
+            </div>
+            <div class="flex items-center justify-between text-white/30 text-[11px] uppercase tracking-wider">
+              <div class="flex items-center gap-4">
+                <span>Cant: ${item.quantity}</span>
+                ${item.variant ? `<span>Talla: ${item.variant.size}</span>` : ""}
+              </div>
+              <button class="hover:text-red-500 transition-colors flex items-center gap-1" onclick="removeItem('${item.id}')">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      `,
+                )
+                .join("");
+
+            const total = items.reduce(
+                (sum: number, item: any) =>
+                    sum + (item.product?.price || 0) * item.quantity,
+                0,
+            );
+            if (subtotalEl) subtotalEl.textContent = `€${total.toFixed(2)}`;
+            if (totalEl) totalEl.textContent = `€${total.toFixed(2)}`;
+        } catch (err) {
+            console.error("Error loading cart:", err);
+        }
+    }
+
+    (window as any).removeItem = async (itemId: string) => {
+        try {
+            await fetch("/api/cart", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ itemId }),
+            });
+            loadCart();
+        } catch (err) {
+            console.error("Error removing item:", err);
+        }
+    };
+
+    loadCart();
+</script>

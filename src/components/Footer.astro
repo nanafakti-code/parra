@@ -1,0 +1,242 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="bg-surface-900/30 border-t border-white/5">
+    <!-- Main Footer -->
+    <div class="container py-16 md:py-20">
+        <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8"
+        >
+            <!-- Brand -->
+            <div class="lg:col-span-1">
+                <a
+                    href="/"
+                    class="text-2xl font-display font-bold tracking-tight inline-block mb-6"
+                >
+                    <span class="text-brand">PARRA</span>
+                </a>
+                <p class="text-white/40 text-sm leading-relaxed mb-8 max-w-xs">
+                    Guantes de portero diseñados para quienes no aceptan menos
+                    que la perfección. Agarre extremo, tecnología alemana.
+                </p>
+                <!-- Social -->
+                <div class="flex gap-3">
+                    <a
+                        href="#"
+                        class="w-10 h-10 border border-white/10 flex items-center justify-center hover:border-brand hover:text-brand transition-all duration-300 group"
+                        aria-label="Instagram"
+                    >
+                        <svg
+                            class="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            ><path
+                                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"
+                            ></path></svg
+                        >
+                    </a>
+                    <a
+                        href="#"
+                        class="w-10 h-10 border border-white/10 flex items-center justify-center hover:border-brand hover:text-brand transition-all duration-300 group"
+                        aria-label="Twitter"
+                    >
+                        <svg
+                            class="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            ><path
+                                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                            ></path></svg
+                        >
+                    </a>
+                    <a
+                        href="#"
+                        class="w-10 h-10 border border-white/10 flex items-center justify-center hover:border-brand hover:text-brand transition-all duration-300 group"
+                        aria-label="YouTube"
+                    >
+                        <svg
+                            class="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            ><path
+                                d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+                            ></path></svg
+                        >
+                    </a>
+                    <a
+                        href="#"
+                        class="w-10 h-10 border border-white/10 flex items-center justify-center hover:border-brand hover:text-brand transition-all duration-300 group"
+                        aria-label="TikTok"
+                    >
+                        <svg
+                            class="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            ><path
+                                d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"
+                            ></path></svg
+                        >
+                    </a>
+                </div>
+            </div>
+
+            <!-- Shop Links -->
+            <div>
+                <h4
+                    class="text-white font-display uppercase tracking-[0.15em] text-sm font-semibold mb-6"
+                >
+                    Tienda
+                </h4>
+                <ul class="space-y-3">
+                    <li>
+                        <a
+                            href="/shop"
+                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            >Todos los Guantes</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="/shop?category=elite"
+                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            >Serie Elite</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="/shop?category=entrenamiento"
+                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            >Entrenamiento</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="/shop?category=infantil"
+                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            >Infantil</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="/shop?category=accesorios"
+                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            >Accesorios</a
+                        >
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Help Links -->
+            <div>
+                <h4
+                    class="text-white font-display uppercase tracking-[0.15em] text-sm font-semibold mb-6"
+                >
+                    Ayuda
+                </h4>
+                <ul class="space-y-3">
+                    <li>
+                        <a
+                            href="#"
+                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            >Contacto</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="#"
+                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            >Envíos y Devoluciones</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="#"
+                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            >Guía de Tallas</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="#"
+                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            >Preguntas Frecuentes</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="#"
+                            class="text-white/40 text-sm hover:text-brand transition-colors duration-200"
+                            >Sobre Nosotros</a
+                        >
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Newsletter -->
+            <div>
+                <h4
+                    class="text-white font-display uppercase tracking-[0.15em] text-sm font-semibold mb-6"
+                >
+                    Newsletter
+                </h4>
+                <p class="text-white/40 text-sm mb-4">
+                    Suscríbete y obtén un 10% en tu primera compra.
+                </p>
+                <form class="flex flex-col gap-3">
+                    <input
+                        type="email"
+                        placeholder="tu@email.com"
+                        class="input !text-xs"
+                        required
+                    />
+                    <button type="submit" class="btn-primary !py-2.5 !text-xs">
+                        Suscribirse
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="border-t border-white/5">
+        <div
+            class="container py-6 flex flex-col md:flex-row justify-between items-center gap-4"
+        >
+            <p class="text-white/20 text-xs uppercase tracking-[0.15em]">
+                &copy; {year} PARRA. Todos los derechos reservados.
+            </p>
+
+            <!-- Payment Icons -->
+            <div class="flex items-center gap-6 opacity-20">
+                <svg class="h-5" viewBox="0 0 780 500" fill="white"
+                    ><path
+                        d="M293.2 348.7l33.4-195.7h53.3L346.5 348.7H293.2zM589.2 156.8c-10.5-4-27-8.3-47.5-8.3-52.4 0-89.3 26.3-89.6 64-.3 27.9 26.3 43.4 46.4 52.7 20.6 9.5 27.5 15.6 27.4 24.1-.1 13-16.4 19-31.6 19-21.1 0-32.4-2.9-49.7-10.2l-6.8-3.1-7.4 43.2c12.3 5.4 35.2 10.1 58.9 10.3 55.7 0 91.9-26 92.3-66.3.2-22.1-13.9-38.9-44.6-52.8-18.6-9-30-15-29.9-24.1 0-8.1 9.6-16.7 30.4-16.7 17.4-.3 30 3.5 39.8 7.5l4.8 2.2 7.2-42.3zm136.5 2.5h-41c-12.7 0-22.2 3.5-27.8 16.1l-78.8 178h55.7l11.1-29.1h68l6.4 29.1h49.2L729.7 159.3h.0zm-65.4 127.2c2.5-6.4 36.8-94.4 36.8-94.4-.5.9 7.6-19.6 12.2-32.3l6.3 29.2 21.4 97.5H660.3zM247.1 153l-49 195.7-52.1-165.4c-6.1-18.8-17.9-30.3-37-30.3H17.5L16.5 159c21.8 5.3 41.5 13 58.5 22.7l48.6 173.9h56.1l85.5-203.7h-18.1z"
+                    ></path></svg
+                >
+                <svg class="h-6" viewBox="0 0 780 500" fill="white"
+                    ><circle cx="312" cy="250" r="156" fill-opacity="0.8"
+                    ></circle><circle
+                        cx="468"
+                        cy="250"
+                        r="156"
+                        fill-opacity="0.6"></circle></svg
+                >
+                <span class="text-white/60 text-xs font-bold tracking-wider"
+                    >PayPal</span
+                >
+            </div>
+
+            <div
+                class="flex gap-6 text-xs text-white/20 uppercase tracking-[0.15em]"
+            >
+                <a href="#" class="hover:text-white/50 transition-colors"
+                    >Privacidad</a
+                >
+                <a href="#" class="hover:text-white/50 transition-colors"
+                    >Términos</a
+                >
+            </div>
+        </div>
+    </div>
+</footer>

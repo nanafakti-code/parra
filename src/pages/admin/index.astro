@@ -1,0 +1,281 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { verifyToken } from "../../lib/auth";
+import { supabase } from "../../lib/supabase";
+
+// Auth check
+const token = Astro.cookies.get("auth_token")?.value;
+const user: any = token ? verifyToken(token) : null;
+
+if (!user || user.role !== "admin") {
+    return Astro.redirect("/login");
+}
+
+// Fetch stats
+const { count: totalProducts } = await supabase
+    .from("products")
+    .select("*", { count: "exact", head: true })
+    .eq("is_active", true);
+
+const { count: totalUsers } = await supabase
+    .from("users")
+    .select("*", { count: "exact", head: true });
+
+const { count: totalOrders } = await supabase
+    .from("orders")
+    .select("*", { count: "exact", head: true });
+
+const { data: recentOrders } = await supabase
+    .from("orders")
+    .select("*, users(name, email)")
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+// Calculate revenue
+const { data: allOrders } = await supabase.from("orders").select("total");
+const totalRevenue = (allOrders || []).reduce(
+    (sum: number, o: any) => sum + parseFloat(o.total || 0),
+    0,
+);
+
+const stats = [
+    { label: "Productos", value: totalProducts || 0, icon: "box" },
+    { label: "Usuarios", value: totalUsers || 0, icon: "users" },
+    { label: "Pedidos", value: totalOrders || 0, icon: "orders" },
+    {
+        label: "Ingresos",
+        value: `€${totalRevenue.toFixed(2)}`,
+        icon: "revenue",
+    },
+];
+---
+
+<Layout title="Admin Dashboard">
+    <main class="min-h-screen bg-surface-950">
+        <!-- Admin Header -->
+        <header class="bg-surface-900/50 border-b border-white/5 py-4">
+            <div class="container flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <a
+                        href="/"
+                        class="text-xl font-display font-bold tracking-tight"
+                    >
+                        <span class="text-brand">PARRA</span>
+                    </a>
+                    <span class="text-white/20 text-sm">/</span>
+                    <span class="text-white/40 text-sm uppercase tracking-wider"
+                        >Admin</span
+                    >
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-white/40 text-sm">{user.name}</span>
+                    <a href="/" class="text-xs text-brand hover:underline"
+                        >← Volver a la tienda</a
+                    >
+                </div>
+            </div>
+        </header>
+
+        <div class="container py-12">
+            <h1
+                class="font-display text-3xl font-bold uppercase tracking-tight mb-8"
+            >
+                Panel de <span class="text-brand">Control</span>
+            </h1>
+
+            <!-- Stats Grid -->
+            <div
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12"
+            >
+                {
+                    stats.map((stat) => (
+                        <div class="card p-6">
+                            <div class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">
+                                {stat.label}
+                            </div>
+                            <div class="text-2xl font-bold">{stat.value}</div>
+                        </div>
+                    ))
+                }
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+                <a
+                    href="/shop"
+                    class="card p-6 group hover:-translate-y-1 transition-all duration-300 flex items-center gap-4"
+                >
+                    <div
+                        class="w-10 h-10 bg-brand/10 border border-brand/20 flex items-center justify-center text-brand"
+                    >
+                        <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.5"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                            ></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="font-semibold text-sm">
+                            Gestionar Productos
+                        </div>
+                        <div class="text-white/30 text-xs">
+                            Ver y editar catálogo
+                        </div>
+                    </div>
+                </a>
+                <a
+                    href="#"
+                    class="card p-6 group hover:-translate-y-1 transition-all duration-300 flex items-center gap-4"
+                >
+                    <div
+                        class="w-10 h-10 bg-brand/10 border border-brand/20 flex items-center justify-center text-brand"
+                    >
+                        <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.5"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                            ></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="font-semibold text-sm">
+                            Gestionar Pedidos
+                        </div>
+                        <div class="text-white/30 text-xs">
+                            Procesar y seguimiento
+                        </div>
+                    </div>
+                </a>
+                <a
+                    href="#"
+                    class="card p-6 group hover:-translate-y-1 transition-all duration-300 flex items-center gap-4"
+                >
+                    <div
+                        class="w-10 h-10 bg-brand/10 border border-brand/20 flex items-center justify-center text-brand"
+                    >
+                        <svg
+                            class="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.5"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                            ></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="font-semibold text-sm">
+                            Gestionar Usuarios
+                        </div>
+                        <div class="text-white/30 text-xs">
+                            Cuentas y permisos
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="card overflow-hidden">
+                <div class="p-6 border-b border-white/5">
+                    <h2
+                        class="font-display text-lg font-semibold uppercase tracking-tight"
+                    >
+                        Pedidos Recientes
+                    </h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr
+                                class="text-left text-xs font-semibold uppercase tracking-wider text-white/30 border-b border-white/5"
+                            >
+                                <th class="px-6 py-4">Nº Pedido</th>
+                                <th class="px-6 py-4">Cliente</th>
+                                <th class="px-6 py-4">Estado</th>
+                                <th class="px-6 py-4">Total</th>
+                                <th class="px-6 py-4">Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                (recentOrders || []).map((order: any) => (
+                                    <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                                        <td class="px-6 py-4 text-sm font-mono text-brand">
+                                            {order.order_number}
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-white/60">
+                                            {order.users?.name ||
+                                                order.users?.email ||
+                                                "—"}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span
+                                                class:list={[
+                                                    "inline-block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
+                                                    order.status === "delivered"
+                                                        ? "bg-brand/10 text-brand"
+                                                        : order.status ===
+                                                            "cancelled"
+                                                          ? "bg-red-500/10 text-red-500"
+                                                          : order.status ===
+                                                              "pending"
+                                                            ? "bg-amber-500/10 text-amber-500"
+                                                            : "bg-blue-500/10 text-blue-500",
+                                                ]}
+                                            >
+                                                {order.status}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm font-semibold">
+                                            €
+                                            {parseFloat(
+                                                order.total || 0,
+                                            ).toFixed(2)}
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-white/30">
+                                            {new Date(
+                                                order.created_at,
+                                            ).toLocaleDateString("es-ES")}
+                                        </td>
+                                    </tr>
+                                ))
+                            }
+                            {
+                                (!recentOrders ||
+                                    recentOrders.length === 0) && (
+                                    <tr>
+                                        <td
+                                            colspan="5"
+                                            class="px-6 py-12 text-center text-white/20 text-sm"
+                                        >
+                                            No hay pedidos recientes
+                                        </td>
+                                    </tr>
+                                )
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</Layout>

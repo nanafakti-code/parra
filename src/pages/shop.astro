@@ -1,0 +1,192 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import ProductCard from "../components/ProductCard.astro";
+import Footer from "../components/Footer.astro";
+import { supabase } from "../lib/supabase";
+
+// Fetch categories
+const { data: dbCategories } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("is_active", true)
+    .order("display_order");
+
+const categories = [{ name: "Todos", slug: "todos" }, ...(dbCategories || [])];
+const currentSlug = Astro.url.searchParams.get("category") || "todos";
+const sortBy = Astro.url.searchParams.get("sort") || "newest";
+
+// Fetch products
+let query = supabase
+    .from("products")
+    .select("*, categories(name, slug)")
+    .eq("is_active", true);
+
+if (currentSlug !== "todos") {
+    const cat = (dbCategories || []).find((c: any) => c.slug === currentSlug);
+    if (cat) query = query.eq("category_id", cat.id);
+}
+
+if (sortBy === "price-asc") {
+    query = query.order("price", { ascending: true });
+} else if (sortBy === "price-desc") {
+    query = query.order("price", { ascending: false });
+} else {
+    query = query.order("created_at", { ascending: false });
+}
+
+const { data: products } = await query;
+const filteredProducts = products || [];
+---
+
+<Layout
+    title="Tienda"
+    description="Explora nuestra colección de guantes de portero profesionales."
+>
+    <Header />
+    <main class="min-h-screen bg-surface-950">
+        <!-- Page Header -->
+        <section class="pt-12 pb-8">
+            <div class="container">
+                <div
+                    class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-white/30 mb-6"
+                >
+                    <a href="/" class="hover:text-brand transition-colors"
+                        >Inicio</a
+                    >
+                    <span>/</span>
+                    <span class="text-white/60">Tienda</span>
+                </div>
+
+                <div
+                    class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6"
+                >
+                    <div>
+                        <h1 class="section-title">
+                            La <span class="text-brand">Colección</span>
+                        </h1>
+                        <p class="section-subtitle">
+                            Equípate con lo mejor del mercado mundial.
+                        </p>
+                    </div>
+                    <span class="text-white/30 text-sm">
+                        {filteredProducts.length} producto{
+                            filteredProducts.length !== 1 ? "s" : ""
+                        }
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filters + Grid -->
+        <section class="pb-24">
+            <div class="container">
+                <!-- Filter Bar -->
+                <div
+                    class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 pb-8 border-b border-white/5"
+                >
+                    <!-- Categories -->
+                    <div class="flex flex-wrap gap-2">
+                        {
+                            categories.map((cat: any) => (
+                                <a
+                                    href={
+                                        cat.slug === "todos"
+                                            ? "/shop"
+                                            : `/shop?category=${cat.slug}`
+                                    }
+                                    class:list={[
+                                        "px-4 py-2 text-xs font-semibold uppercase tracking-wider border transition-all duration-200",
+                                        currentSlug === cat.slug
+                                            ? "bg-brand text-black border-brand"
+                                            : "border-white/10 text-white/40 hover:border-brand/50 hover:text-brand",
+                                    ]}
+                                >
+                                    {cat.name}
+                                </a>
+                            ))
+                        }
+                    </div>
+
+                    <!-- Sort -->
+                    <div class="flex items-center gap-3">
+                        <span
+                            class="text-white/30 text-xs uppercase tracking-wider"
+                            >Ordenar:</span
+                        >
+                        <select
+                            id="sort-select"
+                            class="bg-surface-900 border border-white/10 px-3 py-2 text-xs text-white/60 focus:outline-none focus:border-brand transition-colors"
+                        >
+                            <option
+                                value="newest"
+                                selected={sortBy === "newest"}
+                                >Más recientes</option
+                            >
+                            <option
+                                value="price-asc"
+                                selected={sortBy === "price-asc"}
+                                >Precio: Menor a Mayor</option
+                            >
+                            <option
+                                value="price-desc"
+                                selected={sortBy === "price-desc"}
+                                >Precio: Mayor a Menor</option
+                            >
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Product Grid -->
+                {
+                    filteredProducts.length > 0 ? (
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+                            {filteredProducts.map((product: any, i: number) => (
+                                <ProductCard product={product} index={i} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div class="py-32 text-center">
+                            <div class="w-20 h-20 mx-auto mb-6 border border-white/10 flex items-center justify-center">
+                                <svg
+                                    class="w-8 h-8 text-white/20"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.5"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    />
+                                </svg>
+                            </div>
+                            <p class="text-white/30 uppercase tracking-[0.2em] text-sm">
+                                No se encontraron productos en esta categoría.
+                            </p>
+                            <a
+                                href="/shop"
+                                class="btn-outline inline-flex mt-8"
+                            >
+                                Ver todos los productos
+                            </a>
+                        </div>
+                    )
+                }
+            </div>
+        </section>
+    </main>
+    <Footer />
+</Layout>
+
+<script>
+    const sortSelect = document.getElementById(
+        "sort-select",
+    ) as HTMLSelectElement;
+    sortSelect?.addEventListener("change", () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set("sort", sortSelect.value);
+        window.location.href = url.toString();
+    });
+</script>
