@@ -8,12 +8,18 @@ import { supabase } from "../../lib/supabase";
 const { slug } = Astro.params;
 
 // Fetch main product
-const { data: product, error } = await supabase
-    .from("products")
-    .select("*, categories(name, slug)")
-    .eq("slug", slug)
-    .eq("is_active", true)
-    .single();
+let product: any = null;
+try {
+    const { data } = await supabase
+        .from("products")
+        .select("*, categories(name, slug)")
+        .eq("slug", slug)
+        .eq("is_active", true)
+        .single();
+    product = data;
+} catch (e) {
+    console.error("Supabase product detail error:", e);
+}
 
 if (!product) {
     return Astro.redirect("/shop");
@@ -35,13 +41,19 @@ const { data: variants } = await supabase
     .order("size");
 
 // Fetch related products
-const { data: relatedProducts } = await supabase
-    .from("products")
-    .select("*, categories(name, slug)")
-    .eq("is_active", true)
-    .eq("category_id", product.category_id)
-    .neq("id", product.id)
-    .limit(4);
+let relatedProducts: any[] = [];
+try {
+    const { data } = await supabase
+        .from("products")
+        .select("*, categories(name, slug)")
+        .eq("is_active", true)
+        .eq("category_id", product.category_id)
+        .neq("id", product.id)
+        .limit(4);
+    relatedProducts = data || [];
+} catch (e) {
+    console.error("Supabase related products error:", e);
+}
 
 const allImages = [
     { url: product.image, alt_text: product.name },

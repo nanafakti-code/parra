@@ -10,13 +10,19 @@ import Newsletter from "../components/Newsletter.astro";
 import Footer from "../components/Footer.astro";
 import { supabase } from "../lib/supabase";
 
-const { data: products } = await supabase
-	.from("products")
-	.select("*, categories(name, slug)")
-	.eq("is_featured", true)
-	.eq("is_active", true)
-	.order("created_at", { ascending: false })
-	.limit(4);
+let products: any[] = [];
+try {
+	const { data } = await supabase
+		.from("products")
+		.select("*, categories(name, slug)")
+		.eq("is_featured", true)
+		.eq("is_active", true)
+		.order("created_at", { ascending: false })
+		.limit(4);
+	products = data || [];
+} catch (e) {
+	console.error("Supabase error index:", e);
+}
 ---
 
 <Layout

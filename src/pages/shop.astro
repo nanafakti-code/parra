@@ -6,11 +6,17 @@ import Footer from "../components/Footer.astro";
 import { supabase } from "../lib/supabase";
 
 // Fetch categories
-const { data: dbCategories } = await supabase
-    .from("categories")
-    .select("*")
-    .eq("is_active", true)
-    .order("display_order");
+let dbCategories: any[] = [];
+try {
+    const { data } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order");
+    dbCategories = data || [];
+} catch (e) {
+    console.error("Supabase categories error:", e);
+}
 
 const categories = [{ name: "Todos", slug: "todos" }, ...(dbCategories || [])];
 const currentSlug = Astro.url.searchParams.get("category") || "todos";
@@ -35,7 +41,13 @@ if (sortBy === "price-asc") {
     query = query.order("created_at", { ascending: false });
 }
 
-const { data: products } = await query;
+let products: any[] = [];
+try {
+    const { data } = await query;
+    products = data || [];
+} catch (e) {
+    console.error("Supabase products error:", e);
+}
 const filteredProducts = products || [];
 ---
 
