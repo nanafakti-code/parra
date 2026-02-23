@@ -33,7 +33,7 @@ export function getStripe(): Stripe {
 
     if (_instance) return _instance;
 
-    const key: string | undefined = import.meta.env.STRIPE_SECRET_KEY;
+    const key: string | undefined = import.meta.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
 
     if (!key) {
         throw new Error(

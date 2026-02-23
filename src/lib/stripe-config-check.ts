@@ -6,8 +6,21 @@
  * - Verifica que empieza por "sk_" (Secret Key).
  * - Detecta el error común de usar la Publishable Key en el backend.
  * - No hardcodea ninguna clave.
- * - Solo usa import.meta.env.
+ *
+ * Nota: En Astro SSR con output "server", las variables privadas (sin PUBLIC_)
+ * pueden no estar disponibles en import.meta.env dentro de API routes.
+ * Por eso se usa un fallback a process.env, que es el comportamiento
+ * estándar del adapter de Vercel.
  */
+
+/**
+ * Lee STRIPE_SECRET_KEY de forma compatible con Astro SSR.
+ * Prioriza import.meta.env; si no está, usa process.env como fallback
+ * (necesario en API routes con el adapter de Vercel).
+ */
+function getStripeKey(): string | undefined {
+    return import.meta.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY;
+}
 
 /**
  * Valida que la configuración de Stripe es correcta antes de crear una sesión.
@@ -24,7 +37,7 @@ export function validateStripeConfig(): void {
         );
     }
 
-    const key: string | undefined = import.meta.env.STRIPE_SECRET_KEY;
+    const key = getStripeKey();
 
     if (!key) {
         console.error('[stripe-config] STRIPE_SECRET_KEY no está definida.');
