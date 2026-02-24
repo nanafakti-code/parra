@@ -385,27 +385,25 @@ const { user, role } = Astro.locals;
         window.addEventListener("cart:updated", updateCartCount);
 
         // ── Logout ──
-        async function handleLogout() {
-            try {
-                var response = await fetch("/api/auth/logout", {
-                    method: "POST",
-                });
-                if (response.ok) {
-                    window.location.href = "/";
-                }
-            } catch (error) {
-                console.error("Error during logout:", error);
-            }
+        function handleLogout() {
+            // Usamos redirección directa para evitar errores 403 de CSRF en peticiones POST
+            window.location.href = "/api/auth/logout";
         }
 
         var logoutBtn = document.getElementById("logout-btn");
         var mobileLogoutBtn = document.getElementById("mobile-logout-btn");
 
         if (logoutBtn) {
-            logoutBtn.onclick = handleLogout;
+            logoutBtn.onclick = function (e) {
+                e.preventDefault();
+                handleLogout();
+            };
         }
         if (mobileLogoutBtn) {
-            mobileLogoutBtn.onclick = handleLogout;
+            mobileLogoutBtn.onclick = function (e) {
+                e.preventDefault();
+                handleLogout();
+            };
         }
     }
 
