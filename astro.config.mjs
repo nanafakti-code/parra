@@ -8,4 +8,7 @@ export default defineConfig({
   integrations: [tailwind(), preact({ compat: true })],
   output: 'server',
   adapter: vercel(),
+  security: {
+    checkOrigin: false,
+  },
 });
