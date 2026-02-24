@@ -255,6 +255,12 @@ const { user, role } = Astro.locals;
                         <a href="/profile" class="btn-outline text-center">
                             Mi Cuenta
                         </a>
+                        <button
+                            id="mobile-logout-btn"
+                            class="btn-outline text-red-500 border-red-500/30 hover:bg-red-500/10 text-center"
+                        >
+                            Cerrar Sesión
+                        </button>
                     </>
                 ) : (
                     <>
@@ -379,16 +385,27 @@ const { user, role } = Astro.locals;
         window.addEventListener("cart:updated", updateCartCount);
 
         // ── Logout ──
-        var logoutBtn = document.querySelector("#logout-btn");
-        if (logoutBtn) {
-            logoutBtn.onclick = async function () {
+        async function handleLogout() {
+            try {
                 var response = await fetch("/api/auth/logout", {
                     method: "POST",
                 });
                 if (response.ok) {
                     window.location.href = "/";
                 }
-            };
+            } catch (error) {
+                console.error("Error during logout:", error);
+            }
+        }
+
+        var logoutBtn = document.getElementById("logout-btn");
+        var mobileLogoutBtn = document.getElementById("mobile-logout-btn");
+
+        if (logoutBtn) {
+            logoutBtn.onclick = handleLogout;
+        }
+        if (mobileLogoutBtn) {
+            mobileLogoutBtn.onclick = handleLogout;
         }
     }
 
