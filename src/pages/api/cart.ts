@@ -1,24 +1,30 @@
 import type { APIRoute } from 'astro';
 import { supabase } from '../../lib/supabase';
-import { verifyToken } from '../../lib/auth';
 
-export const GET: APIRoute = async ({ cookies }) => {
-    const token = cookies.get('auth_token')?.value;
-    if (!token) return new Response(JSON.stringify([]), { status: 200 });
+/**
+ * GET /api/cart
+ * Obtiene el carrito del usuario autenticado.
+ */
+export const GET: APIRoute = async ({ locals }) => {
+    const user = locals.user;
 
-    const payload: any = verifyToken(token);
-    if (!payload) return new Response(JSON.stringify([]), { status: 401 });
+    // Si no hay usuario, devolvemos vacío (el frontend maneja localStorage para invitados)
+    if (!user) {
+        return new Response(JSON.stringify([]), { status: 200 });
+    }
 
-    // Find user's cart
+    // 1. Buscar el carrito del usuario
     const { data: cart } = await supabase
         .from('carts')
         .select('*')
-        .eq('user_id', payload.userId)
+        .eq('user_id', user.id)
         .single();
 
-    if (!cart) return new Response(JSON.stringify([]), { status: 200 });
+    if (!cart) {
+        return new Response(JSON.stringify([]), { status: 200 });
+    }
 
-    // Get cart items with product info
+    // 2. Obtener items con info de producto
     const { data: items } = await supabase
         .from('cart_items')
         .select('*, products(*)')
@@ -29,39 +35,54 @@ export const GET: APIRoute = async ({ cookies }) => {
         product: item.products,
     }));
 
-    return new Response(JSON.stringify(formatted), { status: 200 });
+    return new Response(JSON.stringify(formatted), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+    });
 };
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-    const token = cookies.get('auth_token')?.value;
-    if (!token) return new Response(JSON.stringify({ message: 'Unauthorized' }), { status: 401 });
+/**
+ * POST /api/cart
+ * Añade un producto al carrito del usuario.
+ */
+export const POST: APIRoute = async ({ request, locals }) => {
+    const user = locals.user;
 
-    const payload: any = verifyToken(token);
-    if (!payload) return new Response(JSON.stringify({ message: 'Unauthorized' }), { status: 401 });
+    if (!user) {
+        return new Response(JSON.stringify({ message: 'No autorizado' }), { status: 401 });
+    }
 
     const { productId, quantity } = await request.json();
 
-    // Find or create cart
+    if (!productId || !quantity) {
+        return new Response(JSON.stringify({ message: 'Faltan campos' }), { status: 400 });
+    }
+
+    // 1. Buscar o crear el carrito del usuario
     let { data: cart } = await supabase
         .from('carts')
         .select('*')
-        .eq('user_id', payload.userId)
+        .eq('user_id', user.id)
         .single();
 
     if (!cart) {
-        const { data: newCart } = await supabase
+        const { data: newCart, error: createError } = await supabase
             .from('carts')
-            .insert({ user_id: payload.userId })
+            .insert({ user_id: user.id })
             .select()
             .single();
+
+        if (createError) {
+            return new Response(JSON.stringify({ message: 'Error al crear carrito' }), { status: 500 });
+        }
         cart = newCart;
     }
 
     if (!cart) {
-        return new Response(JSON.stringify({ message: 'Failed to create cart' }), { status: 500 });
+        return new Response(JSON.stringify({ message: 'Error interno' }), { status: 500 });
     }
 
-    // Check for existing item
+    // 2. Buscar si el item ya existe
     const { data: existingItem } = await supabase
         .from('cart_items')
         .select('*')
@@ -70,15 +91,24 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         .single();
 
     if (existingItem) {
+        // Incrementar cantidad
         await supabase
             .from('cart_items')
             .update({ quantity: existingItem.quantity + quantity })
             .eq('id', existingItem.id);
     } else {
+        // Insertar nuevo item
         await supabase
             .from('cart_items')
-            .insert({ cart_id: cart.id, product_id: productId, quantity });
+            .insert({
+                cart_id: cart.id,
+                product_id: productId,
+                quantity
+            });
     }
 
-    return new Response(JSON.stringify({ message: 'Added to cart' }), { status: 200 });
+    return new Response(JSON.stringify({ message: 'Producto añadido' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+    });
 };

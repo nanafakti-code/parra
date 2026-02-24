@@ -1,13 +1,10 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { verifyToken } from "../../lib/auth";
 import { supabase } from "../../lib/supabase";
-
 // Auth check
-const token = Astro.cookies.get("auth_token")?.value;
-const user: any = token ? verifyToken(token) : null;
+const { user, role } = Astro.locals;
 
-if (!user || user.role !== "admin") {
+if (!user || role !== "admin") {
     return Astro.redirect("/login");
 }
 

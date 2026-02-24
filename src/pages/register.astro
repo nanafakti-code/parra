@@ -2,10 +2,8 @@
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import { verifyToken } from "../lib/auth";
 
-const token = Astro.cookies.get("auth_token")?.value;
-const user = token ? verifyToken(token) : null;
+const { user } = Astro.locals;
 if (user) return Astro.redirect("/profile");
 ---
 
@@ -172,7 +170,9 @@ if (user) return Astro.redirect("/profile");
                     } else {
                         if (errorEl) {
                             errorEl.textContent =
-                                data.error || "Error al crear la cuenta";
+                                data.message ||
+                                data.error ||
+                                "Error al crear la cuenta";
                             errorEl.classList.remove("hidden");
                         }
                         if (submitBtn) submitBtn.textContent = "Crear Cuenta";

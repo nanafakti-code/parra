@@ -1,35 +1,49 @@
 ---
+/**
+ * src/pages/profile.astro
+ *
+ * Página de perfil del usuario.
+ * Migrada a Supabase Auth y SSR Middleware.
+ */
+
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import { supabase } from "../lib/supabase";
-import { verifyToken } from "../lib/auth";
+import { supabaseAdmin } from "../lib/supabase";
 
-const token = Astro.cookies.get("auth_token")?.value;
-if (!token) return Astro.redirect("/login");
+// 1. Validar sesión desde el middleware
+// Astro.locals.user es inyectado por src/middleware.ts
+const authUser = Astro.locals.user;
 
-const payload: any = verifyToken(token);
-if (!payload) return Astro.redirect("/login");
+if (!authUser) {
+    return Astro.redirect("/login");
+}
 
-// Fetch user
-const { data: user } = await supabase
+// 2. Obtener datos del perfil extendido desde la tabla 'users'
+// Usamos el ID de Auth para vincular
+const { data: userProfile, error: profileError } = await supabaseAdmin
     .from("users")
     .select("*")
-    .eq("id", payload.userId)
+    .eq("id", authUser.id)
     .single();
 
-if (!user) return Astro.redirect("/login");
+// Si por alguna razón el perfil no existe, redirigir
+if (profileError || !userProfile) {
+    console.error(`[profile] Perfil no encontrado para user ${authUser.id}`);
+    return Astro.redirect("/login");
+}
 
-// Fetch orders with items
-const { data: orders } = await supabase
+// 3. Obtener historial de pedidos
+const { data: orders } = await supabaseAdmin
     .from("orders")
     .select("*")
-    .eq("user_id", payload.userId)
+    .eq("user_id", authUser.id)
     .order("created_at", { ascending: false });
 
+// 4. Obtener items de cada pedido (unir con productos)
 const ordersWithItems = [];
 for (const order of orders || []) {
-    const { data: items } = await supabase
+    const { data: items } = await supabaseAdmin
         .from("order_items")
         .select("*, products(*)")
         .eq("order_id", order.id);
@@ -58,27 +72,27 @@ for (const order of orders || []) {
                         <div
                             class="w-16 h-16 bg-brand/10 border border-brand/20 flex items-center justify-center mx-auto mb-4 text-brand font-display text-xl font-bold"
                         >
-                            {user.name.charAt(0).toUpperCase()}
+                            {userProfile.name.charAt(0).toUpperCase()}
                         </div>
                         <h2
                             class="font-display text-xl font-bold uppercase tracking-tight mb-1"
                         >
-                            {user.name}
+                            {userProfile.name}
                         </h2>
                         <p
                             class="text-sm mb-4"
                             style="color: var(--text-muted);"
                         >
-                            {user.email}
+                            {userProfile.email}
                         </p>
                         <div
                             class="text-[10px] uppercase tracking-[0.2em]"
                             style="color: var(--text-muted); opacity: 0.6;"
                         >
                             Miembro desde {
-                                new Date(user.created_at).toLocaleDateString(
-                                    "es-ES",
-                                )
+                                new Date(
+                                    userProfile.created_at,
+                                ).toLocaleDateString("es-ES")
                             }
                         </div>
                     </div>
@@ -98,7 +112,7 @@ for (const order of orders || []) {
                             Carrito Activo
                         </a>
                         {
-                            user.role === "admin" && (
+                            userProfile.role === "admin" && (
                                 <a
                                     href="/admin"
                                     class="block p-4 card hover:text-brand font-semibold uppercase tracking-wider text-xs text-center transition-colors"
