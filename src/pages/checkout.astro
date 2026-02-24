@@ -2,6 +2,9 @@
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+
+// Pre-fill email if logged in
+const { user } = Astro.locals;
 ---
 
 <Layout title="Pago Seguro">
@@ -58,6 +61,13 @@ import Footer from "../components/Footer.astro";
                     </div>
 
                     <form id="checkout-form" class="space-y-4">
+                        <input
+                            type="email"
+                            placeholder="Email para seguimiento"
+                            required
+                            class="input"
+                            value={user?.email || ""}
+                        />
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <input
                                 placeholder="Nombre"
@@ -238,8 +248,8 @@ import Footer from "../components/Footer.astro";
 
                 const items = getCart();
                 if (items.length === 0) {
-                    const { toast } = await import('../lib/toast');
-                    toast.warning('Tu carrito está vacío.');
+                    const { toast } = await import("../lib/toast");
+                    toast.warning("Tu carrito está vacío.");
                     return;
                 }
 
@@ -309,10 +319,10 @@ import Footer from "../components/Footer.astro";
                         );
                     }
                 } catch (err) {
-                    const { toast } = await import('../lib/toast');
+                    const { toast } = await import("../lib/toast");
                     toast.error(
                         err.message ||
-                            "Error al procesar el pago. Intenta de nuevo."
+                            "Error al procesar el pago. Intenta de nuevo.",
                     );
                     orderBtn.textContent = "Pagar y Finalizar";
                     orderBtn.removeAttribute("disabled");

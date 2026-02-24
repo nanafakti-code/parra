@@ -33,20 +33,35 @@ if (profileError || !userProfile) {
     return Astro.redirect("/login");
 }
 
-// 3. Obtener historial de pedidos
-const { data: orders } = await supabaseAdmin
+// 3. Obtener historial de pedidos (unificando pedidos de cuenta e invitados)
+// Buscamos por ID de usuario O por email (insensible a mayúsculas para invitados)
+const { data: orders, error: ordersError } = await supabaseAdmin
     .from("orders")
     .select("*")
-    .eq("user_id", authUser.id)
+    .or(`user_id.eq.${authUser.id},email.ilike.${userProfile.email}`)
     .order("created_at", { ascending: false });
+
+if (ordersError) {
+    console.error(
+        `[profile] Error al obtener pedidos para ${userProfile.email}:`,
+        ordersError.message,
+    );
+}
 
 // 4. Obtener items de cada pedido (unir con productos)
 const ordersWithItems = [];
 for (const order of orders || []) {
-    const { data: items } = await supabaseAdmin
+    const { data: items, error: itemsError } = await supabaseAdmin
         .from("order_items")
         .select("*, products(*)")
         .eq("order_id", order.id);
+
+    if (itemsError) {
+        console.error(
+            `[profile] Error al obtener items para pedido ${order.id}:`,
+            itemsError.message,
+        );
+    }
 
     ordersWithItems.push({
         ...order,
