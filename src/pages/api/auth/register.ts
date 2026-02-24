@@ -47,21 +47,26 @@ export const POST: APIRoute = async ({ request }) => {
             return jsonResponse({ message: 'La contraseña debe tener al menos 6 caracteres.' }, 400);
         }
 
-        // 2. Crear usuario en Supabase Auth
-        const { data: authData, error: authError } = await supabaseAdmin.auth.signUp({
+        // 2. Crear usuario en Supabase Auth usando la API de Admin
+        // Usamos admin.createUser para evitar problemas de confirmación por email y sesiones
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email: email.trim(),
             password,
+            email_confirm: true, // Auto-confirmar email
         });
 
         if (authError) {
-            console.error('[register] Supabase Auth error:', authError.message);
+            console.error('[register] Supabase Auth admin error:', authError.message);
 
             // Detectar email duplicado
-            if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
+            if (authError.message.includes('already registered') || authError.message.includes('already been registered') || authError.code === '422') {
                 return jsonResponse({ message: 'Este email ya está registrado.' }, 400);
             }
 
-            return jsonResponse({ message: 'Error al crear la cuenta.' }, 500);
+            return jsonResponse({
+                message: 'Error de Supabase Auth: ' + authError.message,
+                debug: authError
+            }, 500);
         }
 
         const authUser = authData.user;
@@ -93,7 +98,10 @@ export const POST: APIRoute = async ({ request }) => {
                 return jsonResponse({ message: 'Este email ya está registrado.' }, 400);
             }
 
-            return jsonResponse({ message: 'Error al crear el perfil.' }, 500);
+            return jsonResponse({
+                message: 'Error al crear el perfil: ' + profileError.message,
+                debug: profileError
+            }, 500);
         }
 
         console.log(`[register] Usuario creado: ${authUser.id} (${email})`);
