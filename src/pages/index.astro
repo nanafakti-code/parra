@@ -11,17 +11,42 @@ import Footer from "../components/Footer.astro";
 import { supabase } from "../lib/supabase";
 
 let products: any[] = [];
+
 try {
-	const { data } = await supabase
+	// 1. Intentar obtener productos destacados
+	const { data: featuredData, error: featuredError } = await supabase
 		.from("products")
 		.select("*, categories(name, slug)")
 		.eq("is_featured", true)
 		.eq("is_active", true)
 		.order("created_at", { ascending: false })
 		.limit(4);
-	products = data || [];
+
+	if (featuredError) {
+		console.error("Error cargando destacados:", featuredError.message);
+	}
+
+	products = featuredData || [];
+
+	// 2. Fallback: Si no hay destacados, cargar los 4 más recientes activos
+	if (products.length === 0) {
+		const { data: recentData, error: recentError } = await supabase
+			.from("products")
+			.select("*, categories(name, slug)")
+			.eq("is_active", true)
+			.order("created_at", { ascending: false })
+			.limit(4);
+
+		if (recentError) {
+			console.error(
+				"Error cargando productos fallback:",
+				recentError.message,
+			);
+		}
+		products = recentData || [];
+	}
 } catch (e) {
-	console.error("Supabase error index:", e);
+	console.error("Error crítico en home SSR:", e);
 }
 ---
 
