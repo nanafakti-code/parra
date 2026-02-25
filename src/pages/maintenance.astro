@@ -214,8 +214,46 @@
         letter-spacing: 0.05em;
         color: var(--color-neon-green);
         line-height: 1;
-        /* Start with some shadow, but let pulse override if needed. Using static shadow here. */
-        text-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
+        will-change: opacity, text-shadow;
+        /* Premium neon elite animation */
+        animation:
+            premiumNeonPulse 4.5s ease-in-out infinite alternate,
+            neonFlicker 12s linear infinite;
+    }
+
+    /* Constant Neon Pulse & Shadow Layering */
+    @keyframes premiumNeonPulse {
+        0% {
+            text-shadow:
+                0 0 2px rgba(57, 255, 20, 0.5),
+                0 0 10px rgba(57, 255, 20, 0.15),
+                0 0 25px rgba(57, 255, 20, 0.02);
+        }
+        100% {
+            text-shadow:
+                0 0 3px rgba(57, 255, 20, 0.8),
+                0 0 15px rgba(57, 255, 20, 0.35),
+                0 0 40px rgba(57, 255, 20, 0.15);
+        }
+    }
+
+    /* Subtle Neon Flicker (Very Premium) 
+       Occurs rarely like a high-end LED voltage shift */
+    @keyframes neonFlicker {
+        0%,
+        93%,
+        94%,
+        95.5%,
+        97%,
+        100% {
+            opacity: 1;
+        }
+        93.5% {
+            opacity: 0.85;
+        }
+        96% {
+            opacity: 0.9;
+        }
     }
 
     /* Primary Heading & Subtext */
