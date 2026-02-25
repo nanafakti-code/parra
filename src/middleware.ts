@@ -13,7 +13,7 @@ import { supabase, supabaseAdmin } from "./lib/supabase";
 export const onRequest = defineMiddleware(async ({ cookies, locals, request, redirect }, next) => {
     // 1. Comprobar modo mantenimiento (soporte para Vercel process.env y mayúsculas/minúsculas)
     const rawMaintenanceMode = import.meta.env.MAINTENANCE_MODE || (typeof process !== 'undefined' ? process.env.MAINTENANCE_MODE : false);
-    const isMaintenanceMode = String(rawMaintenanceMode).toLowerCase() === 'true';
+    const isMaintenanceMode = String(rawMaintenanceMode).trim().toLowerCase() === 'true';
     const url = new URL(request.url);
 
     if (
