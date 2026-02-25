@@ -25,28 +25,31 @@
     </head>
     <body>
         <div class="maintenance-container">
-            <!-- Subtle green center glow -->
+            <!-- Subtle green center cinematic glow -->
             <div class="glow-bg"></div>
 
             <div class="content">
                 <!-- Bold Logo -->
-                <div class="logo-container fade-in">
+                <div class="logo-container fade-in-up">
                     <span class="logo-text">PARRA</span>
                 </div>
 
-                <main class="main-content fade-in delay-1">
-                    <h1>
-                        ESTAMOS MEJORANDO <span class="accent-text"
-                            >LA EXPERIENCIA</span
+                <main class="main-content">
+                    <h1 class="title-container">
+                        <span class="block fade-in-up delay-1"
+                            >ESTAMOS MEJORANDO</span
+                        >
+                        <span class="block accent-text fade-in-up delay-2"
+                            ><span class="glow-text">LA EXPERIENCIA</span></span
                         >
                     </h1>
-                    <p class="description">
+                    <p class="description fade-in-up delay-3">
                         Estamos trabajando en mejoras importantes para ofrecerte
                         un mejor rendimiento. Volveremos muy pronto.
                     </p>
 
                     <!-- Progress Section -->
-                    <div class="progress-section fade-in delay-2">
+                    <div class="progress-section fade-in-up delay-4">
                         <div class="progress-header">
                             <span class="progress-label"
                                 >ACTUALIZACIÓN EN CURSO</span
@@ -65,7 +68,7 @@
                     </div>
 
                     <!-- High-contrast Buttons -->
-                    <div class="actions fade-in delay-3">
+                    <div class="actions fade-in-up delay-5">
                         <a
                             href="https://wa.me/34658823543"
                             target="_blank"
@@ -128,6 +131,8 @@
 
         --font-heading: "Bebas Neue", Impact, sans-serif;
         --font-body: "Inter", system-ui, sans-serif;
+
+        --transition-base: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     * {
@@ -160,23 +165,32 @@
         z-index: 1;
     }
 
-    /* Subtle neon green background glow */
+    /* Cinematic green background glow */
     .glow-bg {
         position: absolute;
-        width: 80vw;
-        height: 80vw;
-        max-width: 800px;
-        max-height: 800px;
+        width: 100vw;
+        height: 100vh;
         background: radial-gradient(
-            circle,
-            rgba(57, 255, 20, 0.05) 0%,
-            transparent 65%
+            circle at center,
+            rgba(57, 255, 20, 0.04) 0%,
+            transparent 60%
         );
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        top: 0;
+        left: 0;
         z-index: -1;
         pointer-events: none;
+        animation: breathingGlow 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes breathingGlow {
+        0% {
+            opacity: 0.5;
+            transform: scale(1);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1.05);
+        }
     }
 
     .content {
@@ -200,7 +214,8 @@
         letter-spacing: 0.05em;
         color: var(--color-neon-green);
         line-height: 1;
-        text-shadow: 0 0 30px rgba(57, 255, 20, 0.2);
+        /* Start with some shadow, but let pulse override if needed. Using static shadow here. */
+        text-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
     }
 
     /* Primary Heading & Subtext */
@@ -213,18 +228,40 @@
         gap: 1.5rem;
     }
 
+    .title-container {
+        margin: 0;
+    }
+
+    .block {
+        display: block;
+    }
+
     h1 {
         font-family: var(--font-heading);
         font-size: clamp(3rem, 7vw, 5.5rem);
         line-height: 1.05;
         letter-spacing: 0.03em;
-        margin: 0;
         text-transform: uppercase;
         color: var(--color-text-main);
     }
 
     .accent-text {
         color: var(--color-neon-green);
+    }
+
+    /* Subtle neon pulse for green elements */
+    .glow-text {
+        display: inline-block;
+        animation: neonPulse 3.5s ease-in-out infinite alternate 0.8s;
+    }
+
+    @keyframes neonPulse {
+        0% {
+            text-shadow: 0 0 4px rgba(57, 255, 20, 0.1);
+        }
+        100% {
+            text-shadow: 0 0 16px rgba(57, 255, 20, 0.4);
+        }
     }
 
     .description {
@@ -261,9 +298,10 @@
 
     .progress-track {
         width: 100%;
-        height: 6px; /* Thin, strong line */
+        height: 6px;
         background-color: var(--color-dark-gray);
         position: relative;
+        overflow: hidden; /* Important for tail effect */
     }
 
     .progress-bar {
@@ -273,9 +311,52 @@
         height: 100%;
         width: 0%;
         background-color: var(--color-neon-green);
-        box-shadow: 0 0 15px rgba(57, 255, 20, 0.4);
-        animation: fill-progress 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards
-            0.5s;
+        box-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
+        animation: fill-progress 1.5s var(--transition-base) forwards 1s;
+    }
+
+    /* Tail glow effect for progress bar */
+    .progress-bar::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: 30px;
+        background: linear-gradient(
+            to right,
+            transparent,
+            rgba(255, 255, 255, 0.8)
+        );
+        box-shadow: 5px 0 15px rgba(57, 255, 20, 0.9);
+        opacity: 0;
+        animation: progress-trail 1.5s var(--transition-base) forwards 1s;
+    }
+
+    @keyframes progress-trail {
+        0% {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+        15% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        85% {
+            opacity: 1;
+        }
+        100% {
+            opacity: 0;
+        }
+    }
+
+    @keyframes fill-progress {
+        0% {
+            width: 0%;
+        }
+        100% {
+            width: 70%;
+        }
     }
 
     /* Action Buttons - Athletic & Rectangular */
@@ -299,51 +380,50 @@
         letter-spacing: 0.05em;
         text-decoration: none;
         text-transform: uppercase;
-        transition: all 0.2s ease-out;
         cursor: pointer;
-        /* Core Athletic Button Styles */
+
+        /* Core Athletic Button Styles with 200ms transition */
         background-color: var(--color-black);
         color: var(--color-neon-green);
-        border: 2px solid var(--color-neon-green);
+        border: 1px solid rgba(57, 255, 20, 0.4);
         border-radius: 0; /* Sharp edges */
+        box-shadow: inset 0 0 0 transparent;
+        transition: all 200ms var(--transition-base);
+        will-change: transform, box-shadow, border-color;
     }
 
     .btn:hover {
-        background-color: var(--color-neon-green);
-        color: var(--color-black);
-        box-shadow: 0 0 20px rgba(57, 255, 20, 0.4);
+        border-color: var(--color-neon-green);
+        box-shadow:
+            inset 0 0 15px rgba(57, 255, 20, 0.15),
+            0 0 15px rgba(57, 255, 20, 0.2);
         transform: translateY(-2px);
     }
 
-    /* Keep the primary button visually identical or slightly accented if needed */
-    .btn-primary {
-        background-color: var(--color-neon-green);
-        color: var(--color-black);
-    }
-
-    .btn-primary:hover {
-        background-color: var(--color-black);
-        color: var(--color-neon-green);
-        box-shadow: 0 0 20px rgba(57, 255, 20, 0.4);
-    }
-
-    /* Minimal Powerful Fade Animations */
-    .fade-in {
+    /* Elegant Fade In Up Animations */
+    .fade-in-up {
         opacity: 0;
-        animation: fadeIn 0.8s ease-out forwards;
+        transform: translateY(15px);
+        animation: fadeInUp 0.8s var(--transition-base) forwards;
     }
 
     .delay-1 {
-        animation-delay: 0.2s;
+        animation-delay: 0.15s;
     }
     .delay-2 {
-        animation-delay: 0.4s;
+        animation-delay: 0.3s;
     }
     .delay-3 {
+        animation-delay: 0.45s;
+    }
+    .delay-4 {
         animation-delay: 0.6s;
     }
+    .delay-5 {
+        animation-delay: 0.75s;
+    }
 
-    @keyframes fadeIn {
+    @keyframes fadeInUp {
         from {
             opacity: 0;
             transform: translateY(15px);
@@ -354,12 +434,28 @@
         }
     }
 
-    @keyframes fill-progress {
-        0% {
-            width: 0%;
+    /* Accessibility: Prefers Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        ::before,
+        ::after {
+            animation: none !important;
+            transition: none !important;
+            scroll-behavior: auto !important;
         }
-        100% {
-            width: 70%;
+
+        /* Reset initial states for elements that use forwards animation */
+        .fade-in-up {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+
+        .progress-bar {
+            width: 70% !important;
+        }
+
+        .progress-bar::after {
+            display: none !important;
         }
     }
 
@@ -380,7 +476,7 @@
         }
 
         .progress-section {
-            padding: 0; /* Inherits container padding effectively */
+            padding: 0;
         }
     }
 </style>
