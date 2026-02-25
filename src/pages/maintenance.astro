@@ -61,7 +61,7 @@
                         <div
                             class="progress-track"
                             role="progressbar"
-                            aria-valuenow="70"
+                            aria-valuenow="50"
                             aria-valuemin="0"
                             aria-valuemax="100"
                         >
@@ -427,7 +427,7 @@
             width: 0%;
         }
         100% {
-            width: 70%;
+            width: 50%;
         }
     }
 
@@ -564,12 +564,12 @@
         ).matches;
 
         if (prefersReducedMotion) {
-            if (progressText) progressText.innerText = "70%";
+            if (progressText) progressText.innerText = "50%";
             return;
         }
 
         if (progressText) {
-            const targetPercent = 70;
+            const targetPercent = 50;
             const duration = 2000; // 2s duration to match CSS
             const delay = 1000; // 1s delay to match CSS
             const fps = 60;
