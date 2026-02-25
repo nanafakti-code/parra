@@ -54,7 +54,9 @@
                             <span class="progress-label"
                                 >ACTUALIZACIÓN EN CURSO</span
                             >
-                            <span class="progress-percentage">70%</span>
+                            <span class="progress-percentage" id="progress-text"
+                                >0%</span
+                            >
                         </div>
                         <div
                             class="progress-track"
@@ -350,7 +352,9 @@
         width: 0%;
         background-color: var(--color-neon-green);
         box-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
-        animation: fill-progress 1.5s var(--transition-base) forwards 1s;
+        /* Elegant smooth acceleration */
+        animation: fill-progress 2s cubic-bezier(0.22, 1, 0.36, 1) forwards 1s;
+        will-change: width;
     }
 
     /* Tail glow effect for progress bar */
@@ -368,7 +372,7 @@
         );
         box-shadow: 5px 0 15px rgba(57, 255, 20, 0.9);
         opacity: 0;
-        animation: progress-trail 1.5s var(--transition-base) forwards 1s;
+        animation: progress-trail 2s cubic-bezier(0.22, 1, 0.36, 1) forwards 1s;
     }
 
     @keyframes progress-trail {
@@ -518,3 +522,52 @@
         }
     }
 </style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const progressText = document.getElementById("progress-text");
+
+        // Handles user disabling animations
+        const prefersReducedMotion = window.matchMedia(
+            "(prefers-reduced-motion: reduce)",
+        ).matches;
+
+        if (prefersReducedMotion) {
+            if (progressText) progressText.innerText = "70%";
+            return;
+        }
+
+        if (progressText) {
+            const targetPercent = 70;
+            const duration = 2000; // 2s duration to match CSS
+            const delay = 1000; // 1s delay to match CSS
+            const fps = 60;
+            const totalFrames = (duration / 1000) * fps;
+            let currentFrame = 0;
+
+            // Premium fast-start slow-end easing function (outCubic)
+            const easeOutCubic = (x: number) => {
+                return 1 - Math.pow(1 - x, 3);
+            };
+
+            setTimeout(() => {
+                const interval = setInterval(() => {
+                    currentFrame++;
+                    const progress = currentFrame / totalFrames;
+                    const easedProgress = easeOutCubic(progress);
+                    const currentPercent = Math.min(
+                        Math.round(easedProgress * targetPercent),
+                        targetPercent,
+                    );
+
+                    progressText.innerText = currentPercent + "%";
+
+                    if (currentFrame >= totalFrames) {
+                        clearInterval(interval);
+                        progressText.innerText = targetPercent + "%";
+                    }
+                }, 1000 / fps);
+            }, delay);
+        }
+    });
+</script>
