@@ -1,0 +1,16 @@
+{
+    "redirects": [
+        {
+            "source": "/(.*)",
+            "has": [
+                {
+                    "type": "environment",
+                    "key": "MAINTENANCE_MODE",
+                    "value": "true"
+                }
+            ],
+            "destination": "/maintenance",
+            "permanent": false
+        }
+    ]
+}
