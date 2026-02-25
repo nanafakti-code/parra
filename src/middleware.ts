@@ -10,8 +10,22 @@ import { supabase, supabaseAdmin } from "./lib/supabase";
  * 3. Si el usuario es válido, adjunta el usuario a locals.user.
  * 4. Busca el rol del usuario en la tabla 'users' y lo adjunta a locals.role.
  */
-export const onRequest = defineMiddleware(async ({ cookies, locals }, next) => {
-    // 1. Obtener access_token desde cookies
+export const onRequest = defineMiddleware(async ({ cookies, locals, request, redirect }, next) => {
+    // 1. Comprobar modo mantenimiento
+    const isMaintenanceMode = import.meta.env.MAINTENANCE_MODE === 'true';
+    const url = new URL(request.url);
+
+    if (
+        isMaintenanceMode &&
+        url.pathname !== '/maintenance' &&
+        !url.pathname.startsWith('/_astro') &&
+        !url.pathname.startsWith('/api') &&
+        !url.pathname.match(/\.(png|jpg|jpeg|svg|css|js|ico)$/)
+    ) {
+        return redirect('/maintenance', 302);
+    }
+
+    // 2. Obtener access_token desde cookies
     // Usamos 'sb-access-token' como nombre predeterminado de Supabase
     const accessToken = cookies.get("sb-access-token")?.value || cookies.get("auth_token")?.value;
 
@@ -19,13 +33,13 @@ export const onRequest = defineMiddleware(async ({ cookies, locals }, next) => {
     locals.role = null;
 
     if (accessToken) {
-        // 2. Validar usuario con Supabase Auth (sin usar admin para este paso)
+        // 3. Validar usuario con Supabase Auth (sin usar admin para este paso)
         const { data: { user }, error } = await supabase.auth.getUser(accessToken);
 
         if (user && !error) {
             locals.user = user;
 
-            // 3. Obtener rol desde la tabla users (usando admin para saltar RLS en middleware)
+            // 4. Obtener rol desde la tabla users (usando admin para saltar RLS en middleware)
             const { data: profile } = await supabaseAdmin
                 .from("users")
                 .select("role")
