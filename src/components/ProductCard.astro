@@ -38,6 +38,7 @@ const discountPercent = hasDiscount
             alt={product.name}
             loading="lazy"
             class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+            onerror="this.onerror=null;this.src='/images/placeholder-product.svg';this.classList.add('opacity-30')"
         />
 
         <!-- Badges -->
