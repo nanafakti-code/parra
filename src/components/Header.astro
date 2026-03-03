@@ -12,10 +12,10 @@ const { user, role } = Astro.locals;
 
 <header
     id="main-header"
-    class="fixed top-0 left-0 w-full z-50 transition-all duration-500 border-b"
-    style="border-color: transparent; background-color: transparent;"
+    class="fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b"
+    style="border-color: rgba(255,255,255,0.05); background-color: rgba(0,0,0,0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);"
 >
-    <div class="container h-20 flex items-center justify-between">
+    <div class="container h-16 sm:h-20 flex items-center justify-between">
         <!-- Logo -->
         <a
             href="/"
@@ -28,13 +28,13 @@ const { user, role } = Astro.locals;
         <nav
             class="hidden lg:flex items-center gap-8 text-xs font-semibold uppercase tracking-[0.2em]"
         >
-            <a href="/" class="nav-link">Inicio</a>
-            <a href="/shop" class="nav-link">Tienda</a>
-            <a href="/shop?category=elite" class="nav-link">Elite</a>
-            <a href="/shop?category=entrenamiento" class="nav-link"
+            <a href="/" data-astro-prefetch="hover" class="nav-link">Inicio</a>
+            <a href="/shop" data-astro-prefetch="hover" class="nav-link">Tienda</a>
+            <a href="/shop?category=elite" data-astro-prefetch="hover" class="nav-link">Elite</a>
+            <a href="/shop?category=entrenamiento" data-astro-prefetch="hover" class="nav-link"
                 >Entrenamiento</a
             >
-            <a href="/shop?category=infantil" class="nav-link">Infantil</a>
+            <a href="/shop?category=infantil" data-astro-prefetch="hover" class="nav-link">Infantil</a>
         </nav>
 
         <!-- Right Icons -->
@@ -74,6 +74,7 @@ const { user, role } = Astro.locals;
 
                         <a
                             href="/profile"
+                            data-astro-prefetch="hover"
                             class="icon-btn p-2.5 rounded-full transition-colors duration-200 group flex items-center gap-2"
                             aria-label="Mi Cuenta"
                         >
@@ -218,26 +219,31 @@ const { user, role } = Astro.locals;
         <nav class="flex flex-col gap-6">
             <a
                 href="/"
+                data-astro-prefetch="hover"
                 class="text-3xl font-display font-bold uppercase tracking-tight hover:text-brand transition-colors"
                 >Inicio</a
             >
             <a
                 href="/shop"
+                data-astro-prefetch="hover"
                 class="text-3xl font-display font-bold uppercase tracking-tight hover:text-brand transition-colors"
                 >Tienda</a
             >
             <a
                 href="/shop?category=elite"
+                data-astro-prefetch="hover"
                 class="text-3xl font-display font-bold uppercase tracking-tight hover:text-brand transition-colors"
                 >Elite</a
             >
             <a
                 href="/shop?category=entrenamiento"
+                data-astro-prefetch="hover"
                 class="text-3xl font-display font-bold uppercase tracking-tight hover:text-brand transition-colors"
                 >Entrenamiento</a
             >
             <a
                 href="/shop?category=infantil"
+                data-astro-prefetch="hover"
                 class="text-3xl font-display font-bold uppercase tracking-tight hover:text-brand transition-colors"
                 >Infantil</a
             >
@@ -279,7 +285,7 @@ const { user, role } = Astro.locals;
 </div>
 
 <!-- Spacer for fixed header -->
-<div class="h-20"></div>
+<div class="h-16 sm:h-20"></div>
 
 <style>
     .nav-link {
@@ -314,21 +320,17 @@ const { user, role } = Astro.locals;
             localStorage.setItem("theme", "dark");
         }
 
-        // ── Glass effect on scroll ──
+        // ── Solidify on scroll ──
         var header = document.getElementById("main-header");
 
         function applyScrollState() {
             if (!header) return;
             if (window.scrollY > 50) {
-                header.style.backgroundColor = "var(--bg-header-scroll)";
-                header.style.backdropFilter = "blur(24px)";
-                header.style.webkitBackdropFilter = "blur(24px)";
-                header.style.borderColor = "var(--glass-border)";
+                header.style.backgroundColor = "rgba(0,0,0,0.92)";
+                header.style.borderColor = "rgba(255,255,255,0.05)";
             } else {
-                header.style.backgroundColor = "transparent";
-                header.style.backdropFilter = "none";
-                header.style.webkitBackdropFilter = "none";
-                header.style.borderColor = "transparent";
+                header.style.backgroundColor = "rgba(0,0,0,0.6)";
+                header.style.borderColor = "rgba(255,255,255,0.05)";
             }
         }
 
@@ -364,12 +366,17 @@ const { user, role } = Astro.locals;
         }
 
         // ── Cart Count Update ──
+        function getActiveCartKey() {
+            var uid = localStorage.getItem("parra_cart_user_id");
+            return uid ? "parra_cart_" + uid : "parra_cart_guest";
+        }
+
         function updateCartCount() {
             var el = document.getElementById("cart-count");
             if (!el) return;
             try {
                 var cart = JSON.parse(
-                    localStorage.getItem("parra_cart") || "[]",
+                    localStorage.getItem(getActiveCartKey()) || "[]",
                 );
                 var total = cart.reduce(function (sum, item) {
                     return sum + item.quantity;
@@ -386,7 +393,9 @@ const { user, role } = Astro.locals;
 
         // ── Logout ──
         function handleLogout() {
-            // Usamos redirección directa para evitar errores 403 de CSRF en peticiones POST
+            // Limpiar el carrito del usuario actual y volver al modo invitado
+            localStorage.removeItem('parra_cart_user_id');
+            localStorage.removeItem('parra_cart_session');
             window.location.href = "/api/auth/logout";
         }
 

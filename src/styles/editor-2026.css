@@ -1,0 +1,742 @@
+/* ═══════════════════════════════════════════════════════
+   PARRA Visual Builder 2026 — Design System
+   Inspired by: Framer · Webflow · Linear · Vercel · Raycast
+   ═══════════════════════════════════════════════════════ */
+
+/* ── CSS Variables ─────────────────────────────────────── */
+:root {
+    /* Surfaces */
+    --ve2-bg-deep: #0a0a0a;
+    --ve2-bg-base: #0e0e0e;
+    --ve2-bg-raised: #131313;
+    --ve2-bg-elevated: #161616;
+    --ve2-bg-input: #161616;
+    --ve2-bg-hover: #1a1a1a;
+    --ve2-bg-glass: rgba(20, 20, 20, 0.92);
+
+    /* Borders */
+    --ve2-border-subtle: rgba(255, 255, 255, 0.04);
+    --ve2-border-default: #2a2a2a;
+    --ve2-border-hover: rgba(255, 255, 255, 0.12);
+    --ve2-border-focus: #39FF14;
+
+    /* Neon accent */
+    --ve2-neon: #39FF14;
+    --ve2-neon-soft: #2DD60E;
+    --ve2-neon-dim: rgba(57, 255, 20, 0.08);
+    --ve2-neon-glow: rgba(57, 255, 20, 0.15);
+    --ve2-neon-glow-lg: rgba(57, 255, 20, 0.25);
+    --ve2-neon-ghost: rgba(57, 255, 20, 0.04);
+
+    /* Text */
+    --ve2-text-primary: #ffffff;
+    --ve2-text-secondary: rgba(255, 255, 255, 0.65);
+    --ve2-text-tertiary: rgba(255, 255, 255, 0.4);
+    --ve2-text-muted: rgba(255, 255, 255, 0.2);
+    --ve2-text-disabled: rgba(255, 255, 255, 0.12);
+
+    /* Danger */
+    --ve2-danger: #f87171;
+    --ve2-danger-dim: rgba(248, 113, 113, 0.1);
+    --ve2-danger-border: rgba(248, 113, 113, 0.2);
+
+    /* Warning */
+    --ve2-warning: #FFA400;
+    --ve2-warning-dim: rgba(255, 164, 0, 0.1);
+
+    /* Info */
+    --ve2-info: #60a5fa;
+    --ve2-info-dim: rgba(96, 165, 250, 0.1);
+
+    /* Spacing */
+    --ve2-space-xs: 0.25rem;
+    --ve2-space-sm: 0.5rem;
+    --ve2-space-md: 0.75rem;
+    --ve2-space-lg: 1rem;
+    --ve2-space-xl: 1.5rem;
+
+    /* Radius */
+    --ve2-radius-sm: 4px;
+    --ve2-radius-md: 8px;
+    --ve2-radius-lg: 12px;
+    --ve2-radius-xl: 16px;
+    --ve2-radius-full: 9999px;
+
+    /* Shadows */
+    --ve2-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --ve2-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --ve2-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --ve2-shadow-neon: 0 0 20px rgba(57, 255, 20, 0.15);
+    --ve2-shadow-neon-lg: 0 0 40px rgba(57, 255, 20, 0.2);
+
+    /* Transitions */
+    --ve2-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --ve2-duration-fast: 120ms;
+    --ve2-duration: 200ms;
+    --ve2-duration-slow: 320ms;
+
+    /* Typography */
+    --ve2-font: 'Inter', system-ui, -apple-system, sans-serif;
+    --ve2-font-display: 'Oswald', system-ui, sans-serif;
+    --ve2-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* ── Inputs Oscuros Futuristas ────────────────────────── */
+.ve2-input {
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    background: var(--ve2-bg-input);
+    border: 1px solid var(--ve2-border-default);
+    border-radius: var(--ve2-radius-md);
+    color: var(--ve2-text-primary);
+    font-size: 0.82rem;
+    font-family: var(--ve2-font);
+    outline: none;
+    transition: border-color var(--ve2-duration) var(--ve2-ease),
+        box-shadow var(--ve2-duration) var(--ve2-ease),
+        background var(--ve2-duration) var(--ve2-ease);
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.ve2-input::placeholder {
+    color: var(--ve2-text-muted);
+}
+
+.ve2-input:hover {
+    border-color: var(--ve2-border-hover);
+    background: var(--ve2-bg-hover);
+}
+
+.ve2-input:focus {
+    border-color: var(--ve2-neon);
+    box-shadow: 0 0 0 3px var(--ve2-neon-dim),
+        0 0 16px rgba(57, 255, 20, 0.06);
+    background: var(--ve2-bg-elevated);
+}
+
+.ve2-input:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Textarea */
+textarea.ve2-input {
+    min-height: 72px;
+    resize: vertical;
+    line-height: 1.55;
+}
+
+/* Select */
+select.ve2-input {
+    appearance: none;
+    cursor: pointer;
+    padding-right: 2rem;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='rgba(255,255,255,0.3)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+}
+
+/* ── Labels ───────────────────────────────────────────── */
+.ve2-label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ve2-text-tertiary);
+    margin-bottom: 0.4rem;
+    user-select: none;
+}
+
+.ve2-label svg {
+    width: 12px;
+    height: 12px;
+    opacity: 0.5;
+}
+
+/* ── Botones Futuristas ───────────────────────────────── */
+.ve2-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--ve2-radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: var(--ve2-font);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    transition: all var(--ve2-duration) var(--ve2-ease);
+    position: relative;
+    overflow: hidden;
+}
+
+.ve2-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.ve2-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Primary — Neon Glow */
+.ve2-btn-primary {
+    background: linear-gradient(135deg, var(--ve2-neon), var(--ve2-neon-soft));
+    color: #000;
+    box-shadow: var(--ve2-shadow-neon);
+}
+
+.ve2-btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--ve2-shadow-neon-lg), 0 4px 20px rgba(57, 255, 20, 0.2);
+}
+
+.ve2-btn-primary:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Ghost */
+.ve2-btn-ghost {
+    background: transparent;
+    color: var(--ve2-text-secondary);
+    border: 1px solid var(--ve2-border-default);
+}
+
+.ve2-btn-ghost:hover:not(:disabled) {
+    background: var(--ve2-bg-hover);
+    border-color: var(--ve2-border-hover);
+    color: var(--ve2-text-primary);
+}
+
+/* Danger */
+.ve2-btn-danger {
+    background: var(--ve2-danger-dim);
+    color: var(--ve2-danger);
+    border: 1px solid var(--ve2-danger-border);
+}
+
+.ve2-btn-danger:hover:not(:disabled) {
+    background: rgba(248, 113, 113, 0.18);
+    border-color: rgba(248, 113, 113, 0.35);
+    transform: translateY(-1px);
+}
+
+/* Sizes */
+.ve2-btn-sm {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.68rem;
+    border-radius: 6px;
+}
+
+.ve2-btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.85rem;
+    border-radius: var(--ve2-radius-lg);
+}
+
+/* Icon-only */
+.ve2-btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: var(--ve2-radius-md);
+    background: transparent;
+    color: var(--ve2-text-tertiary);
+    border: 1px solid transparent;
+}
+
+.ve2-btn-icon:hover {
+    background: var(--ve2-bg-hover);
+    color: var(--ve2-text-primary);
+    border-color: var(--ve2-border-default);
+}
+
+.ve2-btn-icon.active {
+    background: var(--ve2-neon-dim);
+    color: var(--ve2-neon);
+    border-color: rgba(57, 255, 20, 0.15);
+}
+
+/* ── Publish Button (Compact) ─────────────────────────── */
+.ve2-btn-publish {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: linear-gradient(135deg, var(--ve2-neon), var(--ve2-neon-soft));
+    color: #000;
+    font-weight: 700;
+    font-size: 0.68rem;
+    font-family: var(--ve2-font);
+    padding: 0.38rem 0.85rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    box-shadow: 0 0 12px rgba(57, 255, 20, 0.12);
+    position: relative;
+    transition: all var(--ve2-duration) var(--ve2-ease);
+}
+
+.ve2-btn-publish:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.2),
+        0 0 40px rgba(57, 255, 20, 0.08);
+}
+
+.ve2-btn-publish:active:not(:disabled) {
+    transform: translateY(0) scale(0.97);
+}
+
+.ve2-btn-publish.has-changes::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 7px;
+    height: 7px;
+    background: var(--ve2-warning);
+    border-radius: 50%;
+    border: 2px solid var(--ve2-bg-base);
+    animation: ve2-pulse 2s ease-in-out infinite;
+}
+
+/* ── Toggle Switch ────────────────────────────────────── */
+.ve2-toggle {
+    width: 36px;
+    height: 20px;
+    border-radius: var(--ve2-radius-full);
+    border: none;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    padding: 0;
+    transition: background var(--ve2-duration) var(--ve2-ease),
+        box-shadow var(--ve2-duration) var(--ve2-ease);
+}
+
+.ve2-toggle.on {
+    background: rgba(57, 255, 20, 0.2);
+    box-shadow: 0 0 12px rgba(57, 255, 20, 0.1);
+}
+
+.ve2-toggle.off {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.ve2-toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    transition: left var(--ve2-duration) var(--ve2-ease),
+        background var(--ve2-duration) var(--ve2-ease),
+        box-shadow var(--ve2-duration) var(--ve2-ease);
+}
+
+.ve2-toggle.on::after {
+    left: 19px;
+    background: var(--ve2-neon);
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+}
+
+.ve2-toggle.off::after {
+    left: 3px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Glass Panel ──────────────────────────────────────── */
+.ve2-glass {
+    background: var(--ve2-bg-glass);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--ve2-border-subtle);
+    box-shadow: var(--ve2-shadow-lg),
+        inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+/* ── Badge ────────────────────────────────────────────── */
+.ve2-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--ve2-radius-sm);
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+
+.ve2-badge-neon {
+    color: var(--ve2-neon);
+    background: var(--ve2-neon-dim);
+    border: 1px solid rgba(57, 255, 20, 0.12);
+}
+
+.ve2-badge-muted {
+    color: var(--ve2-text-tertiary);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--ve2-border-subtle);
+}
+
+.ve2-badge-danger {
+    color: var(--ve2-danger);
+    background: var(--ve2-danger-dim);
+    border: 1px solid var(--ve2-danger-border);
+}
+
+/* ── Color Picker ─────────────────────────────────────── */
+.ve2-color-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--ve2-space-sm);
+}
+
+.ve2-color-swatch {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--ve2-border-default);
+    border-radius: var(--ve2-radius-md);
+    cursor: pointer;
+    padding: 3px;
+    flex-shrink: 0;
+    transition: border-color var(--ve2-duration) var(--ve2-ease),
+        box-shadow var(--ve2-duration) var(--ve2-ease);
+    background: transparent;
+}
+
+.ve2-color-swatch:hover {
+    border-color: var(--ve2-border-hover);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.05);
+}
+
+.ve2-color-swatch::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.ve2-color-swatch::-webkit-color-swatch {
+    border: none;
+    border-radius: 5px;
+}
+
+/* ── Range Slider ─────────────────────────────────────── */
+.ve2-range-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.ve2-range {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.08);
+    outline: none;
+    transition: background var(--ve2-duration) var(--ve2-ease);
+}
+
+.ve2-range:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.ve2-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--ve2-neon);
+    cursor: pointer;
+    border: 2px solid var(--ve2-bg-base);
+    box-shadow: 0 0 0 2px var(--ve2-neon-glow),
+        0 0 12px rgba(57, 255, 20, 0.2);
+    transition: box-shadow var(--ve2-duration) var(--ve2-ease);
+}
+
+.ve2-range::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 3px var(--ve2-neon-glow),
+        0 0 20px rgba(57, 255, 20, 0.3);
+}
+
+.ve2-range::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--ve2-neon);
+    cursor: pointer;
+    border: 2px solid var(--ve2-bg-base);
+    box-shadow: 0 0 0 2px var(--ve2-neon-glow);
+}
+
+.ve2-range-value {
+    font-size: 0.7rem;
+    color: var(--ve2-text-tertiary);
+    min-width: 36px;
+    text-align: center;
+    font-family: var(--ve2-font-mono);
+    background: var(--ve2-bg-elevated);
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--ve2-radius-sm);
+    border: 1px solid var(--ve2-border-subtle);
+}
+
+/* ── Custom Scrollbar ─────────────────────────────────── */
+.ve2-scroll::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.ve2-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ve2-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+    transition: background 0.2s;
+}
+
+.ve2-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+/* ── Section Divider ──────────────────────────────────── */
+.ve2-divider {
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent,
+            var(--ve2-border-subtle) 20%,
+            var(--ve2-border-subtle) 80%,
+            transparent);
+    margin: var(--ve2-space-md) 0;
+}
+
+/* ── Inline Edit Highlight ────────────────────────────── */
+.ve2-editable-highlight {
+    outline: 1px dashed rgba(57, 255, 20, 0.3);
+    outline-offset: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    transition: outline-color var(--ve2-duration) var(--ve2-ease),
+        box-shadow var(--ve2-duration) var(--ve2-ease);
+}
+
+.ve2-editable-highlight:hover {
+    outline-color: var(--ve2-neon);
+    box-shadow: 0 0 16px rgba(57, 255, 20, 0.08);
+}
+
+.ve2-editable-highlight::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 16px;
+    height: 16px;
+    background: var(--ve2-neon);
+    border-radius: 50%;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all var(--ve2-duration) var(--ve2-ease);
+    background-image: url("data:image/svg+xml,%3Csvg width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/%3E%3Cpath d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'/%3E%3C/svg%3E");
+    background-size: 8px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.ve2-editable-highlight:hover::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ── Animations ───────────────────────────────────────── */
+@keyframes ve2-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.4;
+    }
+}
+
+@keyframes ve2-fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes ve2-slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes ve2-scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes ve2-glowPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(57, 255, 20, 0.15);
+    }
+
+    50% {
+        box-shadow: 0 0 32px rgba(57, 255, 20, 0.25);
+    }
+}
+
+.ve2-animate-in {
+    animation: ve2-fadeIn var(--ve2-duration-slow) var(--ve2-ease) both;
+}
+
+.ve2-animate-slide {
+    animation: ve2-slideInRight var(--ve2-duration-slow) var(--ve2-ease) both;
+}
+
+.ve2-animate-scale {
+    animation: ve2-scaleIn var(--ve2-duration) var(--ve2-ease) both;
+}
+
+/* ── Tooltip ──────────────────────────────────────────── */
+[data-ve2-tooltip] {
+    position: relative;
+}
+
+[data-ve2-tooltip]::before {
+    content: attr(data-ve2-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    padding: 0.3rem 0.6rem;
+    background: var(--ve2-bg-elevated);
+    border: 1px solid var(--ve2-border-default);
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--ve2-text-secondary);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--ve2-duration-fast) var(--ve2-ease),
+        transform var(--ve2-duration-fast) var(--ve2-ease);
+    z-index: 100;
+}
+
+[data-ve2-tooltip]:hover::before {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* ── Skeleton Loading ─────────────────────────────────── */
+.ve2-skeleton {
+    background: linear-gradient(90deg,
+            var(--ve2-bg-elevated) 25%,
+            rgba(255, 255, 255, 0.04) 50%,
+            var(--ve2-bg-elevated) 75%);
+    background-size: 200% 100%;
+    animation: ve2-shimmer 1.5s ease-in-out infinite;
+    border-radius: var(--ve2-radius-md);
+}
+
+@keyframes ve2-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ── Field Group ──────────────────────────────────────── */
+.ve2-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-bottom: var(--ve2-space-lg);
+    border-bottom: 1px solid var(--ve2-border-subtle);
+}
+
+.ve2-field-group:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* ── Section Header ───────────────────────────────────── */
+.ve2-section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--ve2-space-sm);
+    padding: var(--ve2-space-sm) 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.ve2-section-header:hover .ve2-section-header-title {
+    color: var(--ve2-text-primary);
+}
+
+.ve2-section-header-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ve2-text-tertiary);
+    transition: color var(--ve2-duration) var(--ve2-ease);
+}
+
+.ve2-section-header-chevron {
+    width: 12px;
+    height: 12px;
+    color: var(--ve2-text-muted);
+    transition: transform var(--ve2-duration) var(--ve2-ease);
+}
+
+.ve2-section-header.open .ve2-section-header-chevron {
+    transform: rotate(90deg);
+}

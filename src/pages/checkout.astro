@@ -2,9 +2,21 @@
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import { supabaseAdmin } from "../lib/supabase";
 
 // Pre-fill email if logged in
 const { user } = Astro.locals;
+
+// Cargar direcciones guardadas si hay sesión
+let savedAddresses: any[] = [];
+if (user) {
+    const { data } = await supabaseAdmin
+        .from("addresses")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("is_default", { ascending: false });
+    savedAddresses = data ?? [];
+}
 ---
 
 <Layout title="Pago Seguro">
@@ -60,9 +72,42 @@ const { user } = Astro.locals;
                         </h2>
                     </div>
 
+                    {/* ── Selector de direcciones guardadas ── */}
+                    {savedAddresses.length > 0 && (
+                        <div class="card p-4 space-y-3">
+                            <p class="text-[10px] font-bold uppercase tracking-[0.2em]" style="color: var(--text-muted);">Mis direcciones guardadas</p>
+                            <div id="saved-addresses-list" class="grid gap-2">
+                                {savedAddresses.map((addr: any) => (
+                                    <button
+                                        type="button"
+                                        class:list={["saved-addr-card text-left w-full p-3 border transition-colors hover:border-brand/50", addr.is_default ? "border-brand/40 bg-brand/5" : ""]}
+                                        style={addr.is_default ? "" : "border-color: var(--border-color);"}
+                                        data-addr={JSON.stringify({
+                                            full_name: addr.full_name,
+                                            street: addr.street,
+                                            city: addr.city,
+                                            postal_code: addr.postal_code,
+                                            phone: addr.phone ?? "",
+                                        })}
+                                    >
+                                        <span class="flex items-center justify-between gap-2 flex-wrap">
+                                            <span class="font-semibold text-xs">{addr.full_name} — {addr.label || "Dirección"}</span>
+                                            {addr.is_default && <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 bg-brand/10 text-brand">Predeterminada</span>}
+                                        </span>
+                                        <span class="block text-[11px] mt-0.5" style="color: var(--text-muted);">{addr.street}, {addr.postal_code} {addr.city}</span>
+                                    </button>
+                                ))}
+                            </div>
+                            <button type="button" id="addr-manual-btn" class="text-[10px] uppercase tracking-widest py-1 hover:text-brand transition-colors" style="color: var(--text-muted);">
+                                + Introducir dirección manualmente
+                            </button>
+                        </div>
+                    )}
+
                     <form id="checkout-form" class="space-y-4">
                         <input
                             type="email"
+                            id="input-email"
                             placeholder="Email para seguimiento"
                             required
                             class="input"
@@ -70,30 +115,35 @@ const { user } = Astro.locals;
                         />
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <input
+                                id="input-nombre"
                                 placeholder="Nombre"
                                 required
                                 class="input"
                             />
                             <input
+                                id="input-apellidos"
                                 placeholder="Apellidos"
                                 required
                                 class="input"
                             />
                         </div>
-                        <input placeholder="Dirección" required class="input" />
+                        <input id="input-direccion" placeholder="Dirección" required class="input" />
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <input
+                                id="input-ciudad"
                                 placeholder="Ciudad"
                                 required
                                 class="input"
                             />
                             <input
+                                id="input-cp"
                                 placeholder="Código Postal"
                                 required
                                 class="input"
                             />
                         </div>
                         <input
+                            id="input-telefono"
                             placeholder="Teléfono"
                             type="tel"
                             class="input"
@@ -229,12 +279,58 @@ const { user } = Astro.locals;
     import { getCart, getSessionId } from "../lib/cart";
 
     function initCheckoutPage() {
-        var orderBtn = document.getElementById(
-            "place-order-btn",
-        ) as HTMLButtonElement;
-        var checkoutForm = document.getElementById(
-            "checkout-form",
-        ) as HTMLFormElement;
+        // ── Auto-relleno desde dirección guardada ──────────────────────────────
+        const addrCards = document.querySelectorAll<HTMLButtonElement>(".saved-addr-card");
+        const manualBtn = document.getElementById("addr-manual-btn");
+
+        function selectAddrCard(card: HTMLButtonElement) {
+            // Quitar selección previa
+            addrCards.forEach(c => {
+                c.classList.remove("border-brand/40", "bg-brand/5", "ring-1", "ring-brand/30");
+                c.style.borderColor = "var(--border-color)";
+            });
+            // Marcar seleccionada
+            card.classList.add("border-brand/40", "bg-brand/5", "ring-1", "ring-brand/30");
+            card.style.borderColor = "";
+
+            // Rellenar el formulario
+            try {
+                const data = JSON.parse(card.dataset.addr ?? "{}");
+                const [firstName, ...lastParts] = (data.full_name ?? "").split(" ");
+                const lastName = lastParts.join(" ");
+                (document.getElementById("input-nombre") as HTMLInputElement).value  = firstName ?? "";
+                (document.getElementById("input-apellidos") as HTMLInputElement).value  = lastName ?? "";
+                (document.getElementById("input-direccion") as HTMLInputElement).value = data.street ?? "";
+                (document.getElementById("input-ciudad") as HTMLInputElement).value   = data.city ?? "";
+                (document.getElementById("input-cp") as HTMLInputElement).value       = data.postal_code ?? "";
+                (document.getElementById("input-telefono") as HTMLInputElement).value = data.phone ?? "";
+            } catch {}
+        }
+
+        addrCards.forEach(card => {
+            card.addEventListener("click", () => selectAddrCard(card));
+        });
+
+        // Seleccionar automáticamente la predeterminada (primera de la lista porque se ordena is_default DESC)
+        if (addrCards.length > 0) {
+            selectAddrCard(addrCards[0]);
+        }
+
+        // Botón "introducir manualmente" limpia la selección y vacía los campos
+        manualBtn?.addEventListener("click", () => {
+            addrCards.forEach(c => {
+                c.classList.remove("border-brand/40", "bg-brand/5", "ring-1", "ring-brand/30");
+                c.style.borderColor = "var(--border-color)";
+            });
+            ["input-nombre","input-apellidos","input-direccion","input-ciudad","input-cp","input-telefono"].forEach(id => {
+                (document.getElementById(id) as HTMLInputElement).value = "";
+            });
+            document.getElementById("input-nombre")?.focus();
+        });
+
+        // ── Envío al checkout ──────────────────────────────────────────────────
+        var orderBtn = document.getElementById("place-order-btn") as HTMLButtonElement;
+        var checkoutForm = document.getElementById("checkout-form") as HTMLFormElement;
 
         if (orderBtn && checkoutForm) {
             orderBtn.addEventListener("click", async function (e) {
@@ -254,44 +350,16 @@ const { user } = Astro.locals;
                 }
 
                 const cartSessionId = getSessionId();
-                const formData = new FormData(checkoutForm);
                 const shippingInfo = {
-                    firstName: (
-                        document.querySelector(
-                            'input[placeholder="Nombre"]',
-                        ) as HTMLInputElement
-                    )?.value,
-                    lastName: (
-                        document.querySelector(
-                            'input[placeholder="Apellidos"]',
-                        ) as HTMLInputElement
-                    )?.value,
-                    address: (
-                        document.querySelector(
-                            'input[placeholder="Dirección"]',
-                        ) as HTMLInputElement
-                    )?.value,
-                    city: (
-                        document.querySelector(
-                            'input[placeholder="Ciudad"]',
-                        ) as HTMLInputElement
-                    )?.value,
-                    zip: (
-                        document.querySelector(
-                            'input[placeholder="Código Postal"]',
-                        ) as HTMLInputElement
-                    )?.value,
-                    phone: (
-                        document.querySelector(
-                            'input[placeholder="Teléfono"]',
-                        ) as HTMLInputElement
-                    )?.value,
+                    firstName: (document.getElementById("input-nombre")   as HTMLInputElement)?.value,
+                    lastName:  (document.getElementById("input-apellidos") as HTMLInputElement)?.value,
+                    address:   (document.getElementById("input-direccion") as HTMLInputElement)?.value,
+                    city:      (document.getElementById("input-ciudad")    as HTMLInputElement)?.value,
+                    zip:       (document.getElementById("input-cp")        as HTMLInputElement)?.value,
+                    phone:     (document.getElementById("input-telefono")  as HTMLInputElement)?.value,
                 };
 
-                const emailInput = document.querySelector(
-                    'input[type="email"]',
-                ) as HTMLInputElement;
-                const email = emailInput?.value || "guest@example.com"; // Should ideally have an email field
+                const email = (document.getElementById("input-email") as HTMLInputElement)?.value || "guest@example.com";
 
                 orderBtn.innerHTML =
                     '<span class="flex items-center gap-2"><svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Redirigiendo a Stripe...</span>';
@@ -320,10 +388,8 @@ const { user } = Astro.locals;
                     }
                 } catch (err) {
                     const { toast } = await import("../lib/toast");
-                    toast.error(
-                        err.message ||
-                            "Error al procesar el pago. Intenta de nuevo.",
-                    );
+                    const msg = err instanceof Error ? err.message : "Error al procesar el pago. Intenta de nuevo.";
+                    toast.error(msg);
                     orderBtn.textContent = "Pagar y Finalizar";
                     orderBtn.removeAttribute("disabled");
                 }

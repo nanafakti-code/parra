@@ -5,6 +5,12 @@ import ProductCard from "../components/ProductCard.astro";
 import Footer from "../components/Footer.astro";
 import { supabase } from "../lib/supabase";
 
+// Cache pública: CDN guarda 60s, navegador stale-while-revalidate
+Astro.response.headers.set(
+    "Cache-Control",
+    "public, s-maxage=60, stale-while-revalidate=120",
+);
+
 // Fetch categories
 let dbCategories: any[] = [];
 try {
@@ -38,13 +44,26 @@ if (sortBy === "price-asc") {
 } else if (sortBy === "price-desc") {
     query = query.order("price", { ascending: false });
 } else {
+    // Default: newest first (display_order applied in JS if column exists)
     query = query.order("created_at", { ascending: false });
 }
 
 let products: any[] = [];
 try {
-    const { data } = await query;
+    const { data, error } = await query;
+    if (error) throw error;
     products = data || [];
+    // Sort by display_order if available (column might not exist yet)
+    if (
+        sortBy === "newest" &&
+        products.length > 0 &&
+        products[0].display_order != null
+    ) {
+        products.sort(
+            (a: any, b: any) =>
+                (a.display_order ?? 999) - (b.display_order ?? 999),
+        );
+    }
 } catch (e) {
     console.error("Supabase products error:", e);
 }

@@ -25,22 +25,10 @@ const testimonials = [
 ---
 
 <section
-    class="section relative overflow-hidden"
-    style="background-color: var(--bg-primary);"
+    class="section relative"
 >
-    <!-- Background decoration -->
-    <div class="absolute inset-0 opacity-[0.02]">
-        <div
-            class="absolute top-0 right-1/4 w-96 h-96 bg-brand rounded-full blur-[120px]"
-        >
-        </div>
-        <div
-            class="absolute bottom-0 left-1/4 w-96 h-96 bg-brand rounded-full blur-[120px]"
-        >
-        </div>
-    </div>
     <div class="container relative">
-        <div class="text-center mb-16 reveal">
+        <div class="text-center mb-10 md:mb-16 reveal">
             <h2 class="section-title">
                 Lo Que Dicen <span class="text-brand">Nuestros Porteros</span>
             </h2>
@@ -49,10 +37,10 @@ const testimonials = [
             </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
             {
                 testimonials.map((t, i) => (
-                    <div class={`card p-8 reveal stagger-${i + 1} relative`}>
+                    <div class={`card p-6 sm:p-8 reveal stagger-${i + 1} relative`}>
                         {/* Quote mark */}
                         <div class="text-brand/10 text-7xl font-display font-bold absolute top-4 right-6 leading-none">
                             "

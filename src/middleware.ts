@@ -16,8 +16,11 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
     const isMaintenanceMode = String(rawMaintenanceMode).trim().toLowerCase() === 'true';
     const url = new URL(request.url);
 
+    const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+
     if (
         isMaintenanceMode &&
+        !isLocalhost &&
         url.pathname !== '/maintenance' &&
         !url.pathname.startsWith('/_astro') &&
         !url.pathname.startsWith('/api') &&
@@ -40,12 +43,26 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
         if (user && !error) {
             locals.user = user;
 
-            // 4. Obtener rol desde la tabla users (usando admin para saltar RLS en middleware)
-            const { data: profile } = await supabaseAdmin
+            // 4. Obtener rol desde la tabla users (busca por id primero, con fallback a email)
+            let profile: { role: string } | null = null;
+
+            const { data: byId } = await supabaseAdmin
                 .from("users")
-                .select("role")
+                .select("id, role")
                 .eq("id", user.id)
                 .maybeSingle();
+
+            if (byId) {
+                profile = byId;
+            } else {
+                // Fallback: el UUID de Auth puede no coincidir con public.users (usuario creado manualmente)
+                const { data: byEmail } = await supabaseAdmin
+                    .from("users")
+                    .select("id, role")
+                    .eq("email", user.email)
+                    .maybeSingle();
+                profile = byEmail;
+            }
 
             locals.role = profile?.role || "customer";
         }

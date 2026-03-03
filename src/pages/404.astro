@@ -1,0 +1,66 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Página no encontrada">
+    <Header />
+    <main class="relative overflow-hidden" style="background: #0a0a0a; min-height: calc(100vh - 80px);">
+
+        <!-- Glow sutil verde detrás -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(57,255,20,0.06) 0%, transparent 70%);"></div>
+
+        <!-- Contenido centrado -->
+        <div class="error-page flex flex-col items-center justify-center text-center px-6" style="min-height: calc(100vh - 80px);">
+
+            <!-- 404 grande -->
+            <h1 class="font-display font-bold tracking-tighter leading-none select-none" style="font-size: clamp(7rem, 25vw, 14rem); color: rgba(255,255,255,0.04);">
+                404
+            </h1>
+
+            <!-- Línea decorativa -->
+            <div class="w-10 h-[1px] mx-auto my-6" style="background: linear-gradient(90deg, transparent, #39FF14, transparent); opacity: 0.5;"></div>
+
+            <!-- Mensaje -->
+            <h2 class="font-display text-xl md:text-2xl font-bold uppercase tracking-widest text-white mb-3">
+                Fuera del área
+            </h2>
+            <p class="text-sm text-white/40 font-light max-w-xs mx-auto mb-10 leading-relaxed">
+                Esta página no existe. Puede que haya sido movida o eliminada.
+            </p>
+
+            <!-- Botón volver -->
+            <a
+                href="/"
+                class="group inline-flex items-center gap-2 px-8 py-3.5 font-display font-bold text-xs uppercase tracking-[0.2em] rounded-md transition-all duration-300"
+                style="background: linear-gradient(135deg, #39FF14, #2DD60E); color: #000;"
+                onmouseover="this.style.boxShadow='0 0 30px rgba(57,255,20,0.35)'; this.style.transform='translateY(-2px)'"
+                onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)'"
+            >
+                <svg class="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Volver al inicio
+            </a>
+        </div>
+    </main>
+    <Footer />
+</Layout>
+
+<style>
+    .error-page {
+        animation: error-fade-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes error-fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>

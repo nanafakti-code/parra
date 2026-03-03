@@ -44,13 +44,21 @@ const canonicalURL = new URL(
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 
-		<!-- Google Fonts: Oswald (headings) + Inter (body) -->
+		<!-- Google Fonts: Oswald (headings) + Inter (body) — carga no bloqueante -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
+			rel="preload"
 			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@400;500;600;700&display=swap"
-			rel="stylesheet"
+			as="style"
+			onload="this.onload=null;this.rel='stylesheet'"
 		/>
+		<noscript>
+			<link
+				href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@400;500;600;700&display=swap"
+				rel="stylesheet"
+			/>
+		</noscript>
 
 		<!-- Theme initialization (FOUC prevention) -->
 		<script is:inline>

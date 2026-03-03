@@ -1,0 +1,2263 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../lib/admin";
+import { supabaseAdmin } from "../../lib/supabase";
+import SidebarSections from "../../components/editor/SidebarSections.astro";
+import InspectorPanel from "../../components/editor/InspectorPanel.astro";
+import "../../styles/editor-2026.css";
+
+const admin = await requireAdmin(Astro);
+
+const { data: allSections } = await supabaseAdmin
+    .from("page_sections")
+    .select("*")
+    .order("page_name")
+    .order("display_order", { ascending: true });
+
+const sections = allSections || [];
+
+let products: any[] = [];
+{
+    // Try with display_order first
+    const { data: d1, error: e1 } = await supabaseAdmin
+        .from("products")
+        .select(
+            "id, name, slug, image, price, compare_price, is_active, display_order, categories(name, slug)",
+        )
+        .eq("is_active", true)
+        .order("display_order", { ascending: true })
+        .order("created_at", { ascending: false });
+
+    if (!e1 && d1) {
+        products = d1;
+    } else {
+        // Fallback: display_order column might not exist yet
+        const { data: d2 } = await supabaseAdmin
+            .from("products")
+            .select(
+                "id, name, slug, image, price, compare_price, is_active, categories(name, slug)",
+            )
+            .eq("is_active", true)
+            .order("created_at", { ascending: false });
+        products = (d2 || []).map((p: any, i: number) => ({
+            ...p,
+            display_order: i,
+        }));
+    }
+}
+---
+
+<AdminLayout title="Editor Visual" activeSection="editor" admin={admin}>
+    <!-- ═══════ MOBILE BLOCKER ═══════ -->
+    <div class="vb-mobile-block" id="vbMobileBlock">
+        <div class="vb-mobile-block-content">
+            <div class="vb-mobile-block-icon">
+                <svg
+                    width="40"
+                    height="40"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    ><rect x="2" y="3" width="20" height="14" rx="2"
+                    ></rect><line x1="8" y1="21" x2="16" y2="21"></line><line
+                        x1="12"
+                        y1="17"
+                        x2="12"
+                        y2="21"></line></svg
+                >
+            </div>
+            <h2 class="vb-mobile-block-title">Editor solo para PC</h2>
+            <p class="vb-mobile-block-msg">
+                El Editor Visual está diseñado exclusivamente para pantallas de
+                escritorio. Accede desde un ordenador para editar tu sitio.
+            </p>
+            <a
+                href="/admin"
+                class="ve2-btn ve2-btn-primary"
+                style="margin-top:0.5rem;"
+            >
+                <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    ><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                    ></path><polyline points="9 22 9 12 15 12 15 22"
+                    ></polyline></svg
+                >
+                Ir al Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- ═══════ TOOLBAR 2026 ═══════ -->
+    <div class="vb-toolbar" id="vbToolbar">
+        <div class="vb-toolbar-left">
+            <div class="vb-page-tabs" id="vbPageTabs">
+                <button class="vb-page-tab active" data-page="home">
+                    <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        ><path
+                            d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                        ></path><polyline points="9 22 9 12 15 12 15 22"
+                        ></polyline></svg
+                    >
+                    Inicio
+                </button>
+                <button class="vb-page-tab" data-page="shop">
+                    <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        ><path
+                            d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"
+                        ></path><line x1="3" y1="6" x2="21" y2="6"></line><path
+                            d="M16 10a4 4 0 0 1-8 0"></path></svg
+                    >
+                    Tienda
+                </button>
+            </div>
+        </div>
+
+        <div class="vb-toolbar-center">
+            <!-- Edit mode toggle -->
+            <div class="vb-edit-mode" id="vbEditMode">
+                <button
+                    class="vb-edit-mode-btn active"
+                    id="vbModeVisual"
+                    data-ve2-tooltip="Modo visual"
+                >
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        ><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                        ></path><circle cx="12" cy="12" r="3"></circle></svg
+                    >
+                </button>
+                <button
+                    class="vb-edit-mode-btn"
+                    id="vbModeEdit"
+                    data-ve2-tooltip="Modo edición inline"
+                >
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        ><path
+                            d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                        ></path><path
+                            d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                        ></path></svg
+                    >
+                </button>
+            </div>
+            <!-- Viewport switcher -->
+            <div class="vb-viewport" id="vbViewport">
+                <button
+                    class="vb-vp-btn active"
+                    data-vp="desktop"
+                    data-ve2-tooltip="Desktop"
+                >
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        ><rect x="2" y="3" width="20" height="14" rx="2"
+                        ></rect><line x1="8" y1="21" x2="16" y2="21"
+                        ></line><line x1="12" y1="17" x2="12" y2="21"
+                        ></line></svg
+                    >
+                </button>
+                <button
+                    class="vb-vp-btn"
+                    data-vp="tablet"
+                    data-ve2-tooltip="Tablet"
+                >
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        ><rect x="4" y="2" width="16" height="20" rx="2"
+                        ></rect><line x1="12" y1="18" x2="12.01" y2="18"
+                        ></line></svg
+                    >
+                </button>
+                <button
+                    class="vb-vp-btn"
+                    data-vp="mobile"
+                    data-ve2-tooltip="Móvil"
+                >
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        ><rect x="5" y="2" width="14" height="20" rx="2"
+                        ></rect><line x1="12" y1="18" x2="12.01" y2="18"
+                        ></line></svg
+                    >
+                </button>
+            </div>
+        </div>
+
+        <div class="vb-toolbar-right">
+            <button class="ve2-btn ve2-btn-ghost ve2-btn-sm" id="vbBtnHistory">
+                <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    ><circle cx="12" cy="12" r="10"></circle><polyline
+                        points="12 6 12 12 16 14"></polyline></svg
+                >
+                <span class="vb-hide-mobile">Historial</span>
+            </button>
+            <button class="ve2-btn-publish ve2-btn-sm" id="vbBtnSaveAll">
+                <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    ><polyline points="20 6 9 17 4 12"></polyline></svg
+                >
+                <span class="vb-hide-mobile">Publicar</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══════ MAIN LAYOUT ═══════ -->
+    <div class="vb-main" id="vbMain">
+        <!-- LEFT: Sidebar Column (Blocks + Product Order) -->
+        <div class="vb-sidebar-col" id="vbSidebarCol">
+            <SidebarSections />
+
+            <!-- Product Order Panel (visible only on Tienda tab) -->
+            <div
+                class="vb-product-order"
+                id="vbProductOrder"
+                style="display:none;"
+            >
+                <div class="vb-po-header">
+                    <div class="vb-po-title-wrap">
+                        <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            ><path
+                                d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"
+                            ></path><line x1="3" y1="6" x2="21" y2="6"
+                            ></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg
+                        >
+                        <span class="vb-po-title">Orden de Productos</span>
+                    </div>
+                    <span class="ve2-badge ve2-badge-neon" id="vbProductCount"
+                        >0</span
+                    >
+                </div>
+                <p class="vb-po-hint">
+                    Arrastra los productos para cambiar el orden en la tienda
+                </p>
+                <div class="vb-po-list ve2-scroll" id="vbProductList">
+                    <!-- Rendered by JS -->
+                </div>
+                <div class="vb-po-footer">
+                    <button
+                        class="ve2-btn-publish"
+                        id="vbSaveProductOrder"
+                        style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.5rem;border:none;cursor:pointer;font-family:inherit;"
+                    >
+                        <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                            ><polyline points="20 6 9 17 4 12"></polyline></svg
+                        >
+                        Guardar orden
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER: Live Preview -->
+        <div class="vb-preview-area" id="vbPreviewArea">
+            <div class="vb-preview-wrapper" id="vbPreviewWrapper">
+                <iframe id="vbPreviewFrame" src="/" title="Vista previa"
+                ></iframe>
+            </div>
+        </div>
+
+        <!-- RIGHT: Inspector Panel -->
+        <InspectorPanel />
+    </div>
+
+    <!-- ═══════ ADD BLOCK MODAL ═══════ -->
+    <div class="modal-overlay" id="vbAddBlockModal" style="display:none;">
+        <div class="modal" style="max-width:560px;">
+            <div class="modal-header">
+                <span class="modal-title">Añadir Bloque</span>
+                <button class="modal-close" id="vbAddBlockClose">
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        ><line x1="18" y1="6" x2="6" y2="18"></line><line
+                            x1="6"
+                            y1="6"
+                            x2="18"
+                            y2="18"></line></svg
+                    >
+                </button>
+            </div>
+            <p class="vb-add-block-desc">
+                Selecciona el tipo de bloque que deseas añadir
+            </p>
+            <div class="vb-block-grid" id="vbBlockGrid">
+                <button
+                    class="vb-block-option"
+                    data-block-key="hero"
+                    data-block-label="Hero"
+                >
+                    <div class="vb-bo-icon">
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            ><rect x="2" y="3" width="20" height="14" rx="2"
+                            ></rect><line x1="8" y1="21" x2="16" y2="21"
+                            ></line><line x1="12" y1="17" x2="12" y2="21"
+                            ></line></svg
+                        >
+                    </div>
+                    <div class="vb-bo-info">
+                        <span class="vb-bo-name">Hero</span><span
+                            class="vb-bo-desc"
+                            >Banner principal con imagen, título y CTA</span
+                        >
+                    </div>
+                </button>
+                <button
+                    class="vb-block-option"
+                    data-block-key="featured_products"
+                    data-block-label="Productos Destacados"
+                >
+                    <div class="vb-bo-icon">
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            ><polygon
+                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                            ></polygon></svg
+                        >
+                    </div>
+                    <div class="vb-bo-info">
+                        <span class="vb-bo-name">Productos Destacados</span
+                        ><span class="vb-bo-desc"
+                            >Grid de productos seleccionados</span
+                        >
+                    </div>
+                </button>
+                <button
+                    class="vb-block-option"
+                    data-block-key="benefits"
+                    data-block-label="Beneficios"
+                >
+                    <div class="vb-bo-icon">
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            ><circle cx="12" cy="8" r="7"></circle><polyline
+                                points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"
+                            ></polyline></svg
+                        >
+                    </div>
+                    <div class="vb-bo-info">
+                        <span class="vb-bo-name">Beneficios</span><span
+                            class="vb-bo-desc"
+                            >Lista de ventajas con iconos</span
+                        >
+                    </div>
+                </button>
+                <button
+                    class="vb-block-option"
+                    data-block-key="glove_selector"
+                    data-block-label="Selector de Guantes"
+                >
+                    <div class="vb-bo-icon">
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            ><circle cx="12" cy="12" r="10"></circle><line
+                                x1="22"
+                                y1="12"
+                                x2="18"
+                                y2="12"></line><line
+                                x1="6"
+                                y1="12"
+                                x2="2"
+                                y2="12"></line><line
+                                x1="12"
+                                y1="6"
+                                x2="12"
+                                y2="2"></line><line
+                                x1="12"
+                                y1="22"
+                                x2="12"
+                                y2="18"></line></svg
+                        >
+                    </div>
+                    <div class="vb-bo-info">
+                        <span class="vb-bo-name">Selector de Guantes</span><span
+                            class="vb-bo-desc"
+                            >Selector interactivo de productos</span
+                        >
+                    </div>
+                </button>
+                <button
+                    class="vb-block-option"
+                    data-block-key="testimonials"
+                    data-block-label="Testimonios"
+                >
+                    <div class="vb-bo-icon">
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            ><path
+                                d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                            ></path></svg
+                        >
+                    </div>
+                    <div class="vb-bo-info">
+                        <span class="vb-bo-name">Testimonios</span><span
+                            class="vb-bo-desc"
+                            >Reseñas y opiniones de clientes</span
+                        >
+                    </div>
+                </button>
+                <button
+                    class="vb-block-option"
+                    data-block-key="cta_banner"
+                    data-block-label="Banner CTA"
+                >
+                    <div class="vb-bo-icon">
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            ><polygon
+                                points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
+                            ></polygon></svg
+                        >
+                    </div>
+                    <div class="vb-bo-info">
+                        <span class="vb-bo-name">Banner CTA</span><span
+                            class="vb-bo-desc"
+                            >Llamada a la acción con fondo</span
+                        >
+                    </div>
+                </button>
+                <button
+                    class="vb-block-option"
+                    data-block-key="newsletter"
+                    data-block-label="Newsletter"
+                >
+                    <div class="vb-bo-icon">
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            ><path
+                                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                            ></path><polyline points="22,6 12,13 2,6"
+                            ></polyline></svg
+                        >
+                    </div>
+                    <div class="vb-bo-info">
+                        <span class="vb-bo-name">Newsletter</span><span
+                            class="vb-bo-desc">Formulario de suscripción</span
+                        >
+                    </div>
+                </button>
+                <button
+                    class="vb-block-option"
+                    data-block-key="banner"
+                    data-block-label="Banner"
+                >
+                    <div class="vb-bo-icon">
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            ><path
+                                d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                            ></path><line x1="4" y1="22" x2="4" y2="15"
+                            ></line></svg
+                        >
+                    </div>
+                    <div class="vb-bo-info">
+                        <span class="vb-bo-name">Banner Simple</span><span
+                            class="vb-bo-desc"
+                            >Texto con color de fondo personalizable</span
+                        >
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════ HISTORY MODAL ═══════ -->
+    <div class="modal-overlay" id="vbHistoryModal" style="display:none;">
+        <div class="modal" style="max-width:560px;">
+            <div class="modal-header">
+                <span class="modal-title">Historial de Cambios</span>
+                <button class="modal-close" id="vbHistoryClose">
+                    <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        ><line x1="18" y1="6" x2="6" y2="18"></line><line
+                            x1="6"
+                            y1="6"
+                            x2="18"
+                            y2="18"></line></svg
+                    >
+                </button>
+            </div>
+            <div id="vbHistoryContent">
+                <div class="empty-state">
+                    <p>Selecciona una sección para ver su historial</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════ CONFIRM MODAL ═══════ -->
+    <div class="modal-overlay" id="vbConfirmModal" style="display:none;">
+        <div class="modal vb-confirm-modal" style="max-width:400px;">
+            <div class="vb-confirm-icon">
+                <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    ><circle cx="12" cy="12" r="10"></circle><line
+                        x1="12"
+                        y1="8"
+                        x2="12"
+                        y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"
+                    ></line></svg
+                >
+            </div>
+            <h3 class="vb-confirm-title" id="vbConfirmTitle">¿Estás seguro?</h3>
+            <p class="vb-confirm-msg" id="vbConfirmMsg">
+                Esta acción no se puede deshacer.
+            </p>
+            <div class="vb-confirm-actions">
+                <button class="ve2-btn ve2-btn-ghost" id="vbConfirmCancel"
+                    >Cancelar</button
+                >
+                <button class="ve2-btn vb-confirm-ok" id="vbConfirmOk"
+                    >Confirmar</button
+                >
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* ── Mobile Blocker ── */
+        .vb-mobile-block {
+            display: none;
+        }
+        @media (max-width: 1024px) {
+            .vb-mobile-block {
+                display: flex;
+                position: fixed;
+                inset: 0;
+                z-index: 9999;
+                background: #0a0a0a;
+                align-items: center;
+                justify-content: center;
+                padding: 2rem;
+            }
+            .vb-mobile-block-content {
+                text-align: center;
+                max-width: 320px;
+            }
+            .vb-mobile-block-icon {
+                width: 72px;
+                height: 72px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 1.25rem;
+                background: rgba(57, 255, 20, 0.06);
+                border-radius: 50%;
+                color: var(--ve2-neon, #39ff14);
+            }
+            .vb-mobile-block-title {
+                font-family: "Oswald", system-ui, sans-serif;
+                font-size: 1.3rem;
+                font-weight: 700;
+                color: #fff;
+                margin: 0 0 0.6rem;
+                letter-spacing: -0.01em;
+            }
+            .vb-mobile-block-msg {
+                font-size: 0.82rem;
+                color: rgba(255, 255, 255, 0.4);
+                line-height: 1.5;
+                margin: 0 0 1.5rem;
+            }
+            /* Hide all editor content behind the blocker */
+            .vb-toolbar,
+            .vb-editor-grid,
+            .vb-footer-bar,
+            #vbAddBlockModal,
+            #vbHistoryModal,
+            #vbConfirmModal {
+                display: none !important;
+            }
+        }
+
+        /* ── Override admin-content for full-width editor ── */
+        :global(.admin-content) {
+            padding: 0 !important;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 49px);
+            overflow: hidden;
+        }
+
+        /* ── Toolbar ── */
+        .vb-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: var(--ve2-bg-base, #0e0e0e);
+            border-bottom: 1px solid
+                var(--ve2-border-subtle, rgba(255, 255, 255, 0.04));
+            gap: 0.5rem;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .vb-toolbar-left,
+        .vb-toolbar-center,
+        .vb-toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Page tabs */
+        .vb-page-tabs {
+            display: flex;
+            gap: 3px;
+        }
+        .vb-page-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: var(--ve2-radius-md, 8px);
+            font-size: 0.72rem;
+            font-weight: 600;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--ve2-text-tertiary, rgba(255, 255, 255, 0.4));
+            cursor: pointer;
+            transition: all 200ms;
+            font-family: inherit;
+        }
+        .vb-page-tab:hover {
+            color: var(--ve2-text-secondary, rgba(255, 255, 255, 0.65));
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .vb-page-tab.active {
+            background: var(--ve2-neon-dim, rgba(57, 255, 20, 0.06));
+            color: var(--ve2-neon, #39ff14);
+            border-color: rgba(57, 255, 20, 0.1);
+        }
+
+        /* Edit mode */
+        .vb-edit-mode {
+            display: flex;
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--ve2-radius-md, 8px);
+            padding: 3px;
+            border: 1px solid
+                var(--ve2-border-subtle, rgba(255, 255, 255, 0.04));
+        }
+        .vb-edit-mode-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--ve2-text-tertiary, rgba(255, 255, 255, 0.4));
+            cursor: pointer;
+            transition: all 200ms;
+        }
+        .vb-edit-mode-btn:hover {
+            color: var(--ve2-text-secondary, rgba(255, 255, 255, 0.65));
+        }
+        .vb-edit-mode-btn.active {
+            background: var(--ve2-neon-dim, rgba(57, 255, 20, 0.08));
+            color: var(--ve2-neon, #39ff14);
+        }
+
+        /* Viewport */
+        .vb-viewport {
+            display: flex;
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--ve2-radius-md, 8px);
+            padding: 3px;
+            border: 1px solid
+                var(--ve2-border-subtle, rgba(255, 255, 255, 0.04));
+        }
+        .vb-vp-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--ve2-text-tertiary, rgba(255, 255, 255, 0.4));
+            cursor: pointer;
+            transition: all 200ms;
+        }
+        .vb-vp-btn:hover {
+            color: var(--ve2-text-secondary, rgba(255, 255, 255, 0.65));
+        }
+        .vb-vp-btn.active {
+            background: var(--ve2-neon-dim, rgba(57, 255, 20, 0.08));
+            color: var(--ve2-neon, #39ff14);
+        }
+
+        /* ── Main layout ── */
+        .vb-main {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* ── Preview area ── */
+        .vb-preview-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1a1a1a;
+            overflow: hidden;
+            position: relative;
+        }
+        .vb-preview-wrapper {
+            width: 100%;
+            height: 100%;
+            transition:
+                width 350ms cubic-bezier(0.4, 0, 0.2, 1),
+                height 350ms;
+            display: flex;
+            align-items: stretch;
+        }
+        .vb-preview-wrapper.vp-tablet {
+            width: 768px;
+            max-width: 100%;
+            border-left: 1px solid var(--ve2-border-subtle);
+            border-right: 1px solid var(--ve2-border-subtle);
+        }
+        .vb-preview-wrapper.vp-mobile {
+            width: 375px;
+            max-width: 100%;
+            border-left: 1px solid var(--ve2-border-subtle);
+            border-right: 1px solid var(--ve2-border-subtle);
+            border-radius: var(--ve2-radius-xl, 16px);
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        #vbPreviewFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+
+        /* ── History items (reuse from design system) ── */
+        .vb-history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .vb-history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0.85rem;
+            background: var(--ve2-bg-elevated, #161616);
+            border: 1px solid var(--ve2-border-default, #2a2a2a);
+            border-radius: 6px;
+            transition: border-color 150ms;
+        }
+        .vb-history-item:hover {
+            border-color: var(--ve2-border-hover);
+        }
+        .vb-history-date {
+            font-size: 0.72rem;
+            color: var(--ve2-text-secondary);
+        }
+        .vb-history-key {
+            font-size: 0.65rem;
+            color: var(--ve2-text-muted);
+            font-family: var(--ve2-font-mono);
+        }
+
+        /* ── Mobile ── */
+        .vb-hide-mobile {
+        }
+        @media (max-width: 1024px) {
+            .vb-main {
+                flex-direction: column;
+            }
+            .vb-preview-area {
+                height: 350px;
+                min-height: 250px;
+            }
+            .vb-hide-mobile {
+                display: none;
+            }
+            .vb-toolbar {
+                flex-wrap: wrap;
+                padding: 0.4rem 0.65rem;
+            }
+            .vb-viewport {
+                display: none;
+            }
+            .vb-edit-mode {
+                display: none;
+            }
+            .vb-preview-wrapper.vp-tablet,
+            .vb-preview-wrapper.vp-mobile {
+                width: 100%;
+                border: none;
+                border-radius: 0;
+                margin: 0;
+            }
+        }
+
+        /* ── Sidebar Column Container ── */
+        .vb-sidebar-col {
+            width: 320px;
+            min-width: 280px;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid
+                var(--ve2-border-subtle, rgba(255, 255, 255, 0.04));
+            overflow: hidden;
+            background: var(--ve2-bg-glass, rgba(20, 20, 20, 0.92));
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+
+        /* ── Product Order Panel (inside sidebar) ── */
+        .vb-product-order {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            border-top: 1px solid
+                var(--ve2-border-subtle, rgba(255, 255, 255, 0.04));
+            overflow: hidden;
+        }
+        .vb-po-header {
+            padding: 1rem 1rem 0.65rem;
+            border-bottom: 1px solid
+                var(--ve2-border-subtle, rgba(255, 255, 255, 0.04));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .vb-po-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: var(--ve2-text-tertiary, rgba(255, 255, 255, 0.4));
+        }
+        .vb-po-title {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--ve2-text-tertiary, rgba(255, 255, 255, 0.4));
+        }
+        .vb-po-hint {
+            padding: 0.5rem 1rem;
+            font-size: 0.68rem;
+            color: var(--ve2-text-muted, rgba(255, 255, 255, 0.2));
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+        .vb-po-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        .vb-po-footer {
+            padding: 0.65rem;
+            border-top: 1px solid
+                var(--ve2-border-subtle, rgba(255, 255, 255, 0.04));
+            flex-shrink: 0;
+            background: var(--ve2-bg-base, #0e0e0e);
+        }
+        :global(.vb-po-item) {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.55rem 0.6rem;
+            border-radius: var(--ve2-radius-md, 8px);
+            cursor: grab;
+            user-select: none;
+            margin-bottom: 2px;
+            border: 1px solid transparent;
+            background: transparent;
+            transition: all 150ms;
+        }
+        :global(.vb-po-item:hover) {
+            background: var(--ve2-bg-hover, #1a1a1a);
+            border-color: var(--ve2-border-subtle, rgba(255, 255, 255, 0.04));
+        }
+        :global(.vb-po-item.drag-over) {
+            background: var(--ve2-neon-ghost, rgba(57, 255, 20, 0.04));
+            border-color: rgba(57, 255, 20, 0.15);
+        }
+        :global(.vb-po-item.dragging) {
+            opacity: 0.25;
+            transform: scale(0.97);
+        }
+        :global(.vb-po-item-grip) {
+            color: var(--ve2-text-disabled, rgba(255, 255, 255, 0.12));
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+        :global(.vb-po-item:hover .vb-po-item-grip) {
+            color: var(--ve2-text-tertiary, rgba(255, 255, 255, 0.4));
+        }
+        :global(.vb-po-item-num) {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(57, 255, 20, 0.08);
+            border-radius: 5px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--ve2-neon, #39ff14);
+            font-family: var(--ve2-font-mono, monospace);
+            flex-shrink: 0;
+        }
+        :global(.vb-po-item-img) {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--ve2-border-default, #2a2a2a);
+            flex-shrink: 0;
+            background: var(--ve2-bg-elevated, #161616);
+        }
+        :global(.vb-po-item-img img) {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        :global(.vb-po-item-info) {
+            flex: 1;
+            min-width: 0;
+        }
+        :global(.vb-po-item-name) {
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+        :global(.vb-po-item:hover .vb-po-item-name) {
+            color: #fff;
+        }
+        :global(.vb-po-item-price) {
+            font-size: 0.65rem;
+            color: var(--ve2-neon, #39ff14);
+            font-weight: 600;
+            margin-top: 1px;
+        }
+        :global(.vb-po-item-price .old) {
+            text-decoration: line-through;
+            color: var(--ve2-text-muted, rgba(255, 255, 255, 0.2));
+            margin-left: 0.3rem;
+            font-weight: 400;
+        }
+        :global(.vb-po-item-cat) {
+            font-size: 0.58rem;
+            color: var(--ve2-text-muted, rgba(255, 255, 255, 0.2));
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        @media (max-width: 1024px) {
+            .vb-sidebar-col {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0;
+                border-right: none;
+                border-bottom: 1px solid
+                    var(--ve2-border-subtle, rgba(255, 255, 255, 0.04));
+            }
+            .vb-po-list {
+                max-height: 200px;
+            }
+        }
+
+        /* ── Add Block Modal ── */
+        .vb-add-block-desc {
+            padding: 0 1.5rem 0.75rem;
+            font-size: 0.76rem;
+            color: var(--ve2-text-muted, rgba(255, 255, 255, 0.3));
+            margin: 0;
+        }
+        .vb-block-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            padding: 0 1.5rem 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .vb-block-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+            padding: 0.75rem;
+            background: var(--ve2-bg-elevated, #161616);
+            border: 1px solid var(--ve2-border-default, #2a2a2a);
+            border-radius: var(--ve2-radius-md, 8px);
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            color: inherit;
+            transition: all 150ms;
+        }
+        .vb-block-option:hover {
+            border-color: rgba(57, 255, 20, 0.3);
+            background: rgba(57, 255, 20, 0.04);
+        }
+        .vb-bo-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            flex-shrink: 0;
+            color: var(--ve2-text-tertiary, rgba(255, 255, 255, 0.4));
+            transition: all 150ms;
+        }
+        .vb-block-option:hover .vb-bo-icon {
+            background: rgba(57, 255, 20, 0.08);
+            color: var(--ve2-neon, #39ff14);
+        }
+        .vb-bo-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .vb-bo-name {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+        }
+        .vb-block-option:hover .vb-bo-name {
+            color: #fff;
+        }
+        .vb-bo-desc {
+            font-size: 0.62rem;
+            color: var(--ve2-text-muted, rgba(255, 255, 255, 0.25));
+            line-height: 1.35;
+        }
+
+        /* ── Confirm Modal ── */
+        .vb-confirm-modal {
+            text-align: center;
+            padding: 2rem 1.5rem 1.5rem !important;
+        }
+        .vb-confirm-icon {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            background: rgba(255, 59, 48, 0.08);
+            border-radius: 50%;
+            color: #ff3b30;
+        }
+        .vb-confirm-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0 0 0.4rem;
+        }
+        .vb-confirm-msg {
+            font-size: 0.78rem;
+            color: var(--ve2-text-muted, rgba(255, 255, 255, 0.35));
+            margin: 0 0 1.5rem;
+            line-height: 1.4;
+        }
+        .vb-confirm-actions {
+            display: flex;
+            gap: 0.6rem;
+            justify-content: center;
+        }
+        .vb-confirm-actions .ve2-btn {
+            flex: 1;
+            max-width: 160px;
+        }
+        .vb-confirm-ok {
+            background: rgba(255, 59, 48, 0.12) !important;
+            border: 1px solid rgba(255, 59, 48, 0.25) !important;
+            color: #ff6b6b !important;
+            transition: all 150ms !important;
+        }
+        .vb-confirm-ok:hover {
+            background: rgba(255, 59, 48, 0.2) !important;
+            border-color: rgba(255, 59, 48, 0.5) !important;
+            color: #ff3b30 !important;
+        }
+    </style>
+
+    <script
+        is:inline
+        define:vars={{
+            sectionsData: JSON.stringify(sections),
+            productsData: JSON.stringify(products),
+        }}
+    >
+        (function () {
+            "use strict";
+
+            // ═══════ STATE ═══════
+            var allSections = [];
+            try {
+                allSections = JSON.parse(sectionsData);
+            } catch (e) {
+                console.error("Parse error:", e);
+            }
+            var allProducts = [];
+            try {
+                allProducts = JSON.parse(productsData);
+            } catch (e) {
+                console.error("Products parse error:", e);
+            }
+            var currentPage = "home";
+            var selectedId = null;
+            var unsavedIds = new Set();
+            var productOrderChanged = false;
+
+            // ═══════ CUSTOM CONFIRM ═══════
+            function vbConfirm(title, msg, okText) {
+                return new Promise(function (resolve) {
+                    var modal = $("#vbConfirmModal");
+                    var titleEl = $("#vbConfirmTitle");
+                    var msgEl = $("#vbConfirmMsg");
+                    var okBtn = $("#vbConfirmOk");
+                    var cancelBtn = $("#vbConfirmCancel");
+                    if (!modal) return resolve(false);
+
+                    titleEl.textContent = title || "¿Estás seguro?";
+                    msgEl.textContent =
+                        msg || "Esta acción no se puede deshacer.";
+                    okBtn.textContent = okText || "Confirmar";
+                    modal.style.display = "flex";
+
+                    function cleanup() {
+                        modal.style.display = "none";
+                        okBtn.removeEventListener("click", onOk);
+                        cancelBtn.removeEventListener("click", onCancel);
+                        modal.removeEventListener("click", onOverlay);
+                    }
+                    function onOk() {
+                        cleanup();
+                        resolve(true);
+                    }
+                    function onCancel() {
+                        cleanup();
+                        resolve(false);
+                    }
+                    function onOverlay(e) {
+                        if (e.target === modal) {
+                            cleanup();
+                            resolve(false);
+                        }
+                    }
+
+                    okBtn.addEventListener("click", onOk);
+                    cancelBtn.addEventListener("click", onCancel);
+                    modal.addEventListener("click", onOverlay);
+                });
+            }
+
+            // ═══════ SCHEMAS ═══════
+            var SCHEMAS = {
+                hero: [
+                    { key: "badge", label: "Badge", type: "text" },
+                    {
+                        key: "title_line1",
+                        label: "Título línea 1",
+                        type: "text",
+                    },
+                    {
+                        key: "title_line2",
+                        label: "Título línea 2",
+                        type: "text",
+                    },
+                    {
+                        key: "subtitle",
+                        label: "Subtítulo (Desktop)",
+                        type: "textarea",
+                    },
+                    {
+                        key: "subtitle_mobile",
+                        label: "Subtítulo (Móvil)",
+                        type: "textarea",
+                    },
+                    { key: "cta_text", label: "Texto CTA", type: "text" },
+                    { key: "cta_link", label: "Enlace CTA", type: "text" },
+                    {
+                        key: "secondary_text",
+                        label: "Texto secundario",
+                        type: "text",
+                    },
+                    {
+                        key: "secondary_link",
+                        label: "Enlace secundario",
+                        type: "text",
+                    },
+                    {
+                        key: "bg_image",
+                        label: "Imagen de fondo",
+                        type: "image",
+                    },
+                    {
+                        key: "overlay_color",
+                        label: "Color overlay",
+                        type: "color",
+                    },
+                    {
+                        key: "overlay_opacity",
+                        label: "Opacidad overlay",
+                        type: "range",
+                        min: 0,
+                        max: 1,
+                        step: 0.05,
+                    },
+                ],
+                featured_products: [
+                    { key: "title", label: "Título", type: "text" },
+                    {
+                        key: "title_accent",
+                        label: "Título accent",
+                        type: "text",
+                    },
+                    { key: "subtitle", label: "Subtítulo", type: "textarea" },
+                    { key: "cta_text", label: "Texto CTA", type: "text" },
+                    { key: "cta_link", label: "Enlace CTA", type: "text" },
+                    {
+                        key: "product_slugs",
+                        label: "Slugs de productos",
+                        type: "tags",
+                    },
+                ],
+                benefits: [
+                    { key: "title", label: "Título sección", type: "text" },
+                    {
+                        key: "items",
+                        label: "Beneficios",
+                        type: "repeater",
+                        fields: [
+                            {
+                                key: "icon",
+                                label: "Icono",
+                                type: "text",
+                                placeholder: "shield, award, truck...",
+                            },
+                            { key: "title", label: "Título", type: "text" },
+                            {
+                                key: "description",
+                                label: "Descripción",
+                                type: "text",
+                            },
+                        ],
+                    },
+                ],
+                glove_selector: [
+                    { key: "title", label: "Título", type: "text" },
+                    { key: "subtitle", label: "Subtítulo", type: "textarea" },
+                ],
+                testimonials: [
+                    { key: "title", label: "Título", type: "text" },
+                    { key: "subtitle", label: "Subtítulo", type: "textarea" },
+                ],
+                cta_banner: [
+                    {
+                        key: "title_line1",
+                        label: "Título línea 1",
+                        type: "text",
+                    },
+                    {
+                        key: "title_line2",
+                        label: "Título línea 2",
+                        type: "text",
+                    },
+                    { key: "cta_text", label: "Texto CTA", type: "text" },
+                    { key: "cta_link", label: "Enlace CTA", type: "text" },
+                    {
+                        key: "bg_image",
+                        label: "Imagen de fondo",
+                        type: "image",
+                    },
+                    {
+                        key: "overlay_opacity",
+                        label: "Opacidad overlay",
+                        type: "range",
+                        min: 0,
+                        max: 1,
+                        step: 0.05,
+                    },
+                ],
+                newsletter: [
+                    { key: "title", label: "Título", type: "text" },
+                    { key: "subtitle", label: "Subtítulo", type: "textarea" },
+                    { key: "button_text", label: "Texto botón", type: "text" },
+                ],
+                banner: [
+                    { key: "text", label: "Texto del banner", type: "text" },
+                    { key: "bg_color", label: "Color de fondo", type: "color" },
+                    {
+                        key: "text_color",
+                        label: "Color de texto",
+                        type: "color",
+                    },
+                ],
+            };
+
+            // ═══════ HELPERS ═══════
+            function $(sel) {
+                return document.querySelector(sel);
+            }
+            function pageSections() {
+                return allSections
+                    .filter(function (s) {
+                        return s.page_name === currentPage;
+                    })
+                    .sort(function (a, b) {
+                        return a.display_order - b.display_order;
+                    });
+            }
+            function findSection(id) {
+                return allSections.find(function (s) {
+                    return s.id === id;
+                });
+            }
+            function esc(str) {
+                if (str == null) return "";
+                return String(str)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;");
+            }
+
+            // ═══════ RENDER ═══════
+            function render() {
+                if (window.VBSidebar) {
+                    window.VBSidebar.render(
+                        pageSections(),
+                        selectedId,
+                        unsavedIds,
+                    );
+                }
+            }
+
+            function selectSection(id) {
+                selectedId = id;
+                render();
+                var section = findSection(id);
+                if (section && window.VBInspector) {
+                    // Resolve base schema key (hero_2 -> hero, cta_banner_3 -> cta_banner)
+                    var schemaKey = section.section_key;
+                    if (!SCHEMAS[schemaKey]) {
+                        // Strip _N suffix to find base key
+                        var baseKey = schemaKey.replace(/_\d+$/, "");
+                        if (SCHEMAS[baseKey]) schemaKey = baseKey;
+                    }
+                    var schema = SCHEMAS[schemaKey] || [];
+                    window.VBInspector.show(section, schema);
+                }
+            }
+
+            function deselectSection() {
+                selectedId = null;
+                render();
+                if (window.VBInspector) window.VBInspector.hide();
+            }
+
+            // ═══════ EVENTS FROM COMPONENTS ═══════
+            document.addEventListener("vb:select", function (e) {
+                selectSection(e.detail.id);
+            });
+            document.addEventListener("vb:toggle", function (e) {
+                toggleSectionActive(e.detail.id);
+            });
+            document.addEventListener("vb:reorder", function (e) {
+                reorderSections(e.detail.from, e.detail.to);
+            });
+            document.addEventListener("vb:unsaved", function (e) {
+                unsavedIds.add(e.detail.id);
+                render();
+                updatePublishBtn();
+            });
+
+            // ═══════ PUBLISH BUTTON STATE ═══════
+            function updatePublishBtn() {
+                var btn = $("#vbBtnSaveAll");
+                if (btn)
+                    btn.classList.toggle("has-changes", unsavedIds.size > 0);
+            }
+
+            // ═══════ API CALLS ═══════
+            async function fetchSections() {
+                try {
+                    var res = await fetch("/api/admin/sections");
+                    var data = await res.json();
+                    if (data.pages) {
+                        allSections = [];
+                        Object.values(data.pages).forEach(function (arr) {
+                            allSections = allSections.concat(arr);
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error loading sections", e);
+                }
+            }
+
+            async function saveSection(id) {
+                var content = window.VBInspector
+                    ? window.VBInspector.collectData()
+                    : null;
+                if (!content) return;
+
+                var btn = $("#vbBtnSave");
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML =
+                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Guardando...';
+                }
+
+                try {
+                    var res = await fetch("/api/admin/sections", {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: id, content: content }),
+                    });
+                    var data = await res.json();
+                    if (res.ok) {
+                        var sec = findSection(id);
+                        if (sec) sec.content = content;
+                        unsavedIds.delete(id);
+                        render();
+                        updatePublishBtn();
+                        window.adminToast?.(
+                            "Sección guardada correctamente",
+                            "success",
+                        );
+                        refreshPreview();
+                    } else {
+                        window.adminToast?.(
+                            data.error || "Error al guardar",
+                            "error",
+                        );
+                    }
+                } catch (e) {
+                    window.adminToast?.("Error de conexión", "error");
+                } finally {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML =
+                            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Publicar cambios';
+                    }
+                }
+            }
+
+            async function saveAllSections() {
+                if (unsavedIds.size === 0) {
+                    window.adminToast?.("No hay cambios pendientes", "success");
+                    return;
+                }
+                if (selectedId && unsavedIds.has(selectedId)) {
+                    await saveSection(selectedId);
+                }
+                window.adminToast?.("Todos los cambios guardados", "success");
+            }
+
+            async function toggleSectionActive(id) {
+                var section = findSection(id);
+                if (!section) return;
+                var newState = !section.is_active;
+                try {
+                    var res = await fetch("/api/admin/sections", {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: id, is_active: newState }),
+                    });
+                    if (res.ok) {
+                        section.is_active = newState;
+                        render();
+                        if (selectedId === id && window.VBInspector) {
+                            var schema = SCHEMAS[section.section_key] || [];
+                            window.VBInspector.show(section, schema);
+                        }
+                        window.adminToast?.(
+                            newState
+                                ? "Sección activada"
+                                : "Sección desactivada",
+                            "success",
+                        );
+                        refreshPreview();
+                    }
+                } catch (e) {
+                    window.adminToast?.("Error al cambiar estado", "error");
+                }
+            }
+
+            async function duplicateSection(id) {
+                try {
+                    var res = await fetch("/api/admin/sections", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: "duplicate", id: id }),
+                    });
+                    var data = await res.json();
+                    if (res.ok && data.section) {
+                        allSections.push(data.section);
+                        render();
+                        window.adminToast?.("Sección duplicada", "success");
+                    } else {
+                        window.adminToast?.(
+                            data.error || "Error al duplicar",
+                            "error",
+                        );
+                    }
+                } catch (e) {
+                    window.adminToast?.("Error de conexión", "error");
+                }
+            }
+
+            async function resetSection(id) {
+                try {
+                    var res = await fetch("/api/admin/sections", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: "reset", id: id }),
+                    });
+                    var data = await res.json();
+                    if (res.ok) {
+                        await fetchSections();
+                        render();
+                        if (selectedId === id) selectSection(id);
+                        window.adminToast?.("Sección restaurada", "success");
+                        refreshPreview();
+                    } else {
+                        window.adminToast?.(
+                            data.error || "Sin historial disponible",
+                            "error",
+                        );
+                    }
+                } catch (e) {
+                    window.adminToast?.("Error de conexión", "error");
+                }
+            }
+
+            async function deleteSection(id) {
+                try {
+                    var res = await fetch("/api/admin/sections?id=" + id, {
+                        method: "DELETE",
+                    });
+                    if (res.ok) {
+                        allSections = allSections.filter(function (s) {
+                            return s.id !== id;
+                        });
+                        unsavedIds.delete(id);
+                        if (selectedId === id) deselectSection();
+                        render();
+                        updatePublishBtn();
+                        window.adminToast?.("Sección eliminada", "success");
+                        refreshPreview();
+                    }
+                } catch (e) {
+                    window.adminToast?.("Error de conexión", "error");
+                }
+            }
+
+            async function reorderSections(fromId, toId) {
+                var items = pageSections();
+                var fromIdx = items.findIndex(function (s) {
+                    return s.id === fromId;
+                });
+                var toIdx = items.findIndex(function (s) {
+                    return s.id === toId;
+                });
+                if (fromIdx < 0 || toIdx < 0) return;
+                var moved = items.splice(fromIdx, 1)[0];
+                items.splice(toIdx, 0, moved);
+                var orders = items.map(function (s, i) {
+                    s.display_order = i;
+                    return { id: s.id, display_order: i };
+                });
+                render();
+                try {
+                    await fetch("/api/admin/sections", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            action: "reorder",
+                            orders: orders,
+                        }),
+                    });
+                    window.adminToast?.("Orden actualizado", "success");
+                    refreshPreview();
+                } catch (e) {
+                    window.adminToast?.("Error al reordenar", "error");
+                }
+            }
+
+            // ═══════ INSPECTOR BUTTONS ═══════
+            document.addEventListener("click", function (e) {
+                if (e.target.closest("#vbBtnSave")) {
+                    if (selectedId) saveSection(selectedId);
+                }
+                if (e.target.closest("#vbBtnDuplicate")) {
+                    if (selectedId) duplicateSection(selectedId);
+                }
+                if (e.target.closest("#vbBtnReset")) {
+                    if (selectedId) {
+                        vbConfirm(
+                            "¿Restaurar sección?",
+                            "Se restaurará esta sección a su estado original. Los cambios actuales se perderán.",
+                            "Restaurar",
+                        ).then(function (ok) {
+                            if (ok) resetSection(selectedId);
+                        });
+                    }
+                }
+                if (e.target.closest("#vbBtnDelete")) {
+                    if (selectedId) {
+                        var sec = findSection(selectedId);
+                        var secLabel = sec ? sec.label : "esta sección";
+                        vbConfirm(
+                            "¿Eliminar bloque?",
+                            'Se eliminará "' +
+                                secLabel +
+                                '" permanentemente. Esta acción no se puede deshacer.',
+                            "Eliminar",
+                        ).then(function (ok) {
+                            if (ok) deleteSection(selectedId);
+                        });
+                    }
+                }
+            });
+
+            // ═══════ VIEWPORT SWITCHER ═══════
+            document
+                .querySelectorAll("#vbViewport .vb-vp-btn")
+                .forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        document
+                            .querySelectorAll("#vbViewport .vb-vp-btn")
+                            .forEach(function (b) {
+                                b.classList.remove("active");
+                            });
+                        this.classList.add("active");
+                        var wrapper = $("#vbPreviewWrapper");
+                        wrapper.className = "vb-preview-wrapper";
+                        if (this.dataset.vp === "tablet")
+                            wrapper.classList.add("vp-tablet");
+                        else if (this.dataset.vp === "mobile")
+                            wrapper.classList.add("vp-mobile");
+                    });
+                });
+
+            // ═══════ PAGE TABS ═══════
+            document
+                .querySelectorAll("#vbPageTabs .vb-page-tab")
+                .forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        document
+                            .querySelectorAll("#vbPageTabs .vb-page-tab")
+                            .forEach(function (b) {
+                                b.classList.remove("active");
+                            });
+                        this.classList.add("active");
+                        currentPage = this.dataset.page;
+                        deselectSection();
+                        var frame = $("#vbPreviewFrame");
+                        frame.src = currentPage === "shop" ? "/shop" : "/";
+                        // Toggle product order panel
+                        var poPanel = $("#vbProductOrder");
+                        var sbPanel = $("#vbSidebar");
+                        if (currentPage === "shop") {
+                            if (poPanel) poPanel.style.display = "flex";
+                            renderProductOrder();
+                        } else {
+                            if (poPanel) poPanel.style.display = "none";
+                        }
+                    });
+                });
+
+            // ═══════ EDIT MODE TOGGLE ═══════
+            document
+                .querySelectorAll(".vb-edit-mode-btn")
+                .forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        document
+                            .querySelectorAll(".vb-edit-mode-btn")
+                            .forEach(function (b) {
+                                b.classList.remove("active");
+                            });
+                        this.classList.add("active");
+                    });
+                });
+
+            // ═══════ HISTORY ═══════
+            $("#vbBtnHistory")?.addEventListener("click", async function () {
+                var modal = $("#vbHistoryModal");
+                modal.style.display = "flex";
+                var content = $("#vbHistoryContent");
+                if (!selectedId) {
+                    content.innerHTML =
+                        '<div class="empty-state"><p>Selecciona una sección para ver su historial</p></div>';
+                    return;
+                }
+                content.innerHTML =
+                    '<div style="text-align:center;padding:2rem;color:rgba(255,255,255,0.3);">Cargando...</div>';
+                try {
+                    var res = await fetch("/api/admin/sections", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            action: "history",
+                            id: selectedId,
+                        }),
+                    });
+                    var data = await res.json();
+                    var history = data.history || [];
+                    if (history.length === 0) {
+                        content.innerHTML =
+                            '<div class="empty-state"><p>Sin historial para esta sección</p></div>';
+                        return;
+                    }
+                    var html = '<div class="vb-history-list">';
+                    history.forEach(function (entry) {
+                        var date = new Date(entry.changed_at);
+                        var dateStr =
+                            date.toLocaleDateString("es-ES") +
+                            " " +
+                            date.toLocaleTimeString("es-ES", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            });
+                        html +=
+                            '<div class="vb-history-item"><div><div class="vb-history-date">' +
+                            dateStr +
+                            '</div><div class="vb-history-key">' +
+                            esc(entry.section_key) +
+                            "</div></div>";
+                        html +=
+                            '<button class="ve2-btn ve2-btn-ghost ve2-btn-sm" data-restore-history="' +
+                            entry.id +
+                            "\" data-content='" +
+                            JSON.stringify(entry.content).replace(
+                                /'/g,
+                                "&#39;",
+                            ) +
+                            "'>Restaurar</button></div>";
+                    });
+                    html += "</div>";
+                    content.innerHTML = html;
+                    content
+                        .querySelectorAll("[data-restore-history]")
+                        .forEach(function (btn) {
+                            btn.addEventListener("click", async function () {
+                                var histContent = JSON.parse(
+                                    this.dataset.content,
+                                );
+                                try {
+                                    await fetch("/api/admin/sections", {
+                                        method: "PATCH",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                        },
+                                        body: JSON.stringify({
+                                            id: selectedId,
+                                            content: histContent,
+                                        }),
+                                    });
+                                    var sec = findSection(selectedId);
+                                    if (sec) sec.content = histContent;
+                                    selectSection(selectedId);
+                                    unsavedIds.delete(selectedId);
+                                    render();
+                                    updatePublishBtn();
+                                    modal.style.display = "none";
+                                    window.adminToast?.(
+                                        "Versión restaurada",
+                                        "success",
+                                    );
+                                    refreshPreview();
+                                } catch (e) {
+                                    window.adminToast?.(
+                                        "Error al restaurar",
+                                        "error",
+                                    );
+                                }
+                            });
+                        });
+                } catch (e) {
+                    content.innerHTML =
+                        '<div class="empty-state"><p>Error al cargar historial</p></div>';
+                }
+            });
+
+            $("#vbHistoryClose")?.addEventListener("click", function () {
+                $("#vbHistoryModal").style.display = "none";
+            });
+            $("#vbHistoryModal")?.addEventListener("click", function (e) {
+                if (e.target === this) this.style.display = "none";
+            });
+
+            // ═══════ SAVE ALL ═══════
+            $("#vbBtnSaveAll")?.addEventListener("click", function () {
+                saveAllSections();
+            });
+
+            // ═══════ KEYBOARD SHORTCUTS ═══════
+            document.addEventListener("keydown", function (e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+                    e.preventDefault();
+                    if (selectedId) saveSection(selectedId);
+                }
+            });
+
+            // ═══════ PREVIEW ═══════
+            function refreshPreview() {
+                var f = $("#vbPreviewFrame");
+                if (f) f.src = f.src;
+            }
+
+            // ═══════ ADD BLOCK MODAL ═══════
+            $("#vbAddBlock")?.addEventListener("click", function () {
+                var modal = $("#vbAddBlockModal");
+                if (modal) modal.style.display = "flex";
+            });
+
+            $("#vbAddBlockClose")?.addEventListener("click", function () {
+                $("#vbAddBlockModal").style.display = "none";
+            });
+
+            $("#vbAddBlockModal")?.addEventListener("click", function (e) {
+                if (e.target === this) this.style.display = "none";
+            });
+
+            // Handle block type selection
+            function buildDefaultContent(schemaKey) {
+                var schema = SCHEMAS[schemaKey];
+                if (!schema) return {};
+                var content = {};
+                schema.forEach(function (field) {
+                    if (field.type === "text") {
+                        content[field.key] = "";
+                    } else if (field.type === "textarea") {
+                        content[field.key] = "";
+                    } else if (field.type === "color") {
+                        content[field.key] = "#000000";
+                    } else if (field.type === "range") {
+                        content[field.key] =
+                            field.min !== undefined && field.max !== undefined
+                                ? (field.min + field.max) / 2
+                                : 0.5;
+                    } else if (field.type === "image") {
+                        content[field.key] = "";
+                    } else if (field.type === "tags") {
+                        content[field.key] = [];
+                    } else if (field.type === "repeater" && field.fields) {
+                        // Generate one empty item
+                        var emptyItem = {};
+                        field.fields.forEach(function (f) {
+                            emptyItem[f.key] = "";
+                        });
+                        content[field.key] = [emptyItem];
+                    } else {
+                        content[field.key] = "";
+                    }
+                });
+                return content;
+            }
+
+            document
+                .querySelectorAll("#vbBlockGrid .vb-block-option")
+                .forEach(function (btn) {
+                    btn.addEventListener("click", async function () {
+                        var key = this.dataset.blockKey;
+                        var label = this.dataset.blockLabel;
+                        if (!key || !label) return;
+
+                        // Generate unique key if already exists
+                        var existingKeys = allSections
+                            .filter(function (s) {
+                                return s.page_name === currentPage;
+                            })
+                            .map(function (s) {
+                                return s.section_key;
+                            });
+                        var finalKey = key;
+                        var counter = 2;
+                        while (existingKeys.indexOf(finalKey) >= 0) {
+                            finalKey = key + "_" + counter;
+                            counter++;
+                        }
+                        var finalLabel = label;
+                        if (finalKey !== key) {
+                            finalLabel = label + " " + (counter - 1);
+                        }
+
+                        // Build default content from schema
+                        var defaultContent = buildDefaultContent(key);
+
+                        // Close modal immediately
+                        $("#vbAddBlockModal").style.display = "none";
+
+                        try {
+                            var res = await fetch("/api/admin/sections", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    action: "create",
+                                    page_name: currentPage,
+                                    section_key: finalKey,
+                                    label: finalLabel,
+                                    content: defaultContent,
+                                }),
+                            });
+                            var data = await res.json();
+                            if (res.ok && data.section) {
+                                allSections.push(data.section);
+                                render();
+                                selectSection(data.section.id);
+                                refreshPreview();
+                                window.adminToast?.(
+                                    'Bloque "' + finalLabel + '" creado',
+                                    "success",
+                                );
+                            } else {
+                                window.adminToast?.(
+                                    data.error || "Error al crear bloque",
+                                    "error",
+                                );
+                            }
+                        } catch (e) {
+                            window.adminToast?.("Error de conexión", "error");
+                        }
+                    });
+                });
+
+            // ═══════ INIT ═══════
+            render();
+
+            // ═══════ PRODUCT ORDER SYSTEM ═══════
+            function escHtml(str) {
+                if (str == null) return "";
+                return String(str)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;");
+            }
+
+            function renderProductOrder() {
+                var list = $("#vbProductList");
+                var countEl = $("#vbProductCount");
+                if (!list) return;
+                if (countEl) countEl.textContent = allProducts.length;
+
+                if (allProducts.length === 0) {
+                    list.innerHTML =
+                        '<div style="text-align:center;padding:2rem;color:rgba(255,255,255,0.2);font-size:0.75rem;">No hay productos activos</div>';
+                    return;
+                }
+
+                var html = "";
+                allProducts.forEach(function (p, i) {
+                    var catName =
+                        p.categories && p.categories.name
+                            ? p.categories.name
+                            : "";
+                    var priceHtml = "€" + parseFloat(p.price).toFixed(2);
+                    if (
+                        p.compare_price &&
+                        parseFloat(p.compare_price) > parseFloat(p.price)
+                    ) {
+                        priceHtml +=
+                            ' <span class="old">€' +
+                            parseFloat(p.compare_price).toFixed(2) +
+                            "</span>";
+                    }
+                    html +=
+                        '<div class="vb-po-item" data-product-id="' +
+                        p.id +
+                        '" draggable="true">' +
+                        '<div class="vb-po-item-grip">' +
+                        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>' +
+                        "</div>" +
+                        '<div class="vb-po-item-num">' +
+                        (i + 1) +
+                        "</div>" +
+                        '<div class="vb-po-item-img">' +
+                        '<img src="' +
+                        escHtml(p.image) +
+                        '" alt="' +
+                        escHtml(p.name) +
+                        '" onerror="this.style.display=\'none\'" />' +
+                        "</div>" +
+                        '<div class="vb-po-item-info">' +
+                        '<div class="vb-po-item-name">' +
+                        escHtml(p.name) +
+                        "</div>" +
+                        '<div class="vb-po-item-price">' +
+                        priceHtml +
+                        "</div>" +
+                        (catName
+                            ? '<div class="vb-po-item-cat">' +
+                              escHtml(catName) +
+                              "</div>"
+                            : "") +
+                        "</div>" +
+                        "</div>";
+                });
+                list.innerHTML = html;
+                bindProductDragDrop();
+            }
+
+            var _dragProductId = null;
+
+            function bindProductDragDrop() {
+                var list = $("#vbProductList");
+                if (!list) return;
+                list.querySelectorAll(".vb-po-item").forEach(function (el) {
+                    el.addEventListener("dragstart", function (e) {
+                        _dragProductId = this.dataset.productId;
+                        this.classList.add("dragging");
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData(
+                            "text/plain",
+                            this.dataset.productId,
+                        );
+                    });
+                    el.addEventListener("dragend", function () {
+                        this.classList.remove("dragging");
+                        list.querySelectorAll(".vb-po-item").forEach(
+                            function (b) {
+                                b.classList.remove("drag-over");
+                            },
+                        );
+                    });
+                    el.addEventListener("dragover", function (e) {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                        list.querySelectorAll(".vb-po-item").forEach(
+                            function (b) {
+                                b.classList.remove("drag-over");
+                            },
+                        );
+                        if (this.dataset.productId !== _dragProductId)
+                            this.classList.add("drag-over");
+                    });
+                    el.addEventListener("dragleave", function () {
+                        this.classList.remove("drag-over");
+                    });
+                    el.addEventListener("drop", function (e) {
+                        e.preventDefault();
+                        this.classList.remove("drag-over");
+                        var dropId = this.dataset.productId;
+                        if (_dragProductId && _dragProductId !== dropId) {
+                            // Reorder in array
+                            var fromIdx = allProducts.findIndex(function (p) {
+                                return p.id === _dragProductId;
+                            });
+                            var toIdx = allProducts.findIndex(function (p) {
+                                return p.id === dropId;
+                            });
+                            if (fromIdx >= 0 && toIdx >= 0) {
+                                var moved = allProducts.splice(fromIdx, 1)[0];
+                                allProducts.splice(toIdx, 0, moved);
+                                productOrderChanged = true;
+                                renderProductOrder();
+                                // Update save button state
+                                var saveBtn = $("#vbSaveProductOrder");
+                                if (saveBtn)
+                                    saveBtn.classList.add("has-changes");
+                            }
+                        }
+                        _dragProductId = null;
+                    });
+                });
+            }
+
+            // Save product order
+            $("#vbSaveProductOrder")?.addEventListener(
+                "click",
+                async function () {
+                    if (!productOrderChanged) {
+                        window.adminToast?.(
+                            "No hay cambios en el orden",
+                            "success",
+                        );
+                        return;
+                    }
+                    var btn = this;
+                    btn.disabled = true;
+                    btn.innerHTML =
+                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Guardando...';
+
+                    var orders = allProducts.map(function (p, i) {
+                        p.display_order = i;
+                        return { id: p.id, display_order: i };
+                    });
+
+                    try {
+                        var res = await fetch("/api/admin/products", {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ orders: orders }),
+                        });
+                        if (res.ok) {
+                            productOrderChanged = false;
+                            btn.classList.remove("has-changes");
+                            window.adminToast?.(
+                                "Orden de productos guardado",
+                                "success",
+                            );
+                            refreshPreview();
+                        } else {
+                            var data = await res.json();
+                            window.adminToast?.(
+                                data.error || "Error al guardar orden",
+                                "error",
+                            );
+                        }
+                    } catch (e) {
+                        window.adminToast?.("Error de conexión", "error");
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML =
+                            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Guardar orden';
+                    }
+                },
+            );
+        })();
+    </script>
+</AdminLayout>

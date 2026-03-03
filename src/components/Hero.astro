@@ -1,67 +1,143 @@
 ---
+interface Props {
+    content?: {
+        title_line1?: string;
+        title_line2?: string;
+        subtitle?: string;
+        subtitle_mobile?: string;
+        badge?: string;
+        cta_text?: string;
+        cta_link?: string;
+        secondary_text?: string;
+        secondary_link?: string;
+        bg_image?: string;
+        overlay_color?: string;
+        overlay_opacity?: number;
+    };
+}
 
+const { content = {} } = Astro.props;
+
+// Dynamic values with fallbacks
+const titleLine1 = content.title_line1 || 'DOMINA';
+const titleLine2 = content.title_line2 || 'EL ÁREA';
+const subtitle = content.subtitle || 'Siente el agarre absoluto. Diseñados para porteros de elite que no aceptan menos que la perfección.';
+const subtitleMobile = content.subtitle_mobile || 'Agarre absoluto. Para porteros que exigen perfección.';
+const badge = content.badge || 'Nueva Colección 2026';
+const ctaText = content.cta_text || 'Comprar Ahora';
+const ctaLink = content.cta_link || '/shop';
+const secondaryText = content.secondary_text || 'Serie Elite';
+const secondaryLink = content.secondary_link || '/shop?category=elite';
+const bgImage = content.bg_image || 'https://res.cloudinary.com/djvj32zic/image/upload/v1771850353/wmremove-transformed_qkiglz.png';
+const overlayColor = content.overlay_color || '#000000';
+const overlayOpacity = content.overlay_opacity ?? 0.4;
 ---
 
+<div class="relative overflow-hidden hero-wrapper">
 <section
-    class="relative h-[65vh] md:h-[85vh] min-h-[400px] md:min-h-[500px] flex items-start pt-10 md:pt-16 overflow-hidden bg-black"
+    class="hero-section relative h-full w-full bg-black"
 >
     <!-- Background Layer -->
     <div class="absolute inset-0 z-0">
         <div
-            class="absolute inset-0 bg-[url('https://instagram.fsvq4-1.fna.fbcdn.net/v/t51.82787-15/639931240_18027648557616241_424163390501171464_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=101&ig_cache_key=MzgzNzYyNzU5NzQ4MDM1NzcyMw%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTkyMC5zZHIuQzMifQ%3D%3D&_nc_ohc=iPc1oTXnNWAQ7kNvwFnePQN&_nc_oc=AdnmQfVClIp142L-cUxe5auK1Y8bAhum333-Q0wZzb0_CkY1c88j7akkhVqjN7093Bg&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fsvq4-1.fna&_nc_gid=HHLg8-W2_tYCtjxovSWLWw&oh=00_AfsDr40EkiGEyTjPMQ8Nex67ziin1MdCTHwWMhK6upmumg&oe=69A1883D')] bg-cover bg-center"
-            style="animation: subtle-zoom 20s ease-in-out infinite alternate;"
+            class="absolute inset-0 hero-bg"
+            style={`background-image: url('${bgImage}');`}
         >
         </div>
 
-        <!-- Overlays for readability -->
-        <div class="absolute inset-0 bg-black/40"></div>
+        <!-- MOBILE: radial overlay – glove visible, dark edges -->
+        <div class="absolute inset-0 hero-overlay-radial md:hidden"></div>
+        <!-- MOBILE: subtle bottom gradient for text safety -->
+        <div class="absolute inset-0 hero-overlay-bottom-soft md:hidden"></div>
+
+        <!-- DESKTOP overlays -->
+        <div class="absolute inset-0 hidden md:block" style={`background: ${overlayColor}; opacity: ${overlayOpacity};`}></div>
         <div
-            class="absolute inset-0"
+            class="absolute inset-0 hidden md:block"
             style="background: var(--gradient-hero-side);"
         >
         </div>
         <div
-            class="absolute inset-0"
-            style="background: var(--gradient-hero-bottom);"
+            class="absolute inset-0 hero-overlay-bottom-desktop hidden md:block"
         >
         </div>
     </div>
 
-    <!-- Vertical accent line -->
+    <!-- Vertical accent line (desktop only) -->
     <div
         class="absolute left-8 top-1/4 bottom-1/4 w-[2px] bg-gradient-to-b from-transparent via-brand to-transparent opacity-30 hidden lg:block"
     >
     </div>
 
     <!-- Content -->
-    <div class="container relative z-10">
-        <div class="max-w-3xl text-left">
+    <div class="hero-content-wrapper relative z-10">
+        <!-- ═══════════════════════════════════
+             MOBILE: true-centered editorial
+        ═══════════════════════════════════ -->
+        <div class="hero-mobile-content md:hidden">
             <span
-                class="inline-block px-4 py-1.5 bg-brand/10 border border-brand/30 text-brand text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] mb-10 md:mb-8 opacity-0 animate-fade-up"
+                class="hero-badge-mobile inline-block px-3 py-1 bg-white/[0.08] backdrop-blur-sm border border-white/[0.15] text-brand text-[9px] font-bold uppercase tracking-[0.35em] mb-5"
             >
-                Nueva Colección 2026
+                {badge}
             </span>
 
             <h1
-                class="hero-title text-7xl sm:text-7xl md:text-8xl lg:text-9xl font-display font-bold uppercase leading-[0.85] tracking-tight md:tracking-tighter mb-10 md:mb-8 opacity-0 animate-fade-up anim-delay-100"
+                class="hero-title-mobile font-display font-bold uppercase leading-[0.82] tracking-tight mb-3"
             >
-                DOMINA
+                {titleLine1}
                 <br />
-                <span class="text-brand">EL ÁREA</span>
+                <span class="text-brand">{titleLine2}</span>
+            </h1>
+
+            <p class="hero-sub-mobile text-[13px] font-light leading-[1.6] max-w-[260px] mx-auto mb-7">
+                {subtitleMobile}
+            </p>
+
+            <div class="hero-cta-mobile px-2">
+                <a href={ctaLink} class="hero-btn-primary w-full">
+                    <span>{ctaText}</span>
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                </a>
+                <a href={secondaryLink} class="hero-link-secondary mt-4">
+                    {secondaryText}
+                    <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════
+             DESKTOP: original layout
+        ═══════════════════════════════════ -->
+        <div class="hidden md:block max-w-3xl text-left">
+            <span
+                class="inline-block px-4 py-1.5 bg-brand/10 border border-brand/30 text-brand text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] mb-6 md:mb-8 opacity-0 animate-fade-up"
+            >
+                {badge}
+            </span>
+
+            <h1
+                class="hero-title text-8xl lg:text-9xl font-display font-bold uppercase leading-[0.85] tracking-tighter mb-8 opacity-0 animate-fade-up anim-delay-100"
+            >
+                {titleLine1}
+                <br />
+                <span class="text-brand">{titleLine2}</span>
             </h1>
 
             <p
-                class="hero-subtitle text-base md:text-xl max-w-lg mb-12 md:mb-10 opacity-0 animate-fade-up anim-delay-200"
+                class="hero-subtitle text-xl max-w-lg mb-10 opacity-0 animate-fade-up anim-delay-200"
             >
-                Siente el agarre absoluto. Diseñados para porteros de elite que
-                no aceptan menos que la perfección.
+                {subtitle}
             </p>
 
             <div
                 class="flex flex-wrap gap-4 opacity-0 animate-fade-up anim-delay-300"
             >
-                <a href="/shop" class="btn-primary">
-                    <span>Comprar Ahora</span>
+                <a href={ctaLink} class="btn-primary">
+                    <span>{ctaText}</span>
                     <svg
                         class="w-4 h-4 inline-block ml-2"
                         fill="none"
@@ -75,55 +151,237 @@
                             d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                     </svg>
                 </a>
-                <a href="/shop?category=elite" class="btn-outline">
-                    Serie Elite
+                <a href={secondaryLink} class="btn-outline">
+                    {secondaryText}
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Marquee -->
-    <div
-        class="absolute bottom-4 left-0 w-full overflow-hidden whitespace-nowrap opacity-[0.03] pointer-events-none"
-    >
-        <div class="flex animate-marquee">
-            <span
-                class="text-[6rem] md:text-[14rem] font-display font-bold uppercase tracking-tighter leading-none shrink-0"
-            >
-                PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;
-            </span>
-            <span
-                class="text-[6rem] md:text-[14rem] font-display font-bold uppercase tracking-tighter leading-none shrink-0"
-            >
-                PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;
-            </span>
-        </div>
-    </div>
-
     <style>
-        @keyframes subtle-zoom {
-            0% {
-                transform: scale(1.05);
-            }
-            100% {
-                transform: scale(1.12);
+        /* ═══════════════════════════════════════════
+           HERO – MOBILE (<768px)
+           True-centered editorial. Nike/Off-White.
+        ═══════════════════════════════════════════ */
+
+        /* ── Section: mobile = true center, desktop = top-aligned ── */
+        .hero-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .hero-section {
+                align-items: flex-start;
+                justify-content: flex-start;
+                padding-top: 8rem;
             }
         }
 
-        @keyframes float {
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-30px);
+        /* ── Content wrapper ── */
+        .hero-content-wrapper {
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        @media (min-width: 640px) {
+            .hero-content-wrapper {
+                padding: 0 1.5rem;
             }
         }
 
-        .animate-float {
-            animation: float 6s ease-in-out infinite;
+        @media (min-width: 768px) {
+            .hero-content-wrapper {
+                max-width: 80rem;
+                margin: 0 auto;
+                padding: 0 1rem;
+            }
         }
 
+        @media (min-width: 1024px) {
+            .hero-content-wrapper {
+                padding: 0 2rem;
+            }
+        }
+
+        /* ── Mobile content: optical center correction ── */
+        .hero-mobile-content {
+            text-align: center;
+            transform: translateY(-5%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @media (min-width: 768px) {
+            .hero-mobile-content {
+                display: none !important;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+           HERO WRAPPER HEIGHT
+        ═══════════════════════════════════════ */
+        .hero-wrapper {
+            height: 70vh;
+            height: 70svh;
+        }
+
+        @media (min-width: 768px) {
+            .hero-wrapper {
+                height: calc(100svh - 80px);
+            }
+        }
+
+        /* ═══════════════════════════════════════
+           BACKGROUND IMAGE
+        ═══════════════════════════════════════ */
+        .hero-bg {
+            background-size: cover;
+            background-position: 50% 30%;
+            background-repeat: no-repeat;
+        }
+
+        @media (max-width: 767px) {
+            .hero-bg {
+                animation: hero-breathe 8s ease-in-out infinite alternate;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .hero-bg {
+                background-size: 160%;
+                background-position: 30% center;
+                background-attachment: fixed;
+                animation: subtle-zoom 25s ease-in-out infinite alternate;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+           MOBILE OVERLAYS
+        ═══════════════════════════════════════ */
+
+        /* Radial: dark edges, lighter center → glove visible */
+        .hero-overlay-radial {
+            background: radial-gradient(
+                ellipse 70% 60% at 50% 40%,
+                rgba(0, 0, 0, 0.35) 0%,
+                rgba(0, 0, 0, 0.55) 50%,
+                rgba(0, 0, 0, 0.75) 100%
+            );
+        }
+
+        /* Soft bottom: minimal, just enough for text legibility */
+        .hero-overlay-bottom-soft {
+            background: linear-gradient(
+                to top,
+                rgba(0, 0, 0, 0.4) 0%,
+                rgba(0, 0, 0, 0.15) 30%,
+                transparent 55%
+            );
+        }
+
+        /* Desktop overlay (unchanged) */
+        .hero-overlay-bottom-desktop {
+            background: var(--gradient-hero-bottom);
+        }
+
+        /* ═══════════════════════════════════════
+           MOBILE ELEMENTS
+        ═══════════════════════════════════════ */
+
+        /* ── Title ── */
+        .hero-title-mobile {
+            font-size: clamp(3.25rem, 16vw, 5rem);
+            color: #ffffff;
+            text-shadow: 0 2px 30px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+        }
+
+        /* ── Subtitle ── */
+        .hero-sub-mobile {
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 1px 15px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+        }
+
+        /* ── Badge ── */
+        .hero-badge-mobile {
+            opacity: 0;
+            animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0s forwards;
+        }
+
+        /* ── CTA group ── */
+        .hero-cta-mobile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            opacity: 0;
+            animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+        }
+
+        /* ── Primary button with glow pulse ── */
+        .hero-btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 11px 20px;
+            background: linear-gradient(135deg, #39FF14 0%, #2DD60E 100%);
+            color: #000;
+            font-family: 'Oswald', system-ui, sans-serif;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            border-radius: 6px;
+            border: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.2),
+                        0 0 60px rgba(57, 255, 20, 0.06);
+            text-decoration: none;
+            animation: hero-glow-pulse 3s ease-in-out infinite;
+        }
+
+        .hero-btn-primary:active {
+            transform: scale(0.97);
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.15);
+        }
+
+        @media (hover: hover) {
+            .hero-btn-primary:hover {
+                transform: translateY(-1px) scale(1.01);
+                box-shadow: 0 0 35px rgba(57, 255, 20, 0.4),
+                            0 0 80px rgba(57, 255, 20, 0.12);
+            }
+        }
+
+        /* ── Secondary link ── */
+        .hero-link-secondary {
+            display: inline-flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.45);
+            font-family: 'Oswald', system-ui, sans-serif;
+            font-weight: 500;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            padding: 4px 0;
+        }
+
+        .hero-link-secondary:active,
+        .hero-link-secondary:hover {
+            color: #39FF14;
+        }
+
+        /* ═══════════════════════════════════════
+           DESKTOP TYPOGRAPHY (unchanged)
+        ═══════════════════════════════════════ */
         .hero-title {
             color: var(--text-primary);
         }
@@ -131,5 +389,111 @@
         .hero-subtitle {
             color: var(--text-muted);
         }
+
+        /* ═══════════════════════════════════════
+           KEYFRAMES
+        ═══════════════════════════════════════ */
+
+        @keyframes hero-breathe {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        @keyframes subtle-zoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.14); }
+        }
+
+        @keyframes hero-fade-up {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes hero-glow-pulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(57, 255, 20, 0.2),
+                            0 0 60px rgba(57, 255, 20, 0.06);
+            }
+            50% {
+                box-shadow: 0 0 28px rgba(57, 255, 20, 0.3),
+                            0 0 70px rgba(57, 255, 20, 0.1);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
     </style>
 </section>
+
+    <!-- Marquee -->
+    <div
+        class="absolute bottom-0 left-0 w-full whitespace-nowrap pointer-events-none leading-none overflow-hidden marquee-wrapper"
+    >
+        <div class="flex animate-marquee">
+            <span
+                class="marquee-text text-[5rem] sm:text-[7rem] md:text-[12rem] font-display font-bold uppercase tracking-tighter leading-[0.85] shrink-0 block"
+            >
+                PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;
+            </span>
+            <span
+                class="marquee-text text-[5rem] sm:text-[7rem] md:text-[12rem] font-display font-bold uppercase tracking-tighter leading-[0.85] shrink-0 block"
+            >
+                PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;PARRA&nbsp;
+            </span>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ── Marquee: shimmer + pulse ── */
+    .marquee-wrapper {
+        --mq-low: 0.15;
+        --mq-high: 0.22;
+        animation: marquee-pulse 4s ease-in-out infinite;
+    }
+
+    @media (min-width: 768px) {
+        .marquee-wrapper {
+            --mq-low: 0.08;
+            --mq-high: 0.13;
+        }
+    }
+
+    .marquee-text {
+        background: linear-gradient(
+            90deg,
+            rgba(255,255,255,0.07) 0%,
+            rgba(255,255,255,0.07) 40%,
+            rgba(57,255,20,0.22) 50%,
+            rgba(255,255,255,0.07) 60%,
+            rgba(255,255,255,0.07) 100%
+        );
+        background-size: 300% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: marquee-shimmer 5s linear infinite;
+    }
+
+    @keyframes marquee-shimmer {
+        0%   { background-position: 200% center; }
+        100% { background-position: -100% center; }
+    }
+
+    @keyframes marquee-pulse {
+        0%, 100% { opacity: var(--mq-low); }
+        50%       { opacity: var(--mq-high); }
+    }
+</style>

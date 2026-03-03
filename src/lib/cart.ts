@@ -31,8 +31,34 @@ export interface ReserveResult {
 }
 
 // ── Claves localStorage ────────────────────────────────────────────────────────
-const CART_KEY = 'parra_cart';
-const SESSION_KEY = 'parra_cart_session';
+const CART_KEY_PREFIX = 'parra_cart';
+const SESSION_KEY    = 'parra_cart_session';
+const USER_ID_KEY    = 'parra_cart_user_id';
+
+/** Clave de carrito activa: una por usuario, separada del invitado */
+function getCartKey(): string {
+    if (typeof window === 'undefined') return `${CART_KEY_PREFIX}_guest`;
+    const uid = localStorage.getItem(USER_ID_KEY);
+    return uid ? `${CART_KEY_PREFIX}_${uid}` : `${CART_KEY_PREFIX}_guest`;
+}
+
+/**
+ * Llama esto justo después de un login exitoso para activar el carrito del usuario.
+ * Llama con null en logout para volver al carrito de invitado.
+ */
+export function setCartUser(userId: string | null): void {
+    if (typeof window === 'undefined') return;
+    if (userId) {
+        localStorage.setItem(USER_ID_KEY, userId);
+    } else {
+        localStorage.removeItem(USER_ID_KEY);
+        // Regenerar session para invitados futuros
+        localStorage.removeItem(SESSION_KEY);
+    }
+    // Notificar a los listeners que el carrito cambió
+    const items = getCart();
+    window.dispatchEvent(new CustomEvent('cart:updated', { detail: items }));
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -55,14 +81,14 @@ export function getSessionId(): string {
 export function getCart(): CartItem[] {
     if (typeof window === 'undefined') return [];
     try {
-        return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+        return JSON.parse(localStorage.getItem(getCartKey()) || '[]');
     } catch {
         return [];
     }
 }
 
 function saveCart(items: CartItem[]): void {
-    localStorage.setItem(CART_KEY, JSON.stringify(items));
+    localStorage.setItem(getCartKey(), JSON.stringify(items));
     window.dispatchEvent(new CustomEvent('cart:updated', { detail: items }));
 }
 
@@ -248,7 +274,7 @@ export function clearCart(): void {
         }).catch(() => { });
     });
 
-    localStorage.removeItem(CART_KEY);
+    localStorage.removeItem(getCartKey());
     window.dispatchEvent(new CustomEvent('cart:updated', { detail: [] }));
 }
 

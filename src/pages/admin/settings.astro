@@ -1,0 +1,274 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { requireAdmin } from '../../lib/admin';
+import { supabaseAdmin } from '../../lib/supabase';
+
+const admin = await requireAdmin(Astro);
+
+const { data: rows } = await supabaseAdmin.from('site_settings').select('*').order('key');
+const settings: Record<string, any> = {};
+(rows || []).forEach(r => { settings[r.key] = r.value; });
+
+const brand = settings.brand || { name: 'PARRA', logo_url: '', primary_color: '#39FF14', secondary_color: '#2DD60E' };
+const contact = settings.contact || { email: '', phone: '', address: '' };
+const shipping = settings.shipping || { free_threshold: 50, standard_cost: 4.99, express_cost: 9.99 };
+const taxes = settings.taxes || { iva_rate: 21, included_in_price: true };
+const returns_policy = settings.returns_policy || { days_limit: 30, description: '' };
+const stripe = settings.stripe || { public_key: '', webhook_secret: '' };
+---
+
+<AdminLayout title="Ajustes" activeSection="settings" admin={admin}>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Ajustes</h1>
+            <p class="text-gray-400 text-sm mt-1">Configuración general de la tienda</p>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="filter-bar mb-6" id="settingsTabs">
+        <button class="filter-chip active" data-tab="brand">Marca</button>
+        <button class="filter-chip" data-tab="contact">Contacto</button>
+        <button class="filter-chip" data-tab="shipping">Envío</button>
+        <button class="filter-chip" data-tab="taxes">Impuestos</button>
+        <button class="filter-chip" data-tab="returns">Devoluciones</button>
+        <button class="filter-chip" data-tab="stripe">Stripe</button>
+    </div>
+
+    <!-- Brand -->
+    <div class="settings-panel active" id="panel-brand">
+        <form class="card p-6" data-key="brand">
+            <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <i data-feather="award" class="w-5 h-5 text-[var(--brand)]"></i> Marca
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" name="name" value={brand.name} class="form-input" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">URL del Logo</label>
+                    <input type="url" name="logo_url" value={brand.logo_url} class="form-input" placeholder="https://..." />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Color principal</label>
+                    <div class="flex items-center gap-2">
+                        <input type="color" name="primary_color" value={brand.primary_color} class="w-10 h-10 rounded border border-white/10 bg-transparent cursor-pointer" />
+                        <input type="text" value={brand.primary_color} class="form-input flex-1 color-text" data-for="primary_color" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Color secundario</label>
+                    <div class="flex items-center gap-2">
+                        <input type="color" name="secondary_color" value={brand.secondary_color} class="w-10 h-10 rounded border border-white/10 bg-transparent cursor-pointer" />
+                        <input type="text" value={brand.secondary_color} class="form-input flex-1 color-text" data-for="secondary_color" />
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="submit" class="btn-primary">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Contact -->
+    <div class="settings-panel" id="panel-contact">
+        <form class="card p-6" data-key="contact">
+            <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <i data-feather="mail" class="w-5 h-5 text-[var(--brand)]"></i> Contacto
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" value={contact.email} class="form-input" placeholder="info@parra.es" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input type="tel" name="phone" value={contact.phone} class="form-input" placeholder="+34 600 000 000" />
+                </div>
+                <div class="form-group sm:col-span-2">
+                    <label class="form-label">Dirección</label>
+                    <input type="text" name="address" value={contact.address} class="form-input" placeholder="Calle..." />
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="submit" class="btn-primary">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Shipping -->
+    <div class="settings-panel" id="panel-shipping">
+        <form class="card p-6" data-key="shipping">
+            <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <i data-feather="truck" class="w-5 h-5 text-[var(--brand)]"></i> Envío
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="form-group">
+                    <label class="form-label">Envío gratis desde (€)</label>
+                    <input type="number" step="0.01" name="free_threshold" value={shipping.free_threshold} class="form-input" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Coste estándar (€)</label>
+                    <input type="number" step="0.01" name="standard_cost" value={shipping.standard_cost} class="form-input" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Coste express (€)</label>
+                    <input type="number" step="0.01" name="express_cost" value={shipping.express_cost} class="form-input" />
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="submit" class="btn-primary">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Taxes -->
+    <div class="settings-panel" id="panel-taxes">
+        <form class="card p-6" data-key="taxes">
+            <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <i data-feather="percent" class="w-5 h-5 text-[var(--brand)]"></i> Impuestos
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">IVA (%)</label>
+                    <input type="number" step="0.01" name="iva_rate" value={taxes.iva_rate} class="form-input" />
+                </div>
+                <div class="form-group flex items-end">
+                    <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                        <input type="checkbox" name="included_in_price" checked={taxes.included_in_price} class="w-4 h-4 accent-[var(--brand)]" />
+                        IVA incluido en precios
+                    </label>
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="submit" class="btn-primary">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Returns -->
+    <div class="settings-panel" id="panel-returns">
+        <form class="card p-6" data-key="returns_policy">
+            <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <i data-feather="rotate-ccw" class="w-5 h-5 text-[var(--brand)]"></i> Política de devoluciones
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">Días límite</label>
+                    <input type="number" name="days_limit" value={returns_policy.days_limit} class="form-input" />
+                </div>
+                <div class="form-group sm:col-span-2">
+                    <label class="form-label">Descripción</label>
+                    <textarea name="description" class="form-input" rows="3">{returns_policy.description}</textarea>
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="submit" class="btn-primary">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Stripe -->
+    <div class="settings-panel" id="panel-stripe">
+        <form class="card p-6" data-key="stripe">
+            <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <i data-feather="credit-card" class="w-5 h-5 text-[var(--brand)]"></i> Stripe
+            </h2>
+            <p class="text-yellow-400/80 text-xs mb-4 flex items-start gap-1">
+                <i data-feather="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                Estos valores son de referencia. Las claves reales se configuran como variables de entorno en el servidor.
+            </p>
+            <div class="grid grid-cols-1 gap-4">
+                <div class="form-group">
+                    <label class="form-label">Public Key (pk_...)</label>
+                    <input type="text" name="public_key" value={stripe.public_key} class="form-input font-mono text-xs" placeholder="pk_live_..." />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Webhook Secret (whsec_...)</label>
+                    <input type="text" name="webhook_secret" value={stripe.webhook_secret} class="form-input font-mono text-xs" placeholder="whsec_..." />
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="submit" class="btn-primary">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</AdminLayout>
+
+<style>
+    .settings-panel { display: none; }
+    .settings-panel.active { display: block; }
+</style>
+
+<script is:inline>
+    // Tab switching
+    document.querySelectorAll('#settingsTabs .filter-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#settingsTabs .filter-chip').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('panel-' + btn.dataset.tab)?.classList.add('active');
+        });
+    });
+
+    // Color picker sync
+    document.querySelectorAll('input[type="color"]').forEach(picker => {
+        const textInput = picker.parentElement.querySelector('.color-text');
+        if (textInput) {
+            picker.addEventListener('input', () => { textInput.value = picker.value; });
+            textInput.addEventListener('input', () => {
+                if (/^#[0-9A-Fa-f]{6}$/.test(textInput.value)) picker.value = textInput.value;
+            });
+        }
+    });
+
+    // Form submissions
+    document.querySelectorAll('form[data-key]').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const key = form.dataset.key;
+            const fd = new FormData(form);
+            const value = {};
+
+            for (const [name, val] of fd.entries()) {
+                const input = form.querySelector(`[name="${name}"]`);
+                if (input?.type === 'number') {
+                    value[name] = parseFloat(val) || 0;
+                } else if (input?.type === 'checkbox') {
+                    value[name] = input.checked;
+                } else {
+                    value[name] = val;
+                }
+            }
+
+            // Handle unchecked checkboxes
+            form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if (!fd.has(cb.name)) value[cb.name] = false;
+            });
+
+            const btn = form.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            try {
+                const res = await fetch('/api/admin/settings', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key, value })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    window.adminToast?.('Ajuste guardado correctamente', 'success');
+                } else {
+                    window.adminToast?.(data.error || 'Error al guardar', 'error');
+                }
+            } catch (err) {
+                window.adminToast?.('Error de conexión', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Guardar cambios';
+            }
+        });
+    });
+</script>

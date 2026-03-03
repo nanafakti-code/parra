@@ -30,7 +30,7 @@ const discountPercent = hasDiscount
     <!-- Image Container -->
     <a
         href={`/product/${product.slug}`}
-        class="block aspect-[3/4] overflow-hidden relative"
+        class="block aspect-square sm:aspect-[3/4] overflow-hidden relative"
         style="background-color: var(--bg-secondary);"
     >
         <img
@@ -42,9 +42,8 @@ const discountPercent = hasDiscount
         />
 
         <!-- Badges -->
-        <div class="absolute top-4 left-4 flex flex-col gap-2 z-10">
-            {product.is_featured && <span class="badge-pro">PRO</span>}
-            {hasDiscount && <span class="badge-sale">-{discountPercent}%</span>}
+        <div class="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col gap-1.5 sm:gap-2 z-10">
+            {hasDiscount && <span class="badge-sale text-[8px] sm:text-[10px]">-{discountPercent}%</span>}
             {
                 product.stock < 5 && product.stock > 0 && (
                     <span class="badge bg-red-600 text-white">Últimas</span>
@@ -60,32 +59,32 @@ const discountPercent = hasDiscount
     </a>
 
     <!-- Info -->
-    <div class="p-5">
-        <div class="flex justify-between items-start mb-1.5">
+    <div class="p-3 sm:p-5">
+        <div class="flex justify-between items-start mb-1">
             <span
-                class="text-[10px] font-bold text-brand uppercase tracking-[0.2em]"
+                class="text-[8px] sm:text-[10px] font-bold text-brand uppercase tracking-[0.15em] sm:tracking-[0.2em]"
             >
                 {category}
             </span>
         </div>
         <a href={`/product/${product.slug}`}>
             <h3
-                class="font-display text-base font-semibold uppercase tracking-tight group-hover:text-brand transition-colors duration-300 mb-2"
+                class="font-display text-xs sm:text-base font-semibold uppercase tracking-tight group-hover:text-brand transition-colors duration-300 mb-1.5 sm:mb-2 line-clamp-2"
             >
                 {product.name}
             </h3>
         </a>
         <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5 sm:gap-3">
                 <span
-                    class="text-lg font-bold"
+                    class="text-sm sm:text-lg font-bold"
                     style="color: var(--text-primary);"
                     >€{product.price.toFixed(2)}</span
                 >
                 {
                     hasDiscount && (
                         <span
-                            class="text-sm line-through"
+                            class="text-[10px] sm:text-sm line-through"
                             style="color: var(--text-muted);"
                         >
                             €{product.compare_price!.toFixed(2)}

@@ -1,278 +1,421 @@
 ---
-import Layout from "../../layouts/Layout.astro";
-import { supabase } from "../../lib/supabase";
-// Auth check
-const { user, role } = Astro.locals;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { requireAdmin } from '../../lib/admin';
+import { supabaseAdmin } from '../../lib/supabase';
 
-if (!user || role !== "admin") {
-    return Astro.redirect("/login");
+const adminResult = await requireAdmin(Astro);
+if (adminResult instanceof Response) return adminResult;
+const admin = adminResult;
+
+// ── KPI Queries ────────────────────────────────────────────────────────────────
+
+// Total revenue
+const { data: allOrders } = await supabaseAdmin
+    .from('orders')
+    .select('total, status, created_at');
+
+const totalRevenue = (allOrders || []).reduce((s, o) => s + parseFloat(o.total || 0), 0);
+
+// This month's revenue
+const now = new Date();
+const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+const monthOrders = (allOrders || []).filter(o => o.created_at >= firstOfMonth);
+const monthRevenue = monthOrders.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+
+// Previous month for comparison
+const firstOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString();
+const prevMonthOrders = (allOrders || []).filter(o => o.created_at >= firstOfPrevMonth && o.created_at <= endOfPrevMonth);
+const prevMonthRevenue = prevMonthOrders.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+const revenueChange = prevMonthRevenue > 0 ? ((monthRevenue - prevMonthRevenue) / prevMonthRevenue * 100).toFixed(1) : '0';
+
+// Order counts
+const totalOrderCount = allOrders?.length || 0;
+const monthOrderCount = monthOrders.length;
+const prevMonthOrderCount = prevMonthOrders.length;
+const ordersChange = prevMonthOrderCount > 0 ? ((monthOrderCount - prevMonthOrderCount) / prevMonthOrderCount * 100).toFixed(1) : '0';
+
+// Average ticket
+const avgTicket = totalOrderCount > 0 ? (totalRevenue / totalOrderCount) : 0;
+
+// Total customers
+const { count: totalCustomers } = await supabaseAdmin
+    .from('users')
+    .select('*', { count: 'exact', head: true })
+    .eq('role', 'user');
+
+// New customers this month
+const { count: newCustomersMonth } = await supabaseAdmin
+    .from('users')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', firstOfMonth)
+    .eq('role', 'user');
+
+// Pending orders
+const pendingOrders = (allOrders || []).filter(o => o.status === 'pending' || o.status === 'processing');
+
+// Orders by status
+const statusCounts: Record<string, number> = {};
+(allOrders || []).forEach(o => {
+    statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+});
+
+// ── Recent orders ──────────────────────────────────────────────────────────────
+const { data: recentOrders } = await supabaseAdmin
+    .from('orders')
+    .select('id, total, status, created_at, users(name, email)')
+    .order('created_at', { ascending: false })
+    .limit(8);
+
+// ── Monthly revenue for chart (last 6 months) ──────────────────────────────────
+const monthlyData: { label: string; revenue: number; orders: number }[] = [];
+const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const dEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
+    const mOrders = (allOrders || []).filter(o => o.created_at >= d.toISOString() && o.created_at <= dEnd.toISOString());
+    monthlyData.push({
+        label: monthNames[d.getMonth()],
+        revenue: mOrders.reduce((s, o) => s + parseFloat(o.total || 0), 0),
+        orders: mOrders.length,
+    });
 }
 
-// Fetch stats
-const { count: totalProducts } = await supabase
-    .from("products")
-    .select("*", { count: "exact", head: true })
-    .eq("is_active", true);
+// ── Top products ───────────────────────────────────────────────────────────────
+const { data: topItems } = await supabaseAdmin
+    .from('order_items')
+    .select('product_id, quantity, products(name)')
+    .limit(500);
 
-const { count: totalUsers } = await supabase
-    .from("users")
-    .select("*", { count: "exact", head: true });
+const productSales: Record<string, { name: string; qty: number }> = {};
+(topItems || []).forEach((item: any) => {
+    const pid = item.product_id;
+    if (!productSales[pid]) productSales[pid] = { name: item.products?.name || 'Desconocido', qty: 0 };
+    productSales[pid].qty += item.quantity || 1;
+});
+const topProducts = Object.values(productSales).sort((a, b) => b.qty - a.qty).slice(0, 5);
 
-const { count: totalOrders } = await supabase
-    .from("orders")
-    .select("*", { count: "exact", head: true });
+// ── Daily revenue last 30 days ─────────────────────────────────────────────────
+const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+const recentAllOrders = (allOrders || []).filter(o => o.created_at >= thirtyDaysAgo);
+const dailyRevenue: { day: string; revenue: number }[] = [];
+for (let i = 29; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dayStr = d.toISOString().slice(0, 10);
+    const dayOrders = recentAllOrders.filter(o => o.created_at.slice(0, 10) === dayStr);
+    dailyRevenue.push({
+        day: `${d.getDate()}/${d.getMonth() + 1}`,
+        revenue: dayOrders.reduce((s, o) => s + parseFloat(o.total || 0), 0),
+    });
+}
 
-const { data: recentOrders } = await supabase
-    .from("orders")
-    .select("*, users(name, email)")
-    .order("created_at", { ascending: false })
-    .limit(10);
+function formatStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+        pending: 'Pendiente',
+        processing: 'Procesando',
+        shipped: 'Enviado',
+        delivered: 'Entregado',
+        cancelled: 'Cancelado',
+        refunded: 'Reembolsado',
+    };
+    return map[status] || status;
+}
 
-// Calculate revenue
-const { data: allOrders } = await supabase.from("orders").select("total");
-const totalRevenue = (allOrders || []).reduce(
-    (sum: number, o: any) => sum + parseFloat(o.total || 0),
-    0,
-);
+function statusBadgeClass(status: string): string {
+    const map: Record<string, string> = {
+        pending: 'badge-warning',
+        processing: 'badge-info',
+        shipped: 'badge-info',
+        delivered: 'badge-success',
+        cancelled: 'badge-danger',
+        refunded: 'badge-danger',
+    };
+    return map[status] || 'badge-neutral';
+}
 
-const stats = [
-    { label: "Productos", value: totalProducts || 0, icon: "box" },
-    { label: "Usuarios", value: totalUsers || 0, icon: "users" },
-    { label: "Pedidos", value: totalOrders || 0, icon: "orders" },
-    {
-        label: "Ingresos",
-        value: `€${totalRevenue.toFixed(2)}`,
-        icon: "revenue",
-    },
-];
+// Serialize chart data
+const chartData = JSON.stringify({
+    monthly: monthlyData,
+    statusCounts,
+    topProducts,
+    dailyRevenue,
+});
 ---
 
-<Layout title="Admin Dashboard">
-    <main class="min-h-screen bg-surface-950">
-        <!-- Admin Header -->
-        <header class="bg-surface-900/50 border-b border-white/5 py-4">
-            <div class="container flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <a
-                        href="/"
-                        class="text-xl font-display font-bold tracking-tight"
-                    >
-                        <span class="text-brand">PARRA</span>
-                    </a>
-                    <span class="text-white/20 text-sm">/</span>
-                    <span class="text-white/40 text-sm uppercase tracking-wider"
-                        >Admin</span
-                    >
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="text-white/40 text-sm">{user.name}</span>
-                    <a href="/" class="text-xs text-brand hover:underline"
-                        >← Volver a la tienda</a
-                    >
-                </div>
-            </div>
-        </header>
-
-        <div class="container py-12">
-            <h1
-                class="font-display text-3xl font-bold uppercase tracking-tight mb-8"
-            >
-                Panel de <span class="text-brand">Control</span>
-            </h1>
-
-            <!-- Stats Grid -->
-            <div
-                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12"
-            >
-                {
-                    stats.map((stat) => (
-                        <div class="card p-6">
-                            <div class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">
-                                {stat.label}
-                            </div>
-                            <div class="text-2xl font-bold">{stat.value}</div>
-                        </div>
-                    ))
-                }
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
-                <a
-                    href="/shop"
-                    class="card p-6 group hover:-translate-y-1 transition-all duration-300 flex items-center gap-4"
-                >
-                    <div
-                        class="w-10 h-10 bg-brand/10 border border-brand/20 flex items-center justify-center text-brand"
-                    >
-                        <svg
-                            class="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                            ></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="font-semibold text-sm">
-                            Gestionar Productos
-                        </div>
-                        <div class="text-white/30 text-xs">
-                            Ver y editar catálogo
-                        </div>
-                    </div>
-                </a>
-                <a
-                    href="#"
-                    class="card p-6 group hover:-translate-y-1 transition-all duration-300 flex items-center gap-4"
-                >
-                    <div
-                        class="w-10 h-10 bg-brand/10 border border-brand/20 flex items-center justify-center text-brand"
-                    >
-                        <svg
-                            class="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                            ></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="font-semibold text-sm">
-                            Gestionar Pedidos
-                        </div>
-                        <div class="text-white/30 text-xs">
-                            Procesar y seguimiento
-                        </div>
-                    </div>
-                </a>
-                <a
-                    href="#"
-                    class="card p-6 group hover:-translate-y-1 transition-all duration-300 flex items-center gap-4"
-                >
-                    <div
-                        class="w-10 h-10 bg-brand/10 border border-brand/20 flex items-center justify-center text-brand"
-                    >
-                        <svg
-                            class="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                            ></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="font-semibold text-sm">
-                            Gestionar Usuarios
-                        </div>
-                        <div class="text-white/30 text-xs">
-                            Cuentas y permisos
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Recent Orders -->
-            <div class="card overflow-hidden">
-                <div class="p-6 border-b border-white/5">
-                    <h2
-                        class="font-display text-lg font-semibold uppercase tracking-tight"
-                    >
-                        Pedidos Recientes
-                    </h2>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead>
-                            <tr
-                                class="text-left text-xs font-semibold uppercase tracking-wider text-white/30 border-b border-white/5"
-                            >
-                                <th class="px-6 py-4">Nº Pedido</th>
-                                <th class="px-6 py-4">Cliente</th>
-                                <th class="px-6 py-4">Estado</th>
-                                <th class="px-6 py-4">Total</th>
-                                <th class="px-6 py-4">Fecha</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {
-                                (recentOrders || []).map((order: any) => (
-                                    <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                                        <td class="px-6 py-4 text-sm font-mono text-brand">
-                                            {order.order_number}
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-white/60">
-                                            {order.users?.name ||
-                                                order.users?.email ||
-                                                "—"}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <span
-                                                class:list={[
-                                                    "inline-block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
-                                                    order.status === "delivered"
-                                                        ? "bg-brand/10 text-brand"
-                                                        : order.status ===
-                                                            "cancelled"
-                                                          ? "bg-red-500/10 text-red-500"
-                                                          : order.status ===
-                                                              "pending"
-                                                            ? "bg-amber-500/10 text-amber-500"
-                                                            : "bg-blue-500/10 text-blue-500",
-                                                ]}
-                                            >
-                                                {order.status}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm font-semibold">
-                                            €
-                                            {parseFloat(
-                                                order.total || 0,
-                                            ).toFixed(2)}
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-white/30">
-                                            {new Date(
-                                                order.created_at,
-                                            ).toLocaleDateString("es-ES")}
-                                        </td>
-                                    </tr>
-                                ))
-                            }
-                            {
-                                (!recentOrders ||
-                                    recentOrders.length === 0) && (
-                                    <tr>
-                                        <td
-                                            colspan="5"
-                                            class="px-6 py-12 text-center text-white/20 text-sm"
-                                        >
-                                            No hay pedidos recientes
-                                        </td>
-                                    </tr>
-                                )
-                            }
-                        </tbody>
-                    </table>
-                </div>
+<AdminLayout title="Dashboard" activeSection="dashboard" admin={admin}>
+    <!-- KPI Grid -->
+    <div class="stat-grid" style="margin-bottom: 1.5rem;">
+        <div class="stat-card">
+            <div class="stat-label">Ingresos Totales</div>
+            <div class="stat-value">{totalRevenue.toFixed(0)}€</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Ventas este mes</div>
+            <div class="stat-value">{monthRevenue.toFixed(0)}€</div>
+            <div class={`stat-change ${parseFloat(revenueChange as string) >= 0 ? 'stat-up' : 'stat-down'}`}>
+                {Math.abs(parseFloat(revenueChange as string))}% vs mes anterior
             </div>
         </div>
-    </main>
-</Layout>
+        <div class="stat-card">
+            <div class="stat-label">Pedidos este mes</div>
+            <div class="stat-value">{monthOrderCount}</div>
+            <div class={`stat-change ${parseFloat(ordersChange as string) >= 0 ? 'stat-up' : 'stat-down'}`}>
+                {Math.abs(parseFloat(ordersChange as string))}% vs mes anterior
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Ticket Medio</div>
+            <div class="stat-value">{avgTicket.toFixed(2)}€</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Clientes</div>
+            <div class="stat-value">{totalCustomers || 0}</div>
+            <div class="stat-change stat-up">+{newCustomersMonth || 0} este mes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Pedidos Pendientes</div>
+            <div class="stat-value" style={pendingOrders.length > 0 ? 'color:#FFA400;' : ''}>
+                {pendingOrders.length}
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Ingresos Mensuales</div>
+            </div>
+            <div style="position:relative; height:220px; padding: 0 1rem 1rem;">
+                <canvas id="chart-revenue"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Pedidos por Estado</div>
+            </div>
+            <div style="position:relative; height:220px; padding: 0 1rem 1rem;">
+                <canvas id="chart-status"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Top Productos</div>
+            </div>
+            <div style="position:relative; height:200px; padding: 0 1rem 1rem;">
+                <canvas id="chart-products"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Evolución 30 Días</div>
+            </div>
+            <div style="position:relative; height:200px; padding: 0 1rem 1rem;">
+                <canvas id="chart-daily"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">Últimos Pedidos</div>
+            <a href="/admin/orders" class="btn btn-secondary btn-sm">Ver todos</a>
+        </div>
+        {(!recentOrders || recentOrders.length === 0) ? (
+            <div class="empty-state">
+                <h3>Sin pedidos aún</h3>
+                <p>Los pedidos aparecerán aquí cuando se realicen.</p>
+            </div>
+        ) : (
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {recentOrders.map((order: any) => (
+                        <tr>
+                            <td data-label="ID" style="font-family: monospace; font-size: 0.7rem;">
+                                #{order.id?.slice(0, 8)}
+                            </td>
+                            <td data-label="Cliente">
+                                <div style="font-weight: 500;">{order.users?.name || '—'}</div>
+                                <div style="font-size: 0.65rem; color: rgba(255,255,255,0.3);">{order.users?.email || ''}</div>
+                            </td>
+                            <td data-label="Total" style="font-weight: 600;">{parseFloat(order.total).toFixed(2)}€</td>
+                            <td data-label="Estado">
+                                <span class={`badge ${statusBadgeClass(order.status)}`}>
+                                    {formatStatusLabel(order.status)}
+                                </span>
+                            </td>
+                            <td data-label="Fecha" style="font-size: 0.7rem; color: rgba(255,255,255,0.4);">
+                                {new Date(order.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        )}
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" is:inline></script>
+    <script is:inline define:vars={{ chartData }}>
+        document.addEventListener('DOMContentLoaded', function() {
+            var data = JSON.parse(chartData);
+
+            var chartColors = {
+                green: '#39FF14',
+                greenBg: 'rgba(57,255,20,0.15)',
+                greenBorder: 'rgba(57,255,20,0.6)',
+                blue: '#60a5fa',
+                orange: '#FFA400',
+                red: '#f87171',
+                purple: '#a78bfa',
+                gray: 'rgba(255,255,255,0.1)',
+                text: 'rgba(255,255,255,0.4)',
+                grid: 'rgba(255,255,255,0.04)',
+            };
+
+            var defaultOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                },
+                scales: {
+                    x: { grid: { color: chartColors.grid }, ticks: { color: chartColors.text, font: { size: 10 } } },
+                    y: { grid: { color: chartColors.grid }, ticks: { color: chartColors.text, font: { size: 10 } } },
+                },
+            };
+
+            // Monthly Revenue
+            var ctxRevenue = document.getElementById('chart-revenue');
+            if (ctxRevenue) {
+                new Chart(ctxRevenue, {
+                    type: 'bar',
+                    data: {
+                        labels: data.monthly.map(function(m) { return m.label; }),
+                        datasets: [{
+                            label: 'Ingresos (€)',
+                            data: data.monthly.map(function(m) { return m.revenue; }),
+                            backgroundColor: chartColors.greenBg,
+                            borderColor: chartColors.greenBorder,
+                            borderWidth: 1,
+                            borderRadius: 4,
+                        }],
+                    },
+                    options: defaultOptions,
+                });
+            }
+
+            // Status Doughnut
+            var ctxStatus = document.getElementById('chart-status');
+            if (ctxStatus) {
+                var statusLabels = Object.keys(data.statusCounts);
+                var statusMap = { pending: 'Pendiente', processing: 'Procesando', shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado', refunded: 'Reembolso' };
+                var statusColors = { pending: '#FFA400', processing: '#60a5fa', shipped: '#818cf8', delivered: '#39FF14', cancelled: '#f87171', refunded: '#a78bfa' };
+
+                new Chart(ctxStatus, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels.map(function(s) { return statusMap[s] || s; }),
+                        datasets: [{
+                            data: statusLabels.map(function(s) { return data.statusCounts[s]; }),
+                            backgroundColor: statusLabels.map(function(s) { return statusColors[s] || '#666'; }),
+                            borderWidth: 0,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: chartColors.text, font: { size: 10 }, padding: 12, usePointStyle: true },
+                            },
+                        },
+                    },
+                });
+            }
+
+            // Top Products
+            var ctxProducts = document.getElementById('chart-products');
+            if (ctxProducts) {
+                new Chart(ctxProducts, {
+                    type: 'bar',
+                    data: {
+                        labels: data.topProducts.map(function(p) { return p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name; }),
+                        datasets: [{
+                            label: 'Unidades vendidas',
+                            data: data.topProducts.map(function(p) { return p.qty; }),
+                            backgroundColor: [chartColors.green, chartColors.blue, chartColors.orange, chartColors.purple, chartColors.red],
+                            borderWidth: 0,
+                            borderRadius: 4,
+                        }],
+                    },
+                    options: Object.assign({}, defaultOptions, { indexAxis: 'y' }),
+                });
+            }
+
+            // Daily Revenue Line
+            var ctxDaily = document.getElementById('chart-daily');
+            if (ctxDaily) {
+                new Chart(ctxDaily, {
+                    type: 'line',
+                    data: {
+                        labels: data.dailyRevenue.map(function(d) { return d.day; }),
+                        datasets: [{
+                            label: 'Ingresos (€)',
+                            data: data.dailyRevenue.map(function(d) { return d.revenue; }),
+                            borderColor: chartColors.green,
+                            backgroundColor: chartColors.greenBg,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            borderWidth: 2,
+                        }],
+                    },
+                    options: Object.assign({}, defaultOptions, {
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: chartColors.text, font: { size: 9 }, maxRotation: 45 } },
+                            y: { grid: { color: chartColors.grid }, ticks: { color: chartColors.text, font: { size: 10 } } },
+                        },
+                    }),
+                });
+            }
+        });
+    </script>
+
+    <style>
+        /* ── Dashboard charts: 1 columna en móvil ── */
+        @media (max-width: 1024px) {
+            div[style*="grid-template-columns: 2fr 1fr"],
+            div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+            div[style*="height:220px"],
+            div[style*="height:200px"] {
+                height: 200px !important;
+            }
+        }
+        @media (max-width: 400px) {
+            div[style*="height:220px"],
+            div[style*="height:200px"] {
+                height: 170px !important;
+            }
+        }
+    </style>
+</AdminLayout>
