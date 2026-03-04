@@ -25,13 +25,15 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
         // Si falla la consulta, seguimos sin modo mantenimiento
     }
 
+    const pathname = url.pathname.replace(/\/+$/, '') || '/';
+
     if (
         isMaintenanceMode &&
-        url.pathname !== '/maintenance' &&
-        url.pathname !== '/admin/login' &&
-        !url.pathname.startsWith('/_astro') &&
-        !url.pathname.startsWith('/api') &&
-        !url.pathname.match(/\.(png|jpg|jpeg|svg|css|js|ico)$/)
+        pathname !== '/maintenance' &&
+        !pathname.startsWith('/admin') &&
+        !pathname.startsWith('/_astro') &&
+        !pathname.startsWith('/api') &&
+        !pathname.match(/\.(png|jpg|jpeg|svg|css|js|ico)$/)
     ) {
         return redirect('/maintenance', 302);
     }

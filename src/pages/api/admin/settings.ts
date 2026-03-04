@@ -41,11 +41,15 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             .select()
             .single();
 
-        if (error) return jsonResponse({ error: 'Error al guardar ajuste' }, 500);
+        if (error) {
+            console.error('[settings] Upsert error:', error);
+            return jsonResponse({ error: 'Error al guardar ajuste' }, 500);
+        }
 
-        await logAdminAction(admin.id, 'update_setting', 'site_setting', key, { value }, request.headers.get('x-forwarded-for'));
+        await logAdminAction(admin.id, 'update_setting', 'site_setting', undefined, { key, value }, request.headers.get('x-forwarded-for') || undefined);
         return jsonResponse({ setting: data, message: 'Ajuste guardado' });
     } catch (err) {
+        console.error('[settings] Catch error:', err);
         return jsonResponse({ error: 'Error interno' }, 500);
     }
 };
