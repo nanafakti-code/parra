@@ -73,7 +73,8 @@ export function jsonResponse(data: Record<string, unknown>, status = 200): Respo
 
 /** Validate admin API request – returns admin user or error Response */
 export async function validateAdminAPI(request: Request, cookies: any): Promise<{ admin: any } | Response> {
-    const accessToken = cookies.get('sb-access-token')?.value || cookies.get('auth_token')?.value;
+    let accessToken = cookies.get('sb-access-token')?.value || cookies.get('auth_token')?.value;
+    const refreshToken = cookies.get('sb-refresh-token')?.value;
 
     if (!accessToken) {
         return jsonResponse({ error: 'No autorizado' }, 401);
@@ -84,7 +85,36 @@ export async function validateAdminAPI(request: Request, cookies: any): Promise<
     const supabaseKey = import.meta.env.SUPABASE_ANON_KEY || '';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+    let { data: { user }, error } = await supabase.auth.getUser(accessToken);
+
+    // Si el token expiró, intentar refresh
+    if ((!user || error) && refreshToken) {
+        try {
+            const { data: refreshData, error: refreshError } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+            });
+
+            if (refreshData?.session && !refreshError) {
+                // Actualizar cookies con los nuevos tokens
+                const cookieOptions = {
+                    path: '/',
+                    httpOnly: true,
+                    secure: import.meta.env.PROD,
+                    sameSite: 'lax' as const,
+                    maxAge: 60 * 60 * 24 * 7,
+                };
+                cookies.set('sb-access-token', refreshData.session.access_token, cookieOptions);
+                cookies.set('sb-refresh-token', refreshData.session.refresh_token, cookieOptions);
+
+                accessToken = refreshData.session.access_token;
+                user = refreshData.session.user;
+                error = null;
+            }
+        } catch (e) {
+            // Si falla el refresh, continuamos con el error original
+        }
+    }
 
     if (!user || error) {
         return jsonResponse({ error: 'Token inválido' }, 401);

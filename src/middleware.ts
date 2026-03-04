@@ -11,17 +11,24 @@ import { supabase, supabaseAdmin } from "./lib/supabase";
  * 4. Busca el rol del usuario en la tabla 'users' y lo adjunta a locals.role.
  */
 export const onRequest = defineMiddleware(async ({ cookies, locals, request, redirect }, next) => {
-    // 1. Comprobar modo mantenimiento (soporte para Vercel process.env y mayúsculas/minúsculas)
-    const rawMaintenanceMode = import.meta.env.MAINTENANCE_MODE || (typeof process !== 'undefined' ? process.env.MAINTENANCE_MODE : false);
-    const isMaintenanceMode = String(rawMaintenanceMode).trim().toLowerCase() === 'true';
+    // 1. Comprobar modo mantenimiento desde site_settings en Supabase
     const url = new URL(request.url);
-
-    const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    let isMaintenanceMode = false;
+    try {
+        const { data } = await supabaseAdmin
+            .from('site_settings')
+            .select('value')
+            .eq('key', 'maintenance_mode')
+            .maybeSingle();
+        isMaintenanceMode = data?.value === true;
+    } catch (e) {
+        // Si falla la consulta, seguimos sin modo mantenimiento
+    }
 
     if (
         isMaintenanceMode &&
-        !isLocalhost &&
         url.pathname !== '/maintenance' &&
+        url.pathname !== '/admin/login' &&
         !url.pathname.startsWith('/_astro') &&
         !url.pathname.startsWith('/api') &&
         !url.pathname.match(/\.(png|jpg|jpeg|svg|css|js|ico)$/)
@@ -31,14 +38,42 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
 
     // 2. Obtener access_token desde cookies
     // Usamos 'sb-access-token' como nombre predeterminado de Supabase
-    const accessToken = cookies.get("sb-access-token")?.value || cookies.get("auth_token")?.value;
+    let accessToken = cookies.get("sb-access-token")?.value || cookies.get("auth_token")?.value;
+    const refreshToken = cookies.get("sb-refresh-token")?.value;
 
     locals.user = null;
     locals.role = null;
 
     if (accessToken) {
         // 3. Validar usuario con Supabase Auth (sin usar admin para este paso)
-        const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+        let { data: { user }, error } = await supabase.auth.getUser(accessToken);
+
+        // Si el token expiró, intentar refresh
+        if ((!user || error) && refreshToken) {
+            try {
+                const { data: refreshData, error: refreshError } = await supabase.auth.setSession({
+                    access_token: accessToken,
+                    refresh_token: refreshToken,
+                });
+
+                if (refreshData?.session && !refreshError) {
+                    const cookieOptions = {
+                        path: '/',
+                        httpOnly: true,
+                        secure: import.meta.env.PROD,
+                        sameSite: 'lax' as const,
+                        maxAge: 60 * 60 * 24 * 7,
+                    };
+                    cookies.set('sb-access-token', refreshData.session.access_token, cookieOptions);
+                    cookies.set('sb-refresh-token', refreshData.session.refresh_token, cookieOptions);
+
+                    user = refreshData.session.user;
+                    error = null;
+                }
+            } catch (e) {
+                // Si falla el refresh, continuamos sin usuario
+            }
+        }
 
         if (user && !error) {
             locals.user = user;

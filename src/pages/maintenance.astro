@@ -115,6 +115,35 @@
                             EMAIL
                         </a>
                     </div>
+
+                    <!-- Admin Access -->
+                    <div class="admin-access fade-in-up delay-5">
+                        <a
+                            href="/admin/login"
+                            class="btn-admin"
+                            aria-label="Acceso administración"
+                        >
+                            <svg
+                                viewBox="0 0 24 24"
+                                width="18"
+                                height="18"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                fill="none"
+                                stroke-linecap="square"
+                                stroke-linejoin="miter"
+                                ><rect
+                                    x="3"
+                                    y="11"
+                                    width="18"
+                                    height="11"
+                                    rx="2"
+                                    ry="2"></rect><path
+                                    d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg
+                            >
+                            ACCESO ADMIN
+                        </a>
+                    </div>
                 </main>
             </div>
         </div>
@@ -145,11 +174,11 @@
 
     body {
         margin: 0;
-        height: 100vh;
+        min-height: 100vh;
         background-color: var(--color-black);
         font-family: var(--font-body);
         color: var(--color-text-main);
-        overflow: hidden; /* No scroll vertically */
+        overflow-x: hidden;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -470,6 +499,40 @@
             inset 0 0 15px rgba(57, 255, 20, 0.15),
             0 0 15px rgba(57, 255, 20, 0.2);
         transform: translateY(-2px);
+    }
+
+    /* Admin Access Button */
+    .admin-access {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin-top: 2rem;
+    }
+
+    .btn-admin {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.7rem 1.5rem;
+        font-family: var(--font-body);
+        font-size: 0.7rem;
+        font-weight: 500;
+        letter-spacing: 0.15em;
+        text-decoration: none;
+        text-transform: uppercase;
+        cursor: pointer;
+        background-color: transparent;
+        color: rgba(255, 255, 255, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 0;
+        transition: all 300ms var(--transition-base);
+    }
+
+    .btn-admin:hover {
+        color: rgba(255, 255, 255, 0.6);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
     }
 
     /* Elegant Fade In Up Animations */
