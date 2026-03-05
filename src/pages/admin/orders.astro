@@ -1,7 +1,7 @@
 ---
-import AdminLayout from '../../layouts/AdminLayout.astro';
-import { requireAdmin } from '../../lib/admin';
-import { supabaseAdmin } from '../../lib/supabase';
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../lib/admin";
+import { supabaseAdmin } from "../../lib/supabase";
 
 const adminResult = await requireAdmin(Astro);
 if (adminResult instanceof Response) return adminResult;
@@ -9,182 +9,299 @@ const admin = adminResult;
 
 // Get query params
 const url = new URL(Astro.request.url);
-const statusFilter = url.searchParams.get('status') || 'all';
-const page = parseInt(url.searchParams.get('page') || '1');
+const statusFilter = url.searchParams.get("status") || "all";
+const page = parseInt(url.searchParams.get("page") || "1");
 const limit = 20;
 const offset = (page - 1) * limit;
 
 let query = supabaseAdmin
-    .from('orders')
-    .select('*, order_items(id, quantity, unit_price, size, products(name)), users(name, email)', { count: 'exact' })
-    .order('created_at', { ascending: false })
+    .from("orders")
+    .select(
+        "*, order_items(id, quantity, unit_price, size, products(name)), users(name, email)",
+        { count: "exact" },
+    )
+    .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-if (statusFilter !== 'all') {
-    query = query.eq('status', statusFilter);
+if (statusFilter !== "all") {
+    query = query.eq("status", statusFilter);
 }
 
 const { data: orders, count } = await query;
 const totalPages = Math.ceil((count || 0) / limit);
 
 // Status counts for filter chips
-const { data: allStatusOrders } = await supabaseAdmin.from('orders').select('status');
-const statusCounts: Record<string, number> = { all: allStatusOrders?.length || 0 };
+const { data: allStatusOrders } = await supabaseAdmin
+    .from("orders")
+    .select("status");
+const statusCounts: Record<string, number> = {
+    all: allStatusOrders?.length || 0,
+};
 (allStatusOrders || []).forEach((o: any) => {
     statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
 });
 
 const statuses = [
-    { key: 'all', label: 'Todos' },
-    { key: 'pending', label: 'Pendientes' },
-    { key: 'processing', label: 'Procesando' },
-    { key: 'shipped', label: 'Enviados' },
-    { key: 'delivered', label: 'Entregados' },
-    { key: 'cancelled', label: 'Cancelados' },
+    { key: "all", label: "Todos" },
+    { key: "pending", label: "Pendientes" },
+    { key: "processing", label: "Procesando" },
+    { key: "shipped", label: "Enviados" },
+    { key: "delivered", label: "Entregados" },
+    { key: "cancelled", label: "Cancelados" },
 ];
 
 function formatStatus(s: string) {
-    const map: Record<string, string> = { pending: 'Pendiente', processing: 'Procesando', shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado', refunded: 'Reembolsado' };
+    const map: Record<string, string> = {
+        pending: "Pendiente",
+        processing: "Procesando",
+        shipped: "Enviado",
+        delivered: "Entregado",
+        cancelled: "Cancelado",
+        refunded: "Reembolsado",
+    };
     return map[s] || s;
 }
 function statusBadge(s: string) {
-    const map: Record<string, string> = { pending: 'badge-warning', processing: 'badge-info', shipped: 'badge-info', delivered: 'badge-success', cancelled: 'badge-danger', refunded: 'badge-danger' };
-    return map[s] || 'badge-neutral';
+    const map: Record<string, string> = {
+        pending: "badge-warning",
+        processing: "badge-info",
+        shipped: "badge-info",
+        delivered: "badge-success",
+        cancelled: "badge-danger",
+        refunded: "badge-danger",
+    };
+    return map[s] || "badge-neutral";
 }
 ---
 
 <AdminLayout title="Pedidos" activeSection="orders" admin={admin}>
     <!-- Filters -->
     <div class="filter-bar">
-        {statuses.map(s => (
-            <a
-                href={`/admin/orders${s.key !== 'all' ? `?status=${s.key}` : ''}`}
-                class={`filter-chip ${statusFilter === s.key ? 'active' : ''}`}
-            >
-                {s.label} ({statusCounts[s.key] || 0})
-            </a>
-        ))}
+        {
+            statuses.map((s) => (
+                <a
+                    href={`/admin/orders${s.key !== "all" ? `?status=${s.key}` : ""}`}
+                    class={`filter-chip ${statusFilter === s.key ? "active" : ""}`}
+                >
+                    {s.label} ({statusCounts[s.key] || 0})
+                </a>
+            ))
+        }
+    </div>
+
+    <!-- Search Bar -->
+    <div style="margin-bottom: 1rem; max-width: 400px; position: relative;">
+        <svg
+            style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4);"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        >
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+            type="text"
+            id="page-search"
+            class="form-input"
+            placeholder="Buscar por ID, nombre o email..."
+            style="padding-left: 2.5rem;"
+        />
     </div>
 
     <!-- Orders Table -->
     <div class="card">
-        {(!orders || orders.length === 0) ? (
-            <div class="empty-state">
-                <h3>No hay pedidos</h3>
-                <p>No se encontraron pedidos con este filtro.</p>
-            </div>
-        ) : (
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID Pedido</th>
-                        <th>Cliente</th>
-                        <th>Productos</th>
-                        <th>Total</th>
-                        <th>Estado</th>
-                        <th>Fecha</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {orders.map((order: any) => (
-                        <tr data-order-id={order.id}>
-                            <td data-label="ID" style="font-family: monospace; font-size: 0.7rem;">
-                                #{order.id?.slice(0, 8)}
-                            </td>
-                            <td data-label="Cliente">
-                                <div style="font-weight: 500; font-size: 0.8rem;">
-                                    {order.users?.name || '—'}
-                                </div>
-                                <div style="font-size: 0.65rem; color: rgba(255,255,255,0.3);">
-                                    {order.users?.email || ''}
-                                </div>
-                            </td>
-                            <td data-label="Productos">
-                                <div style="font-size: 0.7rem; max-width: 200px;">
-                                    {(order.order_items || []).slice(0, 2).map((item: any) => (
-                                        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                            {item.products?.name || 'Producto'} x{item.quantity}
-                                            {item.size ? ` (${item.size})` : ''}
-                                        </div>
-                                    ))}
-                                    {order.order_items?.length > 2 && (
-                                        <div style="color:rgba(255,255,255,0.3);">+{order.order_items.length - 2} más</div>
-                                    )}
-                                </div>
-                            </td>
-                            <td data-label="Total" style="font-weight: 600;">€{parseFloat(order.total).toFixed(2)}</td>
-                            <td data-label="Estado">
-                                <span class={`badge ${statusBadge(order.status)}`}>
-                                    {formatStatus(order.status)}
-                                </span>
-                            </td>
-                            <td data-label="Fecha" style="font-size: 0.7rem; color: rgba(255,255,255,0.4);">
-                                {new Date(order.created_at).toLocaleDateString('es-ES', {
-                                    day: '2-digit', month: 'short', year: '2-digit'
-                                })}
-                            </td>
-                            <td>
-                                <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
-                                    <button
-                                        class="btn btn-secondary btn-sm btn-order-detail"
-                                        data-order={JSON.stringify({
-                                            id: order.id,
-                                            status: order.status,
-                                            total: order.total,
-                                            customer: order.users?.name || '—',
-                                            email: order.users?.email || '',
-                                            items: order.order_items || [],
-                                            tracking: order.tracking_number || '',
-                                            notes: order.admin_notes || '',
-                                            address: order.shipping_address || '',
-                                            created: order.created_at,
-                                        })}
-                                    >
-                                        Ver
-                                    </button>
-                                    <button
-                                        class="btn btn-primary btn-sm btn-order-status"
-                                        data-id={order.id}
-                                        data-status={order.status}
-                                    >
-                                        Estado
-                                    </button>
-                                </div>
-                            </td>
+        {
+            !orders || orders.length === 0 ? (
+                <div class="empty-state">
+                    <h3>No hay pedidos</h3>
+                    <p>No se encontraron pedidos con este filtro.</p>
+                </div>
+            ) : (
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID Pedido</th>
+                            <th>Cliente</th>
+                            <th>Productos</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-        )}
+                    </thead>
+                    <tbody>
+                        {orders.map((order: any) => (
+                            <tr
+                                data-order-id={order.id}
+                                data-search={`${order.id} ${order.users?.name || ""} ${order.users?.email || ""}`}
+                            >
+                                <td
+                                    data-label="ID"
+                                    style="font-family: monospace; font-size: 0.7rem;"
+                                >
+                                    #{order.id?.slice(0, 8)}
+                                </td>
+                                <td data-label="Cliente">
+                                    <div style="font-weight: 500; font-size: 0.8rem;">
+                                        {order.users?.name || "—"}
+                                    </div>
+                                    <div style="font-size: 0.65rem; color: rgba(255,255,255,0.3);">
+                                        {order.users?.email || ""}
+                                    </div>
+                                </td>
+                                <td data-label="Productos">
+                                    <div style="font-size: 0.7rem; max-width: 200px;">
+                                        {(order.order_items || [])
+                                            .slice(0, 2)
+                                            .map((item: any) => (
+                                                <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                    {item.products?.name ||
+                                                        "Producto"}{" "}
+                                                    x{item.quantity}
+                                                    {item.size
+                                                        ? ` (${item.size})`
+                                                        : ""}
+                                                </div>
+                                            ))}
+                                        {order.order_items?.length > 2 && (
+                                            <div style="color:rgba(255,255,255,0.3);">
+                                                +{order.order_items.length - 2}{" "}
+                                                más
+                                            </div>
+                                        )}
+                                    </div>
+                                </td>
+                                <td
+                                    data-label="Total"
+                                    style="font-weight: 600;"
+                                >
+                                    €{parseFloat(order.total).toFixed(2)}
+                                </td>
+                                <td data-label="Estado">
+                                    <span
+                                        class={`badge ${statusBadge(order.status)}`}
+                                    >
+                                        {formatStatus(order.status)}
+                                    </span>
+                                </td>
+                                <td
+                                    data-label="Fecha"
+                                    style="font-size: 0.7rem; color: rgba(255,255,255,0.4);"
+                                >
+                                    {new Date(
+                                        order.created_at,
+                                    ).toLocaleDateString("es-ES", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "2-digit",
+                                    })}
+                                </td>
+                                <td>
+                                    <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
+                                        <button
+                                            class="btn btn-secondary btn-sm btn-order-detail"
+                                            data-order={JSON.stringify({
+                                                id: order.id,
+                                                status: order.status,
+                                                total: order.total,
+                                                customer:
+                                                    order.users?.name || "—",
+                                                email: order.users?.email || "",
+                                                items: order.order_items || [],
+                                                tracking:
+                                                    order.tracking_number || "",
+                                                notes: order.admin_notes || "",
+                                                address:
+                                                    order.shipping_address ||
+                                                    "",
+                                                created: order.created_at,
+                                            })}
+                                        >
+                                            Ver
+                                        </button>
+                                        <button
+                                            class="btn btn-primary btn-sm btn-order-status"
+                                            data-id={order.id}
+                                            data-status={order.status}
+                                        >
+                                            Estado
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )
+        }
     </div>
 
     <!-- Pagination -->
-    {totalPages > 1 && (
-        <div class="pagination">
-            {page > 1 && (
-                <a href={`/admin/orders?status=${statusFilter}&page=${page - 1}`} class="page-btn">Anterior</a>
-            )}
-            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                const p = i + 1;
-                return (
-                    <a href={`/admin/orders?status=${statusFilter}&page=${p}`} class={`page-btn ${p === page ? 'active' : ''}`}>
-                        {p}
+    {
+        totalPages > 1 && (
+            <div class="pagination">
+                {page > 1 && (
+                    <a
+                        href={`/admin/orders?status=${statusFilter}&page=${page - 1}`}
+                        class="page-btn"
+                    >
+                        Anterior
                     </a>
-                );
-            })}
-            {page < totalPages && (
-                <a href={`/admin/orders?status=${statusFilter}&page=${page + 1}`} class="page-btn">Siguiente</a>
-            )}
-        </div>
-    )}
+                )}
+                {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    const p = i + 1;
+                    return (
+                        <a
+                            href={`/admin/orders?status=${statusFilter}&page=${p}`}
+                            class={`page-btn ${p === page ? "active" : ""}`}
+                        >
+                            {p}
+                        </a>
+                    );
+                })}
+                {page < totalPages && (
+                    <a
+                        href={`/admin/orders?status=${statusFilter}&page=${page + 1}`}
+                        class="page-btn"
+                    >
+                        Siguiente
+                    </a>
+                )}
+            </div>
+        )
+    }
 
     <!-- Order Detail Modal -->
     <div id="order-detail-modal" class="modal-overlay" style="display:none;">
         <div class="modal" style="max-width:560px;">
             <div class="modal-header">
                 <div class="modal-title">Detalle del Pedido</div>
-                <button class="modal-close" onclick="document.getElementById('order-detail-modal').style.display='none'">Cerrar</button>
+                <button
+                    class="modal-close"
+                    onclick="document.getElementById('order-detail-modal').style.display='none'"
+                >
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><line x1="18" y1="6" x2="6" y2="18"></line><line
+                            x1="6"
+                            y1="6"
+                            x2="18"
+                            y2="18"></line></svg
+                    >
+                </button>
             </div>
             <div id="order-detail-content"></div>
         </div>
@@ -195,7 +312,26 @@ function statusBadge(s: string) {
         <div class="modal" style="max-width:420px;">
             <div class="modal-header">
                 <div class="modal-title">Actualizar Estado</div>
-                <button class="modal-close" onclick="document.getElementById('status-modal').style.display='none'">Cerrar</button>
+                <button
+                    class="modal-close"
+                    onclick="document.getElementById('status-modal').style.display='none'"
+                >
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><line x1="18" y1="6" x2="6" y2="18"></line><line
+                            x1="6"
+                            y1="6"
+                            x2="18"
+                            y2="18"></line></svg
+                    >
+                </button>
             </div>
             <form id="status-form">
                 <input type="hidden" id="status-order-id" />
@@ -211,98 +347,180 @@ function statusBadge(s: string) {
                 </div>
                 <div class="form-group">
                     <label class="form-label">Nº Seguimiento (opcional)</label>
-                    <input type="text" class="form-input" id="status-tracking" placeholder="Ej: ES123456789" />
+                    <input
+                        type="text"
+                        class="form-input"
+                        id="status-tracking"
+                        placeholder="Ej: ES123456789"
+                    />
                 </div>
                 <div class="form-group">
                     <label class="form-label">Notas internas (opcional)</label>
-                    <textarea class="form-textarea" id="status-notes" placeholder="Notas visibles solo para admin..."></textarea>
+                    <textarea
+                        class="form-textarea"
+                        id="status-notes"
+                        placeholder="Notas visibles solo para admin..."
+                    ></textarea>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('status-modal').style.display='none'">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        onclick="document.getElementById('status-modal').style.display='none'"
+                        >Cancelar</button
+                    >
+                    <button type="submit" class="btn btn-primary"
+                        >Guardar</button
+                    >
                 </div>
             </form>
         </div>
     </div>
 
     <script is:inline>
-    (function() {
-        // Detail modal
-        document.querySelectorAll('.btn-order-detail').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                var order = JSON.parse(this.getAttribute('data-order'));
-                var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">';
-                html += '<div><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;">ID</div><div style="font-family:monospace;font-size:0.75rem;">' + order.id + '</div></div>';
-                html += '<div><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;">Fecha</div><div style="font-size:0.8rem;">' + new Date(order.created).toLocaleDateString('es-ES') + '</div></div>';
-                html += '<div><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;">Cliente</div><div style="font-size:0.8rem;">' + order.customer + '</div><div style="font-size:0.65rem;color:rgba(255,255,255,0.3);">' + order.email + '</div></div>';
-                html += '<div><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;">Total</div><div style="font-size:1.1rem;font-weight:700;font-family:Oswald,sans-serif;">€' + parseFloat(order.total).toFixed(2) + '</div></div>';
-                html += '</div>';
+        (function () {
+            // Detail modal
+            document
+                .querySelectorAll(".btn-order-detail")
+                .forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        var order = JSON.parse(this.getAttribute("data-order"));
+                        var html =
+                            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">';
+                        html +=
+                            '<div><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;">ID</div><div style="font-family:monospace;font-size:0.75rem;">' +
+                            order.id +
+                            "</div></div>";
+                        html +=
+                            '<div><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;">Fecha</div><div style="font-size:0.8rem;">' +
+                            new Date(order.created).toLocaleDateString(
+                                "es-ES",
+                            ) +
+                            "</div></div>";
+                        html +=
+                            '<div><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;">Cliente</div><div style="font-size:0.8rem;">' +
+                            order.customer +
+                            '</div><div style="font-size:0.65rem;color:rgba(255,255,255,0.3);">' +
+                            order.email +
+                            "</div></div>";
+                        html +=
+                            '<div><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;">Total</div><div style="font-size:1.1rem;font-weight:700;font-family:Oswald,sans-serif;">€' +
+                            parseFloat(order.total).toFixed(2) +
+                            "</div></div>";
+                        html += "</div>";
 
-                if (order.tracking) {
-                    html += '<div style="margin-bottom:0.75rem;"><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.25rem;">Nº Seguimiento</div><div style="font-size:0.8rem;font-family:monospace;">' + order.tracking + '</div></div>';
-                }
+                        if (order.tracking) {
+                            html +=
+                                '<div style="margin-bottom:0.75rem;"><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.25rem;">Nº Seguimiento</div><div style="font-size:0.8rem;font-family:monospace;">' +
+                                order.tracking +
+                                "</div></div>";
+                        }
 
-                if (order.items && order.items.length > 0) {
-                    html += '<div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">Productos</div>';
-                    html += '<div style="border:1px solid rgba(255,255,255,0.06);border-radius:6px;overflow:hidden;margin-bottom:0.75rem;">';
-                    order.items.forEach(function(item) {
-                        html += '<div style="display:flex;justify-content:space-between;padding:0.5rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.75rem;">';
-                        html += '<span>' + (item.products?.name || 'Producto') + (item.size ? ' (' + item.size + ')' : '') + ' x' + item.quantity + '</span>';
-                        html += '<span style="font-weight:600;">€' + (parseFloat(item.unit_price) * item.quantity).toFixed(2) + '</span>';
-                        html += '</div>';
+                        if (order.items && order.items.length > 0) {
+                            html +=
+                                '<div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">Productos</div>';
+                            html +=
+                                '<div style="border:1px solid rgba(255,255,255,0.06);border-radius:6px;overflow:hidden;margin-bottom:0.75rem;">';
+                            order.items.forEach(function (item) {
+                                html +=
+                                    '<div style="display:flex;justify-content:space-between;padding:0.5rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.75rem;">';
+                                html +=
+                                    "<span>" +
+                                    (item.products?.name || "Producto") +
+                                    (item.size ? " (" + item.size + ")" : "") +
+                                    " x" +
+                                    item.quantity +
+                                    "</span>";
+                                html +=
+                                    '<span style="font-weight:600;">€' +
+                                    (
+                                        parseFloat(item.unit_price) *
+                                        item.quantity
+                                    ).toFixed(2) +
+                                    "</span>";
+                                html += "</div>";
+                            });
+                            html += "</div>";
+                        }
+
+                        if (order.notes) {
+                            html +=
+                                '<div style="margin-bottom:0.5rem;"><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.25rem;">Notas Admin</div><div style="font-size:0.75rem;color:rgba(255,255,255,0.5);padding:0.5rem;background:rgba(255,255,255,0.02);border-radius:4px;">' +
+                                order.notes +
+                                "</div></div>";
+                        }
+
+                        document.getElementById(
+                            "order-detail-content",
+                        ).innerHTML = html;
+                        document.getElementById(
+                            "order-detail-modal",
+                        ).style.display = "flex";
                     });
-                    html += '</div>';
-                }
-
-                if (order.notes) {
-                    html += '<div style="margin-bottom:0.5rem;"><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.25rem;">Notas Admin</div><div style="font-size:0.75rem;color:rgba(255,255,255,0.5);padding:0.5rem;background:rgba(255,255,255,0.02);border-radius:4px;">' + order.notes + '</div></div>';
-                }
-
-                document.getElementById('order-detail-content').innerHTML = html;
-                document.getElementById('order-detail-modal').style.display = 'flex';
-            });
-        });
-
-        // Status modal
-        document.querySelectorAll('.btn-order-status').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                var id = this.getAttribute('data-id');
-                var status = this.getAttribute('data-status');
-                document.getElementById('status-order-id').value = id;
-                document.getElementById('status-select').value = status;
-                document.getElementById('status-tracking').value = '';
-                document.getElementById('status-notes').value = '';
-                document.getElementById('status-modal').style.display = 'flex';
-            });
-        });
-
-        // Submit status form
-        document.getElementById('status-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            var orderId = document.getElementById('status-order-id').value;
-            var status = document.getElementById('status-select').value;
-            var tracking = document.getElementById('status-tracking').value;
-            var notes = document.getElementById('status-notes').value;
-
-            try {
-                var res = await fetch('/api/admin/orders', {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ orderId: orderId, status: status, trackingNumber: tracking || undefined, notes: notes || undefined }),
                 });
 
-                if (res.ok) {
-                    window.adminToast('Estado actualizado correctamente', 'success');
-                    document.getElementById('status-modal').style.display = 'none';
-                    setTimeout(function() { window.location.reload(); }, 800);
-                } else {
-                    var data = await res.json();
-                    window.adminToast(data.error || 'Error al actualizar', 'error');
-                }
-            } catch (err) {
-                window.adminToast('Error de conexión', 'error');
-            }
-        });
-    })();
+            // Status modal
+            document
+                .querySelectorAll(".btn-order-status")
+                .forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        var id = this.getAttribute("data-id");
+                        var status = this.getAttribute("data-status");
+                        document.getElementById("status-order-id").value = id;
+                        document.getElementById("status-select").value = status;
+                        document.getElementById("status-tracking").value = "";
+                        document.getElementById("status-notes").value = "";
+                        document.getElementById("status-modal").style.display =
+                            "flex";
+                    });
+                });
+
+            // Submit status form
+            document
+                .getElementById("status-form")
+                .addEventListener("submit", async function (e) {
+                    e.preventDefault();
+                    var orderId =
+                        document.getElementById("status-order-id").value;
+                    var status = document.getElementById("status-select").value;
+                    var tracking =
+                        document.getElementById("status-tracking").value;
+                    var notes = document.getElementById("status-notes").value;
+
+                    try {
+                        var res = await fetch("/api/admin/orders", {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                orderId: orderId,
+                                status: status,
+                                trackingNumber: tracking || undefined,
+                                notes: notes || undefined,
+                            }),
+                        });
+
+                        if (res.ok) {
+                            window.adminToast(
+                                "Estado actualizado correctamente",
+                                "success",
+                            );
+                            document.getElementById(
+                                "status-modal",
+                            ).style.display = "none";
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 800);
+                        } else {
+                            var data = await res.json();
+                            window.adminToast(
+                                data.error || "Error al actualizar",
+                                "error",
+                            );
+                        }
+                    } catch (err) {
+                        window.adminToast("Error de conexión", "error");
+                    }
+                });
+        })();
     </script>
 </AdminLayout>

@@ -51,10 +51,10 @@ export const POST: APIRoute = async ({ cookies, request, redirect }) => {
         cookies.delete('sb-refresh-token', cookieOptions);
         cookies.delete('auth_token', cookieOptions);
 
-        // Si la petición proviene de un navegador (Accept incluye text/html), redirigimos al login
+        // Si la petición proviene de un navegador (Accept incluye text/html), redirigimos al inicio
         const accept = request.headers.get('accept') || '';
         if (accept.includes('text/html')) {
-            return redirect('http://localhost:4322/admin/login', 303);
+            return redirect('/', 303);
         }
 
         return jsonResponse({ message: 'Sesión cerrada.' }, 200);
@@ -63,7 +63,10 @@ export const POST: APIRoute = async ({ cookies, request, redirect }) => {
     }
 };
 
-// Mantener compatibilidad con peticiones GET (enlaces): redirigir al sitio
-export const ALL: APIRoute = async ({ redirect }) => {
-    return redirect('/', 302);
+// Mantener compatibilidad con peticiones GET (enlaces directos)
+export const GET: APIRoute = async ({ cookies, redirect }) => {
+    cookies.delete('sb-access-token', cookieOptions);
+    cookies.delete('sb-refresh-token', cookieOptions);
+    cookies.delete('auth_token', cookieOptions);
+    return redirect('/', 303);
 };

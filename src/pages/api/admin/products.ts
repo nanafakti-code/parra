@@ -17,7 +17,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
 
     let query = supabaseAdmin
         .from('products')
-        .select('*, categories(name), product_variants(id, size, stock, is_active)', { count: 'exact' })
+        .select('*, categories(name), product_variants(id, size, stock, is_active), product_images(id, url, alt_text, display_order)', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
@@ -40,10 +40,17 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     try {
         const body = await request.json();
-        const { name, slug, description, shortDescription, price, comparePrice, cost, categoryId, image, stock, sku, brand, isFeatured, isActive, metaTitle, metaDescription, variants } = body;
+        const { name, slug, description, shortDescription, price, comparePrice, categoryId, image, stock, sku, brand, isFeatured, isActive, metaTitle, metaDescription, variants, gallery } = body;
 
-        if (!name?.trim() || !slug?.trim() || !description?.trim() || !price || !image?.trim()) {
-            return jsonResponse({ error: 'name, slug, description, price e image son obligatorios' }, 400);
+        if (!name?.trim() || !slug?.trim() || !description?.trim() || !price || !image?.trim() || !sku?.trim()) {
+            return jsonResponse({ error: 'name, slug, description, price, image, y sku son obligatorios' }, 400);
+        }
+
+        if (isFeatured) {
+            const { count } = await supabaseAdmin.from('products').select('*', { count: 'exact', head: true }).eq('is_featured', true);
+            if ((count || 0) >= 4) {
+                return jsonResponse({ error: 'Ya hay 4 productos destacados máximo.' }, 400);
+            }
         }
 
         const productData: Record<string, any> = {
@@ -53,11 +60,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             short_description: shortDescription || null,
             price: parseFloat(price),
             compare_price: comparePrice ? parseFloat(comparePrice) : null,
-            cost: cost ? parseFloat(cost) : null,
             category_id: categoryId || null,
             image: image.trim(),
             stock: parseInt(stock || '0'),
-            sku: sku?.trim() || null,
+            sku: sku.trim(),
             brand: brand?.trim() || 'PARRA',
             is_featured: isFeatured || false,
             is_active: isActive !== false,
@@ -90,7 +96,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             await supabaseAdmin.from('product_variants').insert(variantRows);
         }
 
-        await logAdminAction(admin.id, 'create_product', 'product', product.id, { name: product.name }, request.headers.get('x-forwarded-for'));
+        // Create gallery if provided
+        if (gallery && Array.isArray(gallery) && gallery.length > 0) {
+            const galleryRows = gallery.map((g: any, index: number) => ({
+                product_id: product.id,
+                url: g.url,
+                alt_text: g.altText || null,
+                display_order: index
+            }));
+            await supabaseAdmin.from('product_images').insert(galleryRows);
+        }
+
+        await logAdminAction(admin.id, 'create_product', 'product', product.id, { name: product.name }, request.headers.get('x-forwarded-for') || undefined);
         return jsonResponse({ product, message: 'Producto creado' }, 201);
     } catch (err) {
         console.error('[admin-products] Error:', err);
@@ -106,7 +123,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
     try {
         const body = await request.json();
-        const { productId, variants, ...updates } = body;
+        const { productId, variants, gallery, ...updates } = body;
         if (!productId) return jsonResponse({ error: 'productId obligatorio' }, 400);
 
         const updateData: Record<string, any> = { updated_at: new Date().toISOString() };
@@ -116,13 +133,25 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         if (updates.shortDescription !== undefined) updateData.short_description = updates.shortDescription;
         if (updates.price !== undefined) updateData.price = parseFloat(updates.price);
         if (updates.comparePrice !== undefined) updateData.compare_price = updates.comparePrice ? parseFloat(updates.comparePrice) : null;
-        if (updates.cost !== undefined) updateData.cost = updates.cost ? parseFloat(updates.cost) : null;
         if (updates.categoryId !== undefined) updateData.category_id = updates.categoryId || null;
         if (updates.image !== undefined) updateData.image = updates.image;
         if (updates.stock !== undefined) updateData.stock = parseInt(updates.stock);
-        if (updates.sku !== undefined) updateData.sku = updates.sku || null;
+        if (updates.sku !== undefined) updateData.sku = updates.sku.trim();
         if (updates.brand !== undefined) updateData.brand = updates.brand;
-        if (updates.isFeatured !== undefined) updateData.is_featured = updates.isFeatured;
+        if (updates.isFeatured !== undefined) {
+            if (updates.isFeatured) {
+                const { data: existing } = await supabaseAdmin.from('products').select('is_featured').eq('id', productId).single();
+                if (!existing?.is_featured) {
+                    const { count } = await supabaseAdmin.from('products').select('*', { count: 'exact', head: true }).eq('is_featured', true);
+                    if ((count || 0) >= 4) {
+                        return jsonResponse({ error: 'Ya hay 4 productos destacados máximo.' }, 400);
+                    }
+                }
+                updateData.is_featured = true;
+            } else {
+                updateData.is_featured = false;
+            }
+        }
         if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
         if (updates.metaTitle !== undefined) updateData.meta_title = updates.metaTitle;
         if (updates.metaDescription !== undefined) updateData.meta_description = updates.metaDescription;
@@ -148,7 +177,21 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             }
         }
 
-        await logAdminAction(admin.id, 'update_product', 'product', productId, updateData, request.headers.get('x-forwarded-for'));
+        // Update gallery if provided
+        if (gallery && Array.isArray(gallery)) {
+            await supabaseAdmin.from('product_images').delete().eq('product_id', productId);
+            if (gallery.length > 0) {
+                const galleryRows = gallery.map((g: any, index: number) => ({
+                    product_id: productId,
+                    url: g.url,
+                    alt_text: g.altText || null,
+                    display_order: index
+                }));
+                await supabaseAdmin.from('product_images').insert(galleryRows);
+            }
+        }
+
+        await logAdminAction(admin.id, 'update_product', 'product', productId, updateData, request.headers.get('x-forwarded-for') || undefined);
         return jsonResponse({ product: data, message: 'Producto actualizado' });
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);
@@ -165,12 +208,12 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     const productId = url.searchParams.get('id');
     if (!productId) return jsonResponse({ error: 'id obligatorio' }, 400);
 
-    // Soft delete - just deactivate
-    const { error } = await supabaseAdmin.from('products').update({ is_active: false, updated_at: new Date().toISOString() }).eq('id', productId);
+    // Hard delete
+    const { error } = await supabaseAdmin.from('products').delete().eq('id', productId);
     if (error) return jsonResponse({ error: 'Error al eliminar producto' }, 500);
 
-    await logAdminAction(admin.id, 'delete_product', 'product', productId, {}, request.headers.get('x-forwarded-for'));
-    return jsonResponse({ message: 'Producto desactivado' });
+    await logAdminAction(admin.id, 'delete_product', 'product', productId, {}, request.headers.get('x-forwarded-for') || undefined);
+    return jsonResponse({ message: 'Producto eliminado permanentemente' });
 };
 
 /** PUT /api/admin/products – Bulk reorder products */

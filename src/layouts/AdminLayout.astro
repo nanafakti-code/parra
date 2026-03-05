@@ -855,6 +855,10 @@ const navItems = [
                 appearance: none;
                 cursor: pointer;
             }
+            .form-select option {
+                background-color: #1a1a1a;
+                color: #ffffff;
+            }
 
             .stat-grid {
                 display: grid;
@@ -1206,6 +1210,63 @@ const navItems = [
         <!-- Toast container -->
         <div id="admin-toast" class="toast"></div>
 
+        <!-- Global Confirm Modal -->
+        <div
+            id="admin-confirm-modal"
+            class="modal-overlay"
+            style="display:none; z-index: 1000;"
+        >
+            <div
+                class="modal"
+                style="max-width: 400px; padding: 2rem; border-top: 4px solid #f87171;"
+            >
+                <div
+                    style="display: flex; flex-direction: column; align-items: center; text-align: center;"
+                >
+                    <div
+                        style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; color: #f87171;"
+                    >
+                        <svg
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                    </div>
+                    <h3
+                        style="font-family: 'Oswald', system-ui, sans-serif; font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;"
+                    >
+                        Confirmar Acción
+                    </h3>
+                    <p
+                        id="admin-confirm-msg"
+                        style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-bottom: 1.5rem;"
+                    >
+                    </p>
+                    <div style="display: flex; gap: 0.75rem; width: 100%;">
+                        <button
+                            id="admin-confirm-cancel"
+                            class="btn btn-secondary"
+                            style="flex: 1;">Cancelar</button
+                        >
+                        <button
+                            id="admin-confirm-ok"
+                            class="btn btn-danger"
+                            style="flex: 1;">Aceptar</button
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script is:inline>
             // Initialize feather icons
             if (typeof feather !== "undefined") feather.replace();
@@ -1343,8 +1404,59 @@ const navItems = [
 
             // Global confirm dialog
             window.adminConfirm = function (msg) {
-                return confirm(msg);
+                return new Promise(function (resolve) {
+                    var modal = document.getElementById("admin-confirm-modal");
+                    var msgEl = document.getElementById("admin-confirm-msg");
+                    var btnOk = document.getElementById("admin-confirm-ok");
+                    var btnCancel = document.getElementById(
+                        "admin-confirm-cancel",
+                    );
+
+                    if (!modal) {
+                        resolve(confirm(msg));
+                        return;
+                    }
+
+                    msgEl.textContent = msg;
+                    modal.style.display = "flex";
+
+                    function close(result) {
+                        modal.style.display = "none";
+                        btnOk.removeEventListener("click", onOk);
+                        btnCancel.removeEventListener("click", onCancel);
+                        resolve(result);
+                    }
+
+                    function onOk() {
+                        close(true);
+                    }
+                    function onCancel() {
+                        close(false);
+                    }
+
+                    btnOk.addEventListener("click", onOk);
+                    btnCancel.addEventListener("click", onCancel);
+                });
             };
+
+            // Global page search
+            document
+                .getElementById("page-search")
+                ?.addEventListener("input", function (e) {
+                    var term = e.target.value.toLowerCase();
+                    document
+                        .querySelectorAll(".data-table tbody tr")
+                        .forEach(function (row) {
+                            var dataStr =
+                                row.getAttribute("data-search") ||
+                                row.innerText;
+                            row.style.display = dataStr
+                                .toLowerCase()
+                                .includes(term)
+                                ? ""
+                                : "none";
+                        });
+                });
         </script>
     </body>
 </html>

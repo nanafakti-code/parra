@@ -1,119 +1,197 @@
 ---
-import AdminLayout from '../../layouts/AdminLayout.astro';
-import { requireAdmin } from '../../lib/admin';
-import { supabaseAdmin } from '../../lib/supabase';
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../lib/admin";
+import { supabaseAdmin } from "../../lib/supabase";
 
 const adminResult = await requireAdmin(Astro);
 if (adminResult instanceof Response) return adminResult;
 const admin = adminResult;
 
 const url = new URL(Astro.request.url);
-const statusFilter = url.searchParams.get('status') || 'all';
+const statusFilter = url.searchParams.get("status") || "all";
 
 let query = supabaseAdmin
-    .from('returns')
-    .select('*, orders(id, total), users(name, email)')
-    .order('created_at', { ascending: false });
+    .from("returns")
+    .select("*, orders(id, total), users(name, email)")
+    .order("created_at", { ascending: false });
 
-if (statusFilter !== 'all') {
-    query = query.eq('status', statusFilter);
+if (statusFilter !== "all") {
+    query = query.eq("status", statusFilter);
 }
 
 const { data: returns } = await query;
 
 const statuses = [
-    { key: 'all', label: 'Todas' },
-    { key: 'pending', label: 'Pendientes' },
-    { key: 'approved', label: 'Aprobadas' },
-    { key: 'rejected', label: 'Rechazadas' },
-    { key: 'refunded', label: 'Reembolsadas' },
+    { key: "all", label: "Todas" },
+    { key: "pending", label: "Pendientes" },
+    { key: "approved", label: "Aprobadas" },
+    { key: "rejected", label: "Rechazadas" },
+    { key: "refunded", label: "Reembolsadas" },
 ];
 
 function formatStatus(s: string) {
-    const map: Record<string, string> = { pending: 'Pendiente', approved: 'Aprobada', rejected: 'Rechazada', refunded: 'Reembolsada' };
+    const map: Record<string, string> = {
+        pending: "Pendiente",
+        approved: "Aprobada",
+        rejected: "Rechazada",
+        refunded: "Reembolsada",
+    };
     return map[s] || s;
 }
 function statusBadge(s: string) {
-    const map: Record<string, string> = { pending: 'badge-warning', approved: 'badge-success', rejected: 'badge-danger', refunded: 'badge-info' };
-    return map[s] || 'badge-neutral';
+    const map: Record<string, string> = {
+        pending: "badge-warning",
+        approved: "badge-success",
+        rejected: "badge-danger",
+        refunded: "badge-info",
+    };
+    return map[s] || "badge-neutral";
 }
 ---
 
 <AdminLayout title="Devoluciones" activeSection="returns" admin={admin}>
     <div class="filter-bar">
-        {statuses.map(s => (
-            <a
-                href={`/admin/returns${s.key !== 'all' ? `?status=${s.key}` : ''}`}
-                class={`filter-chip ${statusFilter === s.key ? 'active' : ''}`}
-            >
-                {s.label}
-            </a>
-        ))}
+        {
+            statuses.map((s) => (
+                <a
+                    href={`/admin/returns${s.key !== "all" ? `?status=${s.key}` : ""}`}
+                    class={`filter-chip ${statusFilter === s.key ? "active" : ""}`}
+                >
+                    {s.label}
+                </a>
+            ))
+        }
+    </div>
+
+    <!-- Search Bar -->
+    <div style="margin-bottom: 1rem; max-width: 400px; position: relative;">
+        <svg
+            style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4);"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        >
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+            type="text"
+            id="page-search"
+            class="form-input"
+            placeholder="Buscar por ID, nombre o email..."
+            style="padding-left: 2.5rem;"
+        />
     </div>
 
     <div class="card">
-        {(!returns || returns.length === 0) ? (
-            <div class="empty-state">
-                <h3>Sin devoluciones</h3>
-                <p>No hay solicitudes de devolución con este filtro.</p>
-            </div>
-        ) : (
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Pedido</th>
-                        <th>Cliente</th>
-                        <th>Motivo</th>
-                        <th>Importe</th>
-                        <th>Estado</th>
-                        <th>Fecha</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {returns.map((ret: any) => (
+        {
+            !returns || returns.length === 0 ? (
+                <div class="empty-state">
+                    <h3>Sin devoluciones</h3>
+                    <p>No hay solicitudes de devolución con este filtro.</p>
+                </div>
+            ) : (
+                <table class="data-table">
+                    <thead>
                         <tr>
-                            <td data-label="ID" style="font-family:monospace;font-size:0.7rem;">#{ret.id?.slice(0,8)}</td>
-                            <td data-label="Pedido" style="font-family:monospace;font-size:0.7rem;">
-                                <a href="/admin/orders" style="color:#60a5fa;text-decoration:none;">
-                                    #{ret.orders?.id?.slice(0,8)}
-                                </a>
-                            </td>
-                            <td data-label="Cliente">
-                                <div style="font-size:0.8rem;">{ret.users?.name || '—'}</div>
-                                <div style="font-size:0.65rem;color:rgba(255,255,255,0.3);">{ret.users?.email}</div>
-                            </td>
-                            <td data-label="Motivo" style="font-size:0.75rem;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                                {ret.reason || '—'}
-                            </td>
-                            <td data-label="Importe" style="font-weight:600;">
-                                {ret.refund_amount ? `€${parseFloat(ret.refund_amount).toFixed(2)}` : '—'}
-                            </td>
-                            <td data-label="Estado">
-                                <span class={`badge ${statusBadge(ret.status)}`}>{formatStatus(ret.status)}</span>
-                            </td>
-                            <td data-label="Fecha" style="font-size:0.7rem;color:rgba(255,255,255,0.4);">
-                                {new Date(ret.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
-                            </td>
-                            <td>
-                                <button
-                                    class="btn btn-secondary btn-sm btn-return-manage"
-                                    data-id={ret.id}
-                                    data-status={ret.status}
-                                    data-reason={ret.reason || ''}
-                                    data-notes={ret.admin_notes || ''}
-                                    data-amount={ret.refund_amount || ''}
-                                    data-order-total={ret.orders?.total || '0'}
-                                >
-                                    Gestionar
-                                </button>
-                            </td>
+                            <th>ID</th>
+                            <th>Pedido</th>
+                            <th>Cliente</th>
+                            <th>Motivo</th>
+                            <th>Importe</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-        )}
+                    </thead>
+                    <tbody>
+                        {returns.map((ret: any) => (
+                            <tr
+                                data-search={`${ret.order_id || ""} ${ret.users?.name || ""} ${ret.users?.email || ""}`}
+                            >
+                                <td
+                                    data-label="ID"
+                                    style="font-family:monospace;font-size:0.7rem;"
+                                >
+                                    #{ret.id?.slice(0, 8)}
+                                </td>
+                                <td
+                                    data-label="Pedido"
+                                    style="font-family:monospace;font-size:0.7rem;"
+                                >
+                                    <a
+                                        href="/admin/orders"
+                                        style="color:#60a5fa;text-decoration:none;"
+                                    >
+                                        #{ret.orders?.id?.slice(0, 8)}
+                                    </a>
+                                </td>
+                                <td data-label="Cliente">
+                                    <div style="font-size:0.8rem;">
+                                        {ret.users?.name || "—"}
+                                    </div>
+                                    <div style="font-size:0.65rem;color:rgba(255,255,255,0.3);">
+                                        {ret.users?.email}
+                                    </div>
+                                </td>
+                                <td
+                                    data-label="Motivo"
+                                    style="font-size:0.75rem;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                >
+                                    {ret.reason || "—"}
+                                </td>
+                                <td
+                                    data-label="Importe"
+                                    style="font-weight:600;"
+                                >
+                                    {ret.refund_amount
+                                        ? `€${parseFloat(ret.refund_amount).toFixed(2)}`
+                                        : "—"}
+                                </td>
+                                <td data-label="Estado">
+                                    <span
+                                        class={`badge ${statusBadge(ret.status)}`}
+                                    >
+                                        {formatStatus(ret.status)}
+                                    </span>
+                                </td>
+                                <td
+                                    data-label="Fecha"
+                                    style="font-size:0.7rem;color:rgba(255,255,255,0.4);"
+                                >
+                                    {new Date(
+                                        ret.created_at,
+                                    ).toLocaleDateString("es-ES", {
+                                        day: "2-digit",
+                                        month: "short",
+                                    })}
+                                </td>
+                                <td>
+                                    <button
+                                        class="btn btn-secondary btn-sm btn-return-manage"
+                                        data-id={ret.id}
+                                        data-status={ret.status}
+                                        data-reason={ret.reason || ""}
+                                        data-notes={ret.admin_notes || ""}
+                                        data-amount={ret.refund_amount || ""}
+                                        data-order-total={
+                                            ret.orders?.total || "0"
+                                        }
+                                    >
+                                        Gestionar
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )
+        }
     </div>
 
     <!-- Return Management Modal -->
@@ -121,9 +199,32 @@ function statusBadge(s: string) {
         <div class="modal" style="max-width:440px;">
             <div class="modal-header">
                 <div class="modal-title">Gestionar Devolución</div>
-                <button class="modal-close" onclick="document.getElementById('return-modal').style.display='none'">Cerrar</button>
+                <button
+                    class="modal-close"
+                    onclick="document.getElementById('return-modal').style.display='none'"
+                >
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><line x1="18" y1="6" x2="6" y2="18"></line><line
+                            x1="6"
+                            y1="6"
+                            x2="18"
+                            y2="18"></line></svg
+                    >
+                </button>
             </div>
-            <div id="return-reason" style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:1rem;padding:0.6rem;background:rgba(255,255,255,0.02);border-radius:6px;border:1px solid rgba(255,255,255,0.04);"></div>
+            <div
+                id="return-reason"
+                style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:1rem;padding:0.6rem;background:rgba(255,255,255,0.02);border-radius:6px;border:1px solid rgba(255,255,255,0.04);"
+            >
+            </div>
             <form id="return-form">
                 <input type="hidden" id="return-id" />
                 <div class="form-group">
@@ -137,58 +238,100 @@ function statusBadge(s: string) {
                 </div>
                 <div class="form-group">
                     <label class="form-label">Importe Reembolso (€)</label>
-                    <input type="number" step="0.01" class="form-input" id="return-amount" placeholder="0.00" />
+                    <input
+                        type="number"
+                        step="0.01"
+                        class="form-input"
+                        id="return-amount"
+                        placeholder="0.00"
+                    />
                 </div>
                 <div class="form-group">
                     <label class="form-label">Notas Admin</label>
-                    <textarea class="form-textarea" id="return-notes" placeholder="Notas internas..."></textarea>
+                    <textarea
+                        class="form-textarea"
+                        id="return-notes"
+                        placeholder="Notas internas..."></textarea>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('return-modal').style.display='none'">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        onclick="document.getElementById('return-modal').style.display='none'"
+                        >Cancelar</button
+                    >
+                    <button type="submit" class="btn btn-primary"
+                        >Guardar</button
+                    >
                 </div>
             </form>
         </div>
     </div>
 
     <script is:inline>
-    (function() {
-        document.querySelectorAll('.btn-return-manage').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                document.getElementById('return-id').value = this.getAttribute('data-id');
-                document.getElementById('return-status').value = this.getAttribute('data-status');
-                document.getElementById('return-amount').value = this.getAttribute('data-amount');
-                document.getElementById('return-notes').value = this.getAttribute('data-notes');
-                document.getElementById('return-reason').textContent = 'Motivo: ' + (this.getAttribute('data-reason') || 'Sin especificar');
-                document.getElementById('return-modal').style.display = 'flex';
-            });
-        });
-
-        document.getElementById('return-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            var returnId = document.getElementById('return-id').value;
-            var status = document.getElementById('return-status').value;
-            var amount = document.getElementById('return-amount').value;
-            var notes = document.getElementById('return-notes').value;
-
-            try {
-                var res = await fetch('/api/admin/returns', {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ returnId: returnId, status: status, refundAmount: amount ? parseFloat(amount) : undefined, adminNotes: notes || undefined }),
+        (function () {
+            document
+                .querySelectorAll(".btn-return-manage")
+                .forEach(function (btn) {
+                    btn.addEventListener("click", function () {
+                        document.getElementById("return-id").value =
+                            this.getAttribute("data-id");
+                        document.getElementById("return-status").value =
+                            this.getAttribute("data-status");
+                        document.getElementById("return-amount").value =
+                            this.getAttribute("data-amount");
+                        document.getElementById("return-notes").value =
+                            this.getAttribute("data-notes");
+                        document.getElementById("return-reason").textContent =
+                            "Motivo: " +
+                            (this.getAttribute("data-reason") ||
+                                "Sin especificar");
+                        document.getElementById("return-modal").style.display =
+                            "flex";
+                    });
                 });
-                if (res.ok) {
-                    window.adminToast('Devolución actualizada', 'success');
-                    document.getElementById('return-modal').style.display = 'none';
-                    setTimeout(function() { window.location.reload(); }, 800);
-                } else {
-                    var data = await res.json();
-                    window.adminToast(data.error || 'Error', 'error');
-                }
-            } catch (err) {
-                window.adminToast('Error de conexión', 'error');
-            }
-        });
-    })();
+
+            document
+                .getElementById("return-form")
+                .addEventListener("submit", async function (e) {
+                    e.preventDefault();
+                    var returnId = document.getElementById("return-id").value;
+                    var status = document.getElementById("return-status").value;
+                    var amount = document.getElementById("return-amount").value;
+                    var notes = document.getElementById("return-notes").value;
+
+                    try {
+                        var res = await fetch("/api/admin/returns", {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                returnId: returnId,
+                                status: status,
+                                refundAmount: amount
+                                    ? parseFloat(amount)
+                                    : undefined,
+                                adminNotes: notes || undefined,
+                            }),
+                        });
+                        if (res.ok) {
+                            window.adminToast(
+                                "Devolución actualizada",
+                                "success",
+                            );
+                            document.getElementById(
+                                "return-modal",
+                            ).style.display = "none";
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 800);
+                        } else {
+                            var data = await res.json();
+                            window.adminToast(data.error || "Error", "error");
+                        }
+                    } catch (err) {
+                        window.adminToast("Error de conexión", "error");
+                    }
+                });
+        })();
     </script>
 </AdminLayout>

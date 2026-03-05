@@ -7,18 +7,67 @@ interface Props {
 	title: string;
 	description?: string;
 	image?: string;
+	robots?: string;
+	/** Extra JSON-LD snippets (stringified) injected per-page */
+	schemaJson?: string;
+	/** Canonical override for specific pages */
+	canonicalOverride?: string;
 }
 
 const {
 	title,
-	description = "PARRA — Guantes de portero profesionales. Agarre extremo, diseño premium.",
-	image = "/og-image.jpg",
+	description = "Parra GK Gloves – Guantes de portero profesionales con látex alemán de alta adherencia. Envío gratis en España. Compra online guantes de portero élite.",
+	image = "https://parragkgloves.es/og-image.jpg",
+	robots = "index, follow",
+	schemaJson,
+	canonicalOverride,
 } = Astro.props;
 
-const canonicalURL = new URL(
-	Astro.url.pathname,
-	Astro.site || "https://parra.com",
-);
+const SITE = "https://parragkgloves.es";
+const canonicalURL =
+	canonicalOverride ?? new URL(Astro.url.pathname, SITE).href;
+const fullTitle = `${title} | Parra GK Gloves`;
+
+// ── JSON-LD: Organization ─────────────────────────────────────────────────
+const orgSchema = JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "Organization",
+	name: "Parra GK Gloves",
+	alternateName: ["Parra", "parragkgloves", "Parra Goalkeeper Gloves"],
+	url: SITE,
+	logo: `${SITE}/favicon.svg`,
+	description:
+		"Marca española de guantes de portero profesionales con látex alemán de alta adherencia.",
+	sameAs: ["https://www.instagram.com/parragkgloves/"],
+	contactPoint: {
+		"@type": "ContactPoint",
+		contactType: "customer service",
+		areaServed: "ES",
+		availableLanguage: "Spanish",
+	},
+	address: {
+		"@type": "PostalAddress",
+		addressCountry: "ES",
+	},
+});
+
+// ── JSON-LD: WebSite + SearchAction ──────────────────────────────────────
+const websiteSchema = JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "WebSite",
+	name: "Parra GK Gloves",
+	url: SITE,
+	description:
+		"Tienda oficial de guantes de portero profesionales Parra GK Gloves.",
+	potentialAction: {
+		"@type": "SearchAction",
+		target: {
+			"@type": "EntryPoint",
+			urlTemplate: `${SITE}/shop?q={search_term_string}`,
+		},
+		"query-input": "required name=search_term_string",
+	},
+});
 ---
 
 <!doctype html>
@@ -26,27 +75,57 @@ const canonicalURL = new URL(
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="description" content={description} />
 
-		<!-- Open Graph -->
-		<meta property="og:title" content={`${title} | PARRA`} />
+		<!-- Primary Meta -->
+		<title>{fullTitle}</title>
+		<meta name="description" content={description} />
+		<meta name="robots" content={robots} />
+		<meta name="author" content="Parra GK Gloves" />
+		<meta
+			name="keywords"
+			content="parra gk gloves, guantes de portero parra, parra guantes portero, guantes portero profesionales, goalkeeper gloves spain, guantes portero grip, parragkgloves"
+		/>
+		<link rel="canonical" href={canonicalURL} />
+
+		<!-- Open Graph (Facebook / WhatsApp / LinkedIn) -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="Parra GK Gloves" />
+		<meta property="og:locale" content="es_ES" />
+		<meta property="og:title" content={fullTitle} />
 		<meta property="og:description" content={description} />
 		<meta property="og:image" content={image} />
-		<meta property="og:type" content="website" />
-		<meta property="og:url" content={canonicalURL.href} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta
+			property="og:image:alt"
+			content="Parra GK Gloves – Guantes de portero profesionales"
+		/>
+		<meta property="og:url" content={canonicalURL} />
 
-		<!-- Twitter -->
+		<!-- Twitter / X Cards -->
 		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:title" content={`${title} | PARRA`} />
+		<meta name="twitter:site" content="@parragkgloves" />
+		<meta name="twitter:title" content={fullTitle} />
 		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={image} />
+		<meta
+			name="twitter:image:alt"
+			content="Parra GK Gloves – Guantes de portero profesionales"
+		/>
 
-		<link rel="canonical" href={canonicalURL.href} />
+		<!-- Favicon -->
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
 
-		<!-- Google Fonts: Oswald (headings) + Inter (body) — carga no bloqueante -->
+		<!-- DNS Prefetch + Preconnect for Fonts & CDN -->
+		<link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+		<link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+		<link rel="dns-prefetch" href="https://res.cloudinary.com" />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+		<!-- Google Fonts: Oswald + Inter — non-blocking load -->
 		<link
 			rel="preload"
 			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Oswald:wght@400;500;600;700&display=swap"
@@ -72,7 +151,19 @@ const canonicalURL = new URL(
 			})();
 		</script>
 
-		<title>{title} | PARRA</title>
+		<!-- JSON-LD: Organization -->
+		<script type="application/ld+json" set:html={orgSchema} />
+
+		<!-- JSON-LD: WebSite + SearchAction -->
+		<script type="application/ld+json" set:html={websiteSchema} />
+
+		<!-- JSON-LD: Page-specific schema (product, breadcrumb, etc.) -->
+		{
+			schemaJson && (
+				<script type="application/ld+json" set:html={schemaJson} />
+			)
+		}
+
 		<ClientRouter />
 	</head>
 	<body class="font-body overflow-x-hidden">

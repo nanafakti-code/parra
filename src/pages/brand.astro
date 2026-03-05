@@ -1,0 +1,410 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+const SITE = "https://parragkgloves.es";
+
+// ── JSON-LD: About + BreadcrumbList ──────────────────────────────────────
+const brandSchema = JSON.stringify([
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+            {
+                "@type": "ListItem",
+                position: 1,
+                name: "Inicio",
+                item: `${SITE}/`,
+            },
+            {
+                "@type": "ListItem",
+                position: 2,
+                name: "Marca",
+                item: `${SITE}/brand`,
+            },
+        ],
+    },
+    {
+        "@context": "https://schema.org",
+        "@type": "AboutPage",
+        name: "Parra GK Gloves – Marca de Guantes de Portero Profesionales",
+        url: `${SITE}/brand`,
+        description:
+            "Parra GK Gloves es una marca española de guantes de portero profesionales. Fabricados con látex alemán de alta adherencia y tecnología grip élite.",
+        mainEntity: {
+            "@type": "Brand",
+            name: "Parra GK Gloves",
+            description:
+                "Guantes de portero profesionales con tecnología de látex alemán.",
+            url: SITE,
+        },
+    },
+]);
+---
+
+<Layout
+    title="Nuestra Marca – Parra GK Gloves | Guantes de Portero Élite"
+    description="Conoce Parra GK Gloves, la marca española de guantes de portero profesionales. Tecnología de látex alemán, grip élite y diseño de alto rendimiento para porteros exigentes."
+    schemaJson={brandSchema}
+>
+    <Header />
+    <main itemscope itemtype="https://schema.org/WebPage">
+        <!-- Hero de Marca -->
+        <section
+            class="relative min-h-[60vh] flex items-center overflow-hidden"
+            style="background-color: #000;"
+        >
+            <!-- Fondo con glow verde -->
+            <div
+                class="absolute inset-0"
+                style="background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(57,255,20,0.08) 0%, transparent 70%);"
+            >
+            </div>
+            <!-- Línea verde izquierda -->
+            <div
+                class="absolute left-0 top-0 bottom-0 w-[3px]"
+                style="background: #39FF14;"
+            >
+            </div>
+
+            <div class="container relative z-10 py-24">
+                <p
+                    class="text-xs font-bold uppercase tracking-[0.3em] mb-4"
+                    style="color: #39FF14;"
+                >
+                    La Marca
+                </p>
+                <h1
+                    class="font-display text-6xl md:text-8xl font-bold uppercase tracking-tighter mb-6"
+                    style="color: #fff;"
+                >
+                    PARRA<br /><span style="color: #39FF14;">GK GLOVES</span>
+                </h1>
+                <p
+                    class="text-lg md:text-xl max-w-2xl leading-relaxed mb-10"
+                    style="color: rgba(255,255,255,0.7);"
+                >
+                    Guantes de portero profesionales diseñados para dominar el
+                    área. Cada par está construido con látex alemán de alta
+                    adherencia para porteros que no aceptan menos que la
+                    perfección.
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a
+                        href="/shop"
+                        class="btn-glow inline-flex items-center gap-2"
+                    >
+                        Ver Colección
+                        <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            ><path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg
+                        >
+                    </a>
+                    <a href="/shop" class="btn-outline inline-flex"
+                        >Todos los Guantes</a
+                    >
+                </div>
+            </div>
+        </section>
+
+        <!-- Historia de la Marca -->
+        <section
+            class="section"
+            style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color);"
+        >
+            <div class="container">
+                <div
+                    class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center"
+                >
+                    <div>
+                        <p
+                            class="text-xs font-bold uppercase tracking-[0.25em] mb-4"
+                            style="color: #39FF14;"
+                        >
+                            Nuestra Historia
+                        </p>
+                        <h2 class="section-title mb-6">
+                            Nacidos para <span class="text-brand"
+                                >Proteger</span>
+                        </h2>
+                        <div
+                            class="space-y-4 text-base leading-relaxed"
+                            style="color: var(--text-secondary);"
+                        >
+                            <p>
+                                <strong style="color: var(--text-primary);"
+                                    >Parra GK Gloves</strong
+                                > nació de la pasión por el fútbol y la exigencia
+                                de los porteros profesionales. Fundada en España,
+                                la marca se creó con un objetivo claro: fabricar los
+                                guantes de portero más profesionales del mercado,
+                                accesibles para todos los niveles.
+                            </p>
+                            <p>
+                                Cada modelo de <strong
+                                    style="color: var(--text-primary);"
+                                    >guantes de portero Parra</strong
+                                > está diseñado en colaboración con porteros de élite
+                                españoles, combinando tecnología de vanguardia con
+                                un diseño premium que inspira confianza bajo los palos.
+                            </p>
+                            <p>
+                                Nuestra filosofía es simple: si usas guantes <strong
+                                    style="color: var(--text-primary);"
+                                    >Parra GK Gloves</strong
+                                >, tienes la mejor herramienta posible para
+                                rendir al máximo nivel. Desde niños hasta
+                                porteros profesionales, cada mano merece el
+                                mejor agarre.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        {
+                            [
+                                { num: "+500", label: "Porteros Equipados" },
+                                { num: "100%", label: "Látex Alemán" },
+                                { num: "5★", label: "Valoración Media" },
+                                { num: "30d", label: "Garantía Devolución" },
+                            ].map((stat) => (
+                                <div
+                                    class="p-6 text-center reveal"
+                                    style="background-color: var(--bg-primary); border: 1px solid var(--border-color);"
+                                >
+                                    <p
+                                        class="font-display text-4xl font-bold mb-1"
+                                        style="color: #39FF14;"
+                                    >
+                                        {stat.num}
+                                    </p>
+                                    <p
+                                        class="text-xs uppercase tracking-[0.15em]"
+                                        style="color: var(--text-muted);"
+                                    >
+                                        {stat.label}
+                                    </p>
+                                </div>
+                            ))
+                        }
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tecnología -->
+        <section class="section" style="background-color: var(--bg-primary);">
+            <div class="container">
+                <div class="text-center mb-14">
+                    <p
+                        class="text-xs font-bold uppercase tracking-[0.25em] mb-3"
+                        style="color: #39FF14;"
+                    >
+                        Tecnología
+                    </p>
+                    <h2 class="section-title">
+                        La Tecnología <span class="text-brand">Parra</span>
+                    </h2>
+                    <p class="section-subtitle max-w-2xl mx-auto">
+                        Nuestros guantes de portero profesionales incorporan las
+                        tecnologías más avanzadas para garantizar el máximo
+                        rendimiento en cada parada.
+                    </p>
+                </div>
+                <div
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                >
+                    {
+                        [
+                            {
+                                icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+                                title: "Látex Alemán Premium",
+                                desc: "Nuestro látex de contacto alemán ofrece la máxima adherencia en todas las condiciones climatológicas. Grip excepcional en mojado y seco para paradas de nivel profesional.",
+                            },
+                            {
+                                icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
+                                title: "Protección EVA",
+                                desc: "Espuma EVA en el dorso que absorbe impactos y protege los dedos del portero en paradas de potencia. Diseñada para máxima durabilidad sin sacrificar sensibilidad.",
+                            },
+                            {
+                                icon: "M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+                                title: "Corte Ergonómico",
+                                desc: "Corte negativo y roll finger disponibles para adaptarse a la morfología de cada portero. El guante se ajusta como una segunda piel para el control total del balón.",
+                            },
+                            {
+                                icon: "M13 10V3L4 14h7v7l9-11h-7z",
+                                title: "Grip de Alto Rendimiento",
+                                desc: "Sistema Grip Elite que mantiene la adherencia del látex durante más tiempo. Tecnología formulada para porteros profesionales que entrenan y compiten a diario.",
+                            },
+                            {
+                                icon: "M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z",
+                                title: "Transpirabilidad Total",
+                                desc: "Malla técnica en el dorso con canales de ventilación que mantiene la mano fresca y seca incluso en los partidos más exigentes y bajo el sol.",
+                            },
+                            {
+                                icon: "M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z",
+                                title: "Durabilidad Pro",
+                                desc: "Los guantes de portero Parra están diseñados para resistir las exigencias del entrenamiento y la competición. Costuras reforzadas que garantizan la durabilidad sesión tras sesión.",
+                            },
+                        ].map((item) => (
+                            <article
+                                class="p-6 reveal"
+                                style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);"
+                            >
+                                <div
+                                    class="w-10 h-10 mb-4 flex items-center justify-center"
+                                    style="background: rgba(57,255,20,0.1); border: 1px solid rgba(57,255,20,0.2);"
+                                >
+                                    <svg
+                                        class="w-5 h-5"
+                                        style="color: #39FF14;"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.5"
+                                            d={item.icon}
+                                        />
+                                    </svg>
+                                </div>
+                                <h3
+                                    class="font-semibold mb-2 uppercase tracking-wide text-sm"
+                                    style="color: var(--text-primary);"
+                                >
+                                    {item.title}
+                                </h3>
+                                <p
+                                    class="text-sm leading-relaxed"
+                                    style="color: var(--text-muted);"
+                                >
+                                    {item.desc}
+                                </p>
+                            </article>
+                        ))
+                    }
+                </div>
+            </div>
+        </section>
+
+        <!-- Uso Profesional -->
+        <section
+            class="section"
+            style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color);"
+        >
+            <div class="container">
+                <div class="max-w-3xl mx-auto text-center">
+                    <p
+                        class="text-xs font-bold uppercase tracking-[0.25em] mb-3"
+                        style="color: #39FF14;"
+                    >
+                        Uso Profesional
+                    </p>
+                    <h2 class="section-title mb-6">
+                        Para Porteros <span class="text-brand">Exigentes</span>
+                    </h2>
+                    <p
+                        class="text-base leading-relaxed mb-6"
+                        style="color: var(--text-secondary);"
+                    >
+                        Los <strong style="color: var(--text-primary);"
+                            >guantes de portero Parra GK Gloves</strong
+                        > son utilizados por porteros en ligas y academias de toda
+                        España. Diseñados para aguantar las exigencias del entrenamiento
+                        diario y los partidos oficiales, nuestros guantes son la herramienta
+                        de confianza de porteros que:
+                    </p>
+                    <ul class="text-left space-y-3 mb-10 max-w-xl mx-auto">
+                        {
+                            [
+                                "Compiten en ligas amateur, semiprofesionales y profesionales",
+                                "Entrenan múltiples sesiones por semana",
+                                "Exigen el máximo grip en todas las condiciones",
+                                "Buscan protección sin perder sensibilidad en el balón",
+                                "Quieren guantes que duren y mantengan el latex activo",
+                            ].map((item) => (
+                                <li
+                                    class="flex items-start gap-3 text-sm"
+                                    style="color: var(--text-secondary);"
+                                >
+                                    <svg
+                                        class="w-4 h-4 mt-0.5 flex-shrink-0"
+                                        style="color: #39FF14;"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2.5"
+                                            d="M5 13l4 4L19 7"
+                                        />
+                                    </svg>
+                                    {item}
+                                </li>
+                            ))
+                        }
+                    </ul>
+                    <a
+                        href="/shop"
+                        class="btn-glow inline-flex items-center gap-2"
+                    >
+                        Comprar Guantes de Portero
+                        <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            ><path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg
+                        >
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Final -->
+        <section
+            class="py-24 text-center"
+            style="background-color: #000; border-top: 1px solid var(--border-color);"
+        >
+            <div class="container">
+                <h2
+                    class="font-display text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-6"
+                >
+                    ¿Listo Para <span style="color: #39FF14;">Dominar?</span>
+                </h2>
+                <p
+                    class="mb-8 max-w-xl mx-auto"
+                    style="color: var(--text-muted);"
+                >
+                    Únete a los porteros que confían en <strong
+                        style="color: #39FF14;">Parra GK Gloves</strong
+                    > para ser mejores bajo los palos.
+                </p>
+                <div class="flex justify-center gap-4 flex-wrap">
+                    <a href="/shop" class="btn-glow inline-flex"
+                        >Ver Guantes de Portero</a
+                    >
+                    <a href="/register" class="btn-outline inline-flex"
+                        >Crear Cuenta</a
+                    >
+                </div>
+            </div>
+        </section>
+    </main>
+    <Footer />
+</Layout>

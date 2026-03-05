@@ -29,12 +29,24 @@ const { user, role } = Astro.locals;
             class="hidden lg:flex items-center gap-8 text-xs font-semibold uppercase tracking-[0.2em]"
         >
             <a href="/" data-astro-prefetch="hover" class="nav-link">Inicio</a>
-            <a href="/shop" data-astro-prefetch="hover" class="nav-link">Tienda</a>
-            <a href="/shop?category=elite" data-astro-prefetch="hover" class="nav-link">Elite</a>
-            <a href="/shop?category=entrenamiento" data-astro-prefetch="hover" class="nav-link"
-                >Entrenamiento</a
+            <a href="/shop" data-astro-prefetch="hover" class="nav-link"
+                >Tienda</a
             >
-            <a href="/shop?category=infantil" data-astro-prefetch="hover" class="nav-link">Infantil</a>
+            <a
+                href="/shop?category=elite"
+                data-astro-prefetch="hover"
+                class="nav-link">Elite</a
+            >
+            <a
+                href="/shop?category=entrenamiento"
+                data-astro-prefetch="hover"
+                class="nav-link">Entrenamiento</a
+            >
+            <a
+                href="/shop?category=infantil"
+                data-astro-prefetch="hover"
+                class="nav-link">Infantil</a
+            >
         </nav>
 
         <!-- Right Icons -->
@@ -71,7 +83,6 @@ const { user, role } = Astro.locals;
                                 Admin
                             </a>
                         )}
-
                         <a
                             href="/profile"
                             data-astro-prefetch="hover"
@@ -93,25 +104,27 @@ const { user, role } = Astro.locals;
                             </svg>
                         </a>
 
-                        <button
-                            id="logout-btn"
-                            class="p-2.5 rounded-full hover:bg-red-500/10 transition-colors duration-200 group"
-                            title="Cerrar Sesión"
-                        >
-                            <svg
-                                class="w-5 h-5 icon-color group-hover:text-red-500 transition-colors"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                        {role !== "admin" && (
+                            <button
+                                id="logout-btn"
+                                class="p-2.5 rounded-full hover:bg-red-500/10 transition-colors duration-200 group"
+                                title="Cerrar Sesión"
                             >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                                />
-                            </svg>
-                        </button>
+                                <svg
+                                    class="w-5 h-5 icon-color group-hover:text-red-500 transition-colors"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                    />
+                                </svg>
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <div class="flex items-center gap-2">
@@ -394,8 +407,8 @@ const { user, role } = Astro.locals;
         // ── Logout ──
         function handleLogout() {
             // Limpiar el carrito del usuario actual y volver al modo invitado
-            localStorage.removeItem('parra_cart_user_id');
-            localStorage.removeItem('parra_cart_session');
+            localStorage.removeItem("parra_cart_user_id");
+            localStorage.removeItem("parra_cart_session");
             window.location.href = "/api/auth/logout";
         }
 

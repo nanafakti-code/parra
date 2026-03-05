@@ -51,7 +51,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             return jsonResponse({ error: 'Error al crear categoría' }, 500);
         }
 
-        await logAdminAction(admin.id, 'create_category', 'category', data.id, { name: data.name }, request.headers.get('x-forwarded-for'));
+        await logAdminAction(admin.id, 'create_category', 'category', data.id, { name: data.name }, request.headers.get('x-forwarded-for') || undefined);
         return jsonResponse({ category: data, message: 'Categoría creada' }, 201);
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);
@@ -80,7 +80,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         const { data, error } = await supabaseAdmin.from('categories').update(updateData).eq('id', categoryId).select().single();
         if (error) return jsonResponse({ error: 'Error al actualizar categoría' }, 500);
 
-        await logAdminAction(admin.id, 'update_category', 'category', categoryId, updateData, request.headers.get('x-forwarded-for'));
+        await logAdminAction(admin.id, 'update_category', 'category', categoryId, updateData, request.headers.get('x-forwarded-for') || undefined);
         return jsonResponse({ category: data, message: 'Categoría actualizada' });
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);
@@ -97,9 +97,9 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     const categoryId = url.searchParams.get('id');
     if (!categoryId) return jsonResponse({ error: 'id obligatorio' }, 400);
 
-    const { error } = await supabaseAdmin.from('categories').update({ is_active: false }).eq('id', categoryId);
-    if (error) return jsonResponse({ error: 'Error al eliminar categoría' }, 500);
+    const { error } = await supabaseAdmin.from('categories').delete().eq('id', categoryId);
+    if (error) return jsonResponse({ error: 'Error al eliminar categoría. Puede que tenga productos asociados.' }, 500);
 
-    await logAdminAction(admin.id, 'delete_category', 'category', categoryId, {}, request.headers.get('x-forwarded-for'));
-    return jsonResponse({ message: 'Categoría desactivada' });
+    await logAdminAction(admin.id, 'delete_category', 'category', categoryId, {}, request.headers.get('x-forwarded-for') || undefined);
+    return jsonResponse({ message: 'Categoría eliminada permanentemente' });
 };

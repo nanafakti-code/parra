@@ -13,16 +13,20 @@ import { supabase, supabaseAdmin } from "./lib/supabase";
 export const onRequest = defineMiddleware(async ({ cookies, locals, request, redirect }, next) => {
     // 1. Comprobar modo mantenimiento desde site_settings en Supabase
     const url = new URL(request.url);
+    const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
     let isMaintenanceMode = false;
-    try {
-        const { data } = await supabaseAdmin
-            .from('site_settings')
-            .select('value')
-            .eq('key', 'maintenance_mode')
-            .maybeSingle();
-        isMaintenanceMode = data?.value === true;
-    } catch (e) {
-        // Si falla la consulta, seguimos sin modo mantenimiento
+
+    if (!isLocalhost) {
+        try {
+            const { data } = await supabaseAdmin
+                .from('site_settings')
+                .select('value')
+                .eq('key', 'maintenance_mode')
+                .maybeSingle();
+            isMaintenanceMode = data?.value === true;
+        } catch (e) {
+            // Si falla la consulta, seguimos sin modo mantenimiento
+        }
     }
 
     const pathname = url.pathname.replace(/\/+$/, '') || '/';

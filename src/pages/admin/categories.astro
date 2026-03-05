@@ -1,217 +1,458 @@
 ---
-import AdminLayout from '../../layouts/AdminLayout.astro';
-import { requireAdmin } from '../../lib/admin';
-import { supabaseAdmin } from '../../lib/supabase';
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../lib/admin";
+import { supabaseAdmin } from "../../lib/supabase";
 
 const adminResult = await requireAdmin(Astro);
 if (adminResult instanceof Response) return adminResult;
 const admin = adminResult;
 
 const { data: categories } = await supabaseAdmin
-    .from('categories')
-    .select('*')
-    .order('display_order', { ascending: true });
+    .from("categories")
+    .select("*")
+    .order("display_order", { ascending: true });
 
 // Product counts
-const { data: products } = await supabaseAdmin.from('products').select('category_id').eq('is_active', true);
+const { data: products } = await supabaseAdmin
+    .from("products")
+    .select("category_id")
+    .eq("is_active", true);
 const countMap: Record<string, number> = {};
 (products || []).forEach((p: any) => {
-    if (p.category_id) countMap[p.category_id] = (countMap[p.category_id] || 0) + 1;
+    if (p.category_id)
+        countMap[p.category_id] = (countMap[p.category_id] || 0) + 1;
 });
 ---
 
 <AdminLayout title="Categorías" activeSection="categories" admin={admin}>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+    <div
+        style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"
+    >
         <div style="font-size:0.8rem;color:rgba(255,255,255,0.4);">
             {categories?.length || 0} categorías
         </div>
-        <button class="btn btn-primary" id="btn-new-cat">+ Nueva Categoría</button>
+        <button class="btn btn-primary" id="btn-new-cat"
+            >+ Nueva Categoría</button
+        >
+    </div>
+
+    <!-- Search Bar -->
+    <div style="margin-bottom: 1rem; max-width: 400px; position: relative;">
+        <svg
+            style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4);"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        >
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+            type="text"
+            id="page-search"
+            class="form-input"
+            placeholder="Buscar por nombre..."
+            style="padding-left: 2.5rem;"
+        />
     </div>
 
     <div class="card">
-        {(!categories || categories.length === 0) ? (
-            <div class="empty-state">
-                <h3>Sin categorías</h3>
-                <p>Crea tu primera categoría.</p>
-            </div>
-        ) : (
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Orden</th>
-                        <th>Nombre</th>
-                        <th>Slug</th>
-                        <th>Productos</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {categories.map((c: any) => (
+        {
+            !categories || categories.length === 0 ? (
+                <div class="empty-state">
+                    <h3>Sin categorías</h3>
+                    <p>Crea tu primera categoría.</p>
+                </div>
+            ) : (
+                <table class="data-table">
+                    <thead>
                         <tr>
-                            <td data-label="#" style="font-size:0.8rem;color:rgba(255,255,255,0.3);">{c.display_order}</td>
-                            <td data-label="Nombre">
-                                <div style="display:flex;align-items:center;gap:0.5rem;">
-                                    {c.image_url && (
-                                        <div style="width:32px;height:32px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,0.03);">
-                                            <img src={c.image_url} alt={c.name} style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
-                                        </div>
-                                    )}
-                                    <span style="font-weight:600;font-size:0.85rem;">{c.name}</span>
-                                </div>
-                            </td>
-                            <td data-label="Slug" style="font-size:0.7rem;font-family:monospace;color:rgba(255,255,255,0.3);">/{c.slug}</td>
-                            <td data-label="Productos" style="font-size:0.8rem;">{countMap[c.id] || 0}</td>
-                            <td data-label="Estado">
-                                {c.is_active
-                                    ? <span class="badge badge-success">Activa</span>
-                                    : <span class="badge badge-neutral">Inactiva</span>}
-                            </td>
-                            <td>
-                                <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
-                                    <button class="btn btn-secondary btn-sm btn-edit-cat"
-                                        data-cat={JSON.stringify(c)}>
-                                        Editar
-                                    </button>
-                                    <button class="btn btn-danger btn-sm btn-delete-cat"
-                                        data-id={c.id} data-name={c.name}>
-                                        Eliminar
-                                    </button>
-                                </div>
-                            </td>
+                            <th>Orden</th>
+                            <th>Nombre</th>
+                            <th>Slug</th>
+                            <th>Productos</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-        )}
+                    </thead>
+                    <tbody>
+                        {categories.map((c: any) => (
+                            <tr data-search={c.name}>
+                                <td
+                                    data-label="#"
+                                    style="font-size:0.8rem;color:rgba(255,255,255,0.3);"
+                                >
+                                    {c.display_order}
+                                </td>
+                                <td data-label="Nombre">
+                                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                                        {c.image_url && (
+                                            <div style="width:32px;height:32px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,0.03);">
+                                                <img
+                                                    src={c.image_url}
+                                                    alt={c.name}
+                                                    style="width:100%;height:100%;object-fit:cover;"
+                                                    loading="lazy"
+                                                />
+                                            </div>
+                                        )}
+                                        <span style="font-weight:600;font-size:0.85rem;">
+                                            {c.name}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td
+                                    data-label="Slug"
+                                    style="font-size:0.7rem;font-family:monospace;color:rgba(255,255,255,0.3);"
+                                >
+                                    /{c.slug}
+                                </td>
+                                <td
+                                    data-label="Productos"
+                                    style="font-size:0.8rem;"
+                                >
+                                    {countMap[c.id] || 0}
+                                </td>
+                                <td data-label="Estado">
+                                    {c.is_active ? (
+                                        <span class="badge badge-success">
+                                            Activa
+                                        </span>
+                                    ) : (
+                                        <span class="badge badge-neutral">
+                                            Inactiva
+                                        </span>
+                                    )}
+                                </td>
+                                <td>
+                                    <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
+                                        <button
+                                            class="btn btn-secondary btn-sm btn-edit-cat"
+                                            data-cat={JSON.stringify(c)}
+                                        >
+                                            Editar
+                                        </button>
+                                        <button
+                                            class="btn btn-secondary btn-sm btn-toggle-cat"
+                                            data-id={c.id}
+                                            data-name={c.name}
+                                            data-active={
+                                                c.is_active ? "true" : "false"
+                                            }
+                                        >
+                                            {c.is_active
+                                                ? "Desactivar"
+                                                : "Activar"}
+                                        </button>
+                                        <button
+                                            class="btn btn-danger btn-sm btn-delete-cat"
+                                            data-id={c.id}
+                                            data-name={c.name}
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )
+        }
     </div>
 
     <!-- Category Modal -->
     <div id="cat-modal" class="modal-overlay" style="display:none;">
         <div class="modal" style="max-width:440px;">
             <div class="modal-header">
-                <div class="modal-title" id="cat-modal-title">Nueva Categoría</div>
-                <button class="modal-close" onclick="document.getElementById('cat-modal').style.display='none'">Cerrar</button>
+                <div class="modal-title" id="cat-modal-title">
+                    Nueva Categoría
+                </div>
+                <button
+                    class="modal-close"
+                    onclick="document.getElementById('cat-modal').style.display='none'"
+                >
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><line x1="18" y1="6" x2="6" y2="18"></line><line
+                            x1="6"
+                            y1="6"
+                            x2="18"
+                            y2="18"></line></svg
+                    >
+                </button>
             </div>
             <form id="cat-form">
                 <input type="hidden" id="cat-id" />
                 <div class="form-group">
                     <label class="form-label">Nombre *</label>
-                    <input type="text" class="form-input" id="cat-name" required />
+                    <input
+                        type="text"
+                        class="form-input"
+                        id="cat-name"
+                        required
+                    />
                 </div>
                 <div class="form-group">
                     <label class="form-label">Slug *</label>
-                    <input type="text" class="form-input" id="cat-slug" required placeholder="guantes-portero" />
+                    <input
+                        type="text"
+                        class="form-input"
+                        id="cat-slug"
+                        required
+                        placeholder="guantes-portero"
+                    />
                 </div>
                 <div class="form-group">
                     <label class="form-label">Descripción</label>
                     <textarea class="form-textarea" id="cat-desc"></textarea>
                 </div>
-                <div style="display:grid;grid-template-columns:2fr 1fr;gap:0.75rem;">
+                <div
+                    style="display:grid;grid-template-columns:2fr 1fr;gap:0.75rem;"
+                >
                     <div class="form-group">
                         <label class="form-label">URL Imagen</label>
-                        <input type="text" class="form-input" id="cat-image" placeholder="https://..." />
+                        <input
+                            type="text"
+                            class="form-input"
+                            id="cat-image"
+                            placeholder="https://..."
+                        />
                     </div>
                     <div class="form-group">
                         <label class="form-label">Orden</label>
-                        <input type="number" class="form-input" id="cat-order" value="0" />
+                        <input
+                            type="number"
+                            class="form-input"
+                            id="cat-order"
+                            value="0"
+                        />
                     </div>
                 </div>
-                <div class="form-group" style="display:flex;align-items:center;gap:0.5rem;">
-                    <input type="checkbox" id="cat-active" checked style="accent-color:#39FF14;" />
-                    <label for="cat-active" style="font-size:0.8rem;color:rgba(255,255,255,0.6);cursor:pointer;">Categoría activa</label>
+                <div
+                    class="form-group"
+                    style="display:flex;align-items:center;gap:0.5rem;"
+                >
+                    <input
+                        type="checkbox"
+                        id="cat-active"
+                        checked
+                        style="accent-color:#39FF14;"
+                    />
+                    <label
+                        for="cat-active"
+                        style="font-size:0.8rem;color:rgba(255,255,255,0.6);cursor:pointer;"
+                        >Categoría activa</label
+                    >
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('cat-modal').style.display='none'">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="cat-submit-btn">Crear</button>
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        onclick="document.getElementById('cat-modal').style.display='none'"
+                        >Cancelar</button
+                    >
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        id="cat-submit-btn">Crear</button
+                    >
                 </div>
             </form>
         </div>
     </div>
 
     <script is:inline>
-    (function() {
-        var isEditing = false;
+        (function () {
+            var isEditing = false;
 
-        document.getElementById('cat-name').addEventListener('input', function() {
-            if (!isEditing) {
-                document.getElementById('cat-slug').value = this.value
-                    .toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            }
-        });
-
-        document.getElementById('btn-new-cat').addEventListener('click', function() {
-            isEditing = false;
-            document.getElementById('cat-modal-title').textContent = 'Nueva Categoría';
-            document.getElementById('cat-submit-btn').textContent = 'Crear';
-            document.getElementById('cat-form').reset();
-            document.getElementById('cat-id').value = '';
-            document.getElementById('cat-active').checked = true;
-            document.getElementById('cat-modal').style.display = 'flex';
-        });
-
-        document.querySelectorAll('.btn-edit-cat').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                isEditing = true;
-                var c = JSON.parse(this.getAttribute('data-cat'));
-                document.getElementById('cat-modal-title').textContent = 'Editar Categoría';
-                document.getElementById('cat-submit-btn').textContent = 'Guardar';
-                document.getElementById('cat-id').value = c.id;
-                document.getElementById('cat-name').value = c.name;
-                document.getElementById('cat-slug').value = c.slug;
-                document.getElementById('cat-desc').value = c.description || '';
-                document.getElementById('cat-image').value = c.image_url || '';
-                document.getElementById('cat-order').value = c.display_order || 0;
-                document.getElementById('cat-active').checked = c.is_active;
-                document.getElementById('cat-modal').style.display = 'flex';
-            });
-        });
-
-        document.querySelectorAll('.btn-delete-cat').forEach(function(btn) {
-            btn.addEventListener('click', async function() {
-                var id = this.getAttribute('data-id');
-                var name = this.getAttribute('data-name');
-                if (!window.adminConfirm('¿Desactivar categoría "' + name + '"?')) return;
-                try {
-                    var res = await fetch('/api/admin/categories?id=' + id, { method: 'DELETE' });
-                    if (res.ok) {
-                        window.adminToast('Categoría desactivada', 'success');
-                        setTimeout(function() { window.location.reload(); }, 600);
-                    } else { window.adminToast('Error', 'error'); }
-                } catch (err) { window.adminToast('Error de conexión', 'error'); }
-            });
-        });
-
-        document.getElementById('cat-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            var catId = document.getElementById('cat-id').value;
-            var payload = {
-                name: document.getElementById('cat-name').value,
-                slug: document.getElementById('cat-slug').value,
-                description: document.getElementById('cat-desc').value || null,
-                imageUrl: document.getElementById('cat-image').value || null,
-                displayOrder: document.getElementById('cat-order').value || '0',
-                isActive: document.getElementById('cat-active').checked,
-            };
-            if (isEditing) payload.categoryId = catId;
-
-            try {
-                var res = await fetch('/api/admin/categories', {
-                    method: isEditing ? 'PATCH' : 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
+            document
+                .getElementById("cat-name")
+                .addEventListener("input", function () {
+                    if (!isEditing) {
+                        document.getElementById("cat-slug").value = this.value
+                            .toLowerCase()
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .replace(/[^a-z0-9]+/g, "-")
+                            .replace(/(^-|-$)/g, "");
+                    }
                 });
-                var data = await res.json();
-                if (res.ok) {
-                    window.adminToast(isEditing ? 'Categoría actualizada' : 'Categoría creada', 'success');
-                    document.getElementById('cat-modal').style.display = 'none';
-                    setTimeout(function() { window.location.reload(); }, 600);
-                } else {
-                    window.adminToast(data.error || 'Error', 'error');
-                }
-            } catch (err) { window.adminToast('Error de conexión', 'error'); }
-        });
-    })();
+
+            document
+                .getElementById("btn-new-cat")
+                .addEventListener("click", function () {
+                    isEditing = false;
+                    document.getElementById("cat-modal-title").textContent =
+                        "Nueva Categoría";
+                    document.getElementById("cat-submit-btn").textContent =
+                        "Crear";
+                    document.getElementById("cat-form").reset();
+                    document.getElementById("cat-id").value = "";
+                    document.getElementById("cat-active").checked = true;
+                    document.getElementById("cat-modal").style.display = "flex";
+                });
+
+            document.querySelectorAll(".btn-edit-cat").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    isEditing = true;
+                    var c = JSON.parse(this.getAttribute("data-cat"));
+                    document.getElementById("cat-modal-title").textContent =
+                        "Editar Categoría";
+                    document.getElementById("cat-submit-btn").textContent =
+                        "Guardar";
+                    document.getElementById("cat-id").value = c.id;
+                    document.getElementById("cat-name").value = c.name;
+                    document.getElementById("cat-slug").value = c.slug;
+                    document.getElementById("cat-desc").value =
+                        c.description || "";
+                    document.getElementById("cat-image").value =
+                        c.image_url || "";
+                    document.getElementById("cat-order").value =
+                        c.display_order || 0;
+                    document.getElementById("cat-active").checked = c.is_active;
+                    document.getElementById("cat-modal").style.display = "flex";
+                });
+            });
+
+            document
+                .querySelectorAll(".btn-toggle-cat")
+                .forEach(function (btn) {
+                    btn.addEventListener("click", async function () {
+                        var id = this.getAttribute("data-id");
+                        var name = this.getAttribute("data-name");
+                        var isActive =
+                            this.getAttribute("data-active") === "true";
+                        var newStatus = !isActive;
+
+                        try {
+                            var res = await fetch("/api/admin/categories", {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    categoryId: id,
+                                    isActive: newStatus,
+                                }),
+                            });
+                            if (res.ok) {
+                                window.adminToast(
+                                    newStatus
+                                        ? "Categoría activada"
+                                        : "Categoría desactivada",
+                                    "success",
+                                );
+                                setTimeout(function () {
+                                    window.location.reload();
+                                }, 600);
+                            } else {
+                                var data = await res.json();
+                                window.adminToast(
+                                    data.error || "Error",
+                                    "error",
+                                );
+                            }
+                        } catch (err) {
+                            window.adminToast("Error de conexión", "error");
+                        }
+                    });
+                });
+
+            document
+                .querySelectorAll(".btn-delete-cat")
+                .forEach(function (btn) {
+                    btn.addEventListener("click", async function () {
+                        var id = this.getAttribute("data-id");
+                        var name = this.getAttribute("data-name");
+                        if (
+                            !(await window.adminConfirm(
+                                '¿Estás seguro de que quieres eliminar la categoría "' +
+                                    name +
+                                    '" de forma permanente? Esta acción no se puede deshacer.',
+                            ))
+                        )
+                            return;
+                        try {
+                            var res = await fetch(
+                                "/api/admin/categories?id=" + id,
+                                { method: "DELETE" },
+                            );
+                            if (res.ok) {
+                                window.adminToast(
+                                    "Categoría eliminada",
+                                    "success",
+                                );
+                                setTimeout(function () {
+                                    window.location.reload();
+                                }, 600);
+                            } else {
+                                var data = await res.json();
+                                window.adminToast(
+                                    data.error || "Error",
+                                    "error",
+                                );
+                            }
+                        } catch (err) {
+                            window.adminToast("Error de conexión", "error");
+                        }
+                    });
+                });
+
+            document
+                .getElementById("cat-form")
+                .addEventListener("submit", async function (e) {
+                    e.preventDefault();
+                    var catId = document.getElementById("cat-id").value;
+                    var payload = {
+                        name: document.getElementById("cat-name").value,
+                        slug: document.getElementById("cat-slug").value,
+                        description:
+                            document.getElementById("cat-desc").value || null,
+                        imageUrl:
+                            document.getElementById("cat-image").value || null,
+                        displayOrder:
+                            document.getElementById("cat-order").value || "0",
+                        isActive: document.getElementById("cat-active").checked,
+                    };
+                    if (isEditing) payload.categoryId = catId;
+
+                    try {
+                        var res = await fetch("/api/admin/categories", {
+                            method: isEditing ? "PATCH" : "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload),
+                        });
+                        var data = await res.json();
+                        if (res.ok) {
+                            window.adminToast(
+                                isEditing
+                                    ? "Categoría actualizada"
+                                    : "Categoría creada",
+                                "success",
+                            );
+                            document.getElementById("cat-modal").style.display =
+                                "none";
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 600);
+                        } else {
+                            window.adminToast(data.error || "Error", "error");
+                        }
+                    } catch (err) {
+                        window.adminToast("Error de conexión", "error");
+                    }
+                });
+        })();
     </script>
 </AdminLayout>

@@ -11,22 +11,27 @@ import Footer from "../components/Footer.astro";
 import { supabase } from "../lib/supabase";
 
 // Cache pública: CDN guarda 5 min, navegador 2 min
-Astro.response.headers.set("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");
+Astro.response.headers.set(
+	"Cache-Control",
+	"public, s-maxage=300, stale-while-revalidate=600",
+);
 
 // ── Fetch page sections from DB ──
 let homeSections: Record<string, any> = {};
 try {
 	const { data: sectionsData } = await supabase
-		.from('page_sections')
-		.select('*')
-		.eq('page_name', 'home')
-		.order('display_order', { ascending: true });
+		.from("page_sections")
+		.select("*")
+		.eq("page_name", "home")
+		.order("display_order", { ascending: true });
 
 	if (sectionsData) {
-		sectionsData.forEach((s: any) => { homeSections[s.section_key] = s; });
+		sectionsData.forEach((s: any) => {
+			homeSections[s.section_key] = s;
+		});
 	}
 } catch (e) {
-	console.error('Error loading page sections:', e);
+	console.error("Error loading page sections:", e);
 }
 
 // Helpers
@@ -37,34 +42,26 @@ function getContent(key: string): Record<string, any> {
 	return homeSections[key]?.content || {};
 }
 
-// ── Products: use slugs from editor or fallback ──
-const fpContent = getContent('featured_products');
-const FEATURED_SLUGS: string[] = Array.isArray(fpContent.product_slugs) && fpContent.product_slugs.length > 0
-	? fpContent.product_slugs
-	: ['parra-kids', 'parra-classic-pro', 'future-black-fantasy'];
-
+// ── Products: load featured automatically ──
 let products: any[] = [];
 
 try {
-	// 1. Cargar exactamente los productos de la lista de destacados por slug
-	const { data: bySlug, error: slugError } = await supabase
+	const { data, error } = await supabase
 		.from("products")
 		.select("*, categories(name, slug)")
-		.in("slug", FEATURED_SLUGS)
-		.eq("is_active", true);
+		.eq("is_active", true)
+		.eq("is_featured", true)
+		.order("display_order", { ascending: true })
+		.order("created_at", { ascending: false })
+		.limit(4);
 
-	if (slugError) {
-		console.error("Error cargando destacados por slug:", slugError.message);
+	if (error) {
+		console.error("Error cargando productos destacados:", error.message);
 	}
 
-	if (bySlug && bySlug.length > 0) {
-		// Ordenar según el orden definido en FEATURED_SLUGS
-		products = FEATURED_SLUGS
-			.map(s => bySlug.find((p: any) => p.slug === s))
-			.filter(Boolean);
-	}
+	products = data || [];
 
-	// 2. Fallback: si no se encontraron, cargar los 4 más recientes activos
+	// Fallback si no hay destacados: cargar los 4 más recientes
 	if (products.length === 0) {
 		const { data: recentData, error: recentError } = await supabase
 			.from("products")
@@ -73,9 +70,6 @@ try {
 			.order("created_at", { ascending: false })
 			.limit(4);
 
-		if (recentError) {
-			console.error("Error cargando productos fallback:", recentError.message);
-		}
 		products = recentData || [];
 	}
 } catch (e) {
@@ -83,118 +77,171 @@ try {
 }
 
 // Section content objects
-const heroContent = getContent('hero');
-const fpData = getContent('featured_products');
-const ctaContent = getContent('cta_banner');
+const heroContent = getContent("hero");
+const fpData = getContent("featured_products");
+const ctaContent = getContent("cta_banner");
 
 // Get ordered section keys for dynamic rendering
 const orderedSections = Object.values(homeSections)
 	.sort((a: any, b: any) => a.display_order - b.display_order)
 	.map((s: any) => s.section_key);
+
+// ── JSON-LD: BreadcrumbList (homepage) ──
+const breadcrumbSchema = JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "BreadcrumbList",
+	itemListElement: [
+		{
+			"@type": "ListItem",
+			position: 1,
+			name: "Inicio",
+			item: "https://parragkgloves.es/",
+		},
+	],
+});
+
+// ── JSON-LD: Store / LocalBusiness ──
+const storeSchema = JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "Store",
+	name: "Parra GK Gloves",
+	url: "https://parragkgloves.es",
+	image: "https://parragkgloves.es/og-image.jpg",
+	description:
+		"Tienda oficial de guantes de portero profesionales Parra GK Gloves. Látex alemán, grip profesional, envío gratis en España.",
+	currenciesAccepted: "EUR",
+	paymentAccepted: "Credit Card, PayPal",
+	priceRange: "€€",
+	address: { "@type": "PostalAddress", addressCountry: "ES" },
+	openingHoursSpecification: {
+		"@type": "OpeningHoursSpecification",
+		dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+		opens: "09:00",
+		closes: "18:00",
+	},
+});
+
+const homeSchemaJson = JSON.stringify([
+	JSON.parse(breadcrumbSchema),
+	JSON.parse(storeSchema),
+]);
 ---
 
 <Layout
-	title="Inicio"
-	description="PARRA — Guantes de portero profesionales. Agarre extremo, tecnología alemana, diseño premium."
+	title="Parra GK Gloves – Guantes de Portero Profesionales"
+	description="Compra guantes de portero profesionales Parra GK Gloves. Látex alemán de alta adherencia, tecnología grip élite, envío gratis en España. ¡Domina el área!"
+	schemaJson={homeSchemaJson}
 >
 	<Header />
 	<main>
 		<!-- Hero -->
-		{isActive('hero') && <Hero content={heroContent} />}
+		{isActive("hero") && <Hero content={heroContent} />}
 
 		<!-- Featured Products -->
-		{isActive('featured_products') && (
-		<section class="py-10 sm:py-14 md:py-20 lg:py-28">
-			<div class="container">
-				<div
-					class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-14 gap-4 md:gap-6"
-				>
-					<div>
-						<h2 class="section-title">
-							{fpData.title || 'Productos'} <span class="text-brand">{fpData.title_accent || 'Destacados'}</span>
-						</h2>
-						<p class="section-subtitle">
-							{fpData.subtitle || 'Nuestra selección de los guantes más vendidos. Tecnología de vanguardia para porteros exigentes.'}
-						</p>
-					</div>
-					<a href={fpData.cta_link || '/shop'} class="btn-outline group shrink-0">
-						{fpData.cta_text || 'Ver toda la tienda'}
-						<svg
-							class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-						</svg>
-					</a>
-				</div>
+		{
+			isActive("featured_products") && (
+				<section class="py-10 sm:py-14 md:py-20 lg:py-28">
+					<div class="container">
+						<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-14 gap-4 md:gap-6">
+							<div>
+								<h2 class="section-title">
+									{fpData.title || "Productos"}{" "}
+									<span class="text-brand">
+										{fpData.title_accent || "Destacados"}
+									</span>
+								</h2>
+								<p class="section-subtitle">
+									{fpData.subtitle ||
+										"Nuestra selección de los guantes más vendidos. Tecnología de vanguardia para porteros exigentes."}
+								</p>
+							</div>
+							<a
+								href={fpData.cta_link || "/shop"}
+								class="btn-outline group shrink-0"
+							>
+								{fpData.cta_text || "Ver toda la tienda"}
+								<svg
+									class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M17 8l4 4m0 0l-4 4m4-4H3"
+									/>
+								</svg>
+							</a>
+						</div>
 
-				<div
-					class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8"
-				>
-					{
-						(products || []).map((product: any, i: number) => (
-							<ProductCard product={product} index={i} />
-						))
-					}
-				</div>
-			</div>
-		</section>
-		)}
+						<div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
+							{(products || []).map((product: any, i: number) => (
+								<ProductCard product={product} index={i} />
+							))}
+						</div>
+					</div>
+				</section>
+			)
+		}
 
 		<!-- Benefits -->
-		{isActive('benefits') && <Benefits />}
+		{isActive("benefits") && <Benefits />}
 
 		<!-- Glove Selector -->
-		{isActive('glove_selector') && <GloveSelector />}
+		{isActive("glove_selector") && <GloveSelector />}
 
 		<!-- Testimonials -->
-		{isActive('testimonials') && <Testimonials />}
+		{isActive("testimonials") && <Testimonials />}
 
 		<!-- CTA Banner -->
-		{isActive('cta_banner') && (
-		<section
-			class="relative h-[35vh] sm:h-[40vh] md:h-[50vh] lg:h-[60vh] flex items-center overflow-hidden"
-		>
-			<div
-				class="absolute inset-0 bg-cover bg-scroll md:bg-fixed bg-center"
-				style={`background-image: url('${ctaContent.bg_image || 'https://res.cloudinary.com/djvj32zic/image/upload/v1771869186/b6c3767d-ca9e-49a5-8187-b0610793ba75_zgic3i.png'}');`}
-			>
-				<div class="absolute inset-0" style={`background: rgba(0,0,0,${ctaContent.overlay_opacity ?? 0.7});`}></div>
-			</div>
-			<div class="container relative z-10 text-center reveal">
-				<h2
-					class="text-2xl sm:text-3xl md:text-5xl lg:text-8xl font-display font-bold uppercase tracking-tighter mb-4 sm:mb-6 md:mb-8"
-				>
-					{ctaContent.title_line1 || '¿LISTO PARA'}<br />
-					<span class="text-brand">{ctaContent.title_line2 || 'VOLAR?'}</span>
-				</h2>
-				<a href={ctaContent.cta_link || '/register'} class="btn-glow inline-flex">
-					{ctaContent.cta_text || 'Únete al Club PARRA'}
-					<svg
-						class="w-4 h-4 ml-2"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
+		{
+			isActive("cta_banner") && (
+				<section class="relative h-[35vh] sm:h-[40vh] md:h-[50vh] lg:h-[60vh] flex items-center overflow-hidden">
+					<div
+						class="absolute inset-0 bg-cover bg-scroll md:bg-fixed bg-center"
+						style={`background-image: url('${ctaContent.bg_image || "https://res.cloudinary.com/djvj32zic/image/upload/v1771869186/b6c3767d-ca9e-49a5-8187-b0610793ba75_zgic3i.png"}');`}
 					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-					</svg>
-				</a>
-			</div>
-		</section>
-		)}
+						<div
+							class="absolute inset-0"
+							style={`background: rgba(0,0,0,${ctaContent.overlay_opacity ?? 0.7});`}
+						/>
+					</div>
+					<div class="container relative z-10 text-center reveal">
+						<h2 class="text-2xl sm:text-3xl md:text-5xl lg:text-8xl font-display font-bold uppercase tracking-tighter mb-4 sm:mb-6 md:mb-8">
+							{ctaContent.title_line1 || "¿LISTO PARA"}
+							<br />
+							<span class="text-brand">
+								{ctaContent.title_line2 || "VOLAR?"}
+							</span>
+						</h2>
+						<a
+							href={ctaContent.cta_link || "/register"}
+							class="btn-glow inline-flex"
+						>
+							{ctaContent.cta_text || "Únete al Club PARRA"}
+							<svg
+								class="w-4 h-4 ml-2"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M17 8l4 4m0 0l-4 4m4-4H3"
+								/>
+							</svg>
+						</a>
+					</div>
+				</section>
+			)
+		}
 
 		<!-- Newsletter -->
-		{isActive('newsletter') && <Newsletter />}
+		{isActive("newsletter") && <Newsletter />}
 	</main>
 	<Footer />
 </Layout>

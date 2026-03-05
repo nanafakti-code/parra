@@ -26,53 +26,83 @@ if (!product) {
 }
 
 // Cache pública del producto (10 min CDN, stale-while-revalidate 30 min)
-Astro.response.headers.set("Cache-Control", "public, s-maxage=600, stale-while-revalidate=1800");
+Astro.response.headers.set(
+    "Cache-Control",
+    "public, s-maxage=600, stale-while-revalidate=1800",
+);
 
 // Fetch images + variants + related en paralelo
-const [
-    { data: images },
-    { data: variants },
-    { data: relatedRaw },
-] = await Promise.all([
-    supabase
-        .from("product_images")
-        .select("*")
-        .eq("product_id", product.id)
-        .order("display_order"),
-    supabase
-        .from("product_variants")
-        .select("*")
-        .eq("product_id", product.id)
-        .eq("is_active", true)
-        .order("size"),
-    supabase
-        .from("products")
-        .select("*, categories(name, slug)")
-        .eq("is_active", true)
-        .eq("category_id", product.category_id)
-        .neq("id", product.id)
-        .limit(4),
-]);
+const [{ data: images }, { data: variants }, { data: relatedRaw }] =
+    await Promise.all([
+        supabase
+            .from("product_images")
+            .select("*")
+            .eq("product_id", product.id)
+            .order("display_order"),
+        supabase
+            .from("product_variants")
+            .select("*")
+            .eq("product_id", product.id)
+            .eq("is_active", true)
+            .order("size"),
+        supabase
+            .from("products")
+            .select("*, categories(name, slug)")
+            .eq("is_active", true)
+            .eq("category_id", product.category_id)
+            .neq("id", product.id)
+            .limit(4),
+    ]);
 
 const relatedProducts: any[] = relatedRaw || [];
 
 // Extra gallery images for specific products (fallback when DB images missing)
-const extraGalleries: Record<string, Array<{ url: string; alt_text?: string }>> = {
+const extraGalleries: Record<
+    string,
+    Array<{ url: string; alt_text?: string }>
+> = {
     "parra-kids": [
-        { url: "https://res.cloudinary.com/djvj32zic/image/upload/v1772482267/SaveClip.App_640870346_18028056920616241_3257153926183807774_n_tktfgq.jpg", alt_text: "Parra Kids 1" },
-        { url: "https://res.cloudinary.com/djvj32zic/image/upload/v1772482267/SaveClip.App_641732915_18028056917616241_450452175200423146_n_b9fyjr.jpg", alt_text: "Parra Kids 2" },
-        { url: "https://res.cloudinary.com/djvj32zic/image/upload/v1772482267/SaveClip.App_642485756_18028056929616241_8015745512839676158_n_tu1y0o.jpg", alt_text: "Parra Kids 3" },
-        { url: "https://res.cloudinary.com/djvj32zic/image/upload/v1772482267/SaveClip.App_641755575_18028056884616241_5518621849251149366_n_d3gfr5.jpg", alt_text: "Parra Kids 4" },
-        { url: "https://res.cloudinary.com/djvj32zic/image/upload/v1772482267/SaveClip.App_642491909_18028056896616241_4204515129068799710_n_fpem6v.jpg", alt_text: "Parra Kids 5" },
+        {
+            url: "https://res.cloudinary.com/djvj32zic/image/upload/v1772482267/SaveClip.App_640870346_18028056920616241_3257153926183807774_n_tktfgq.jpg",
+            alt_text: "Parra Kids 1",
+        },
+        {
+            url: "https://res.cloudinary.com/djvj32zic/image/upload/v1772482267/SaveClip.App_641732915_18028056917616241_450452175200423146_n_b9fyjr.jpg",
+            alt_text: "Parra Kids 2",
+        },
+        {
+            url: "https://res.cloudinary.com/djvj32zic/image/upload/v1772482267/SaveClip.App_642485756_18028056929616241_8015745512839676158_n_tu1y0o.jpg",
+            alt_text: "Parra Kids 3",
+        },
+        {
+            url: "https://res.cloudinary.com/djvj32zic/image/upload/v1772482267/SaveClip.App_641755575_18028056884616241_5518621849251149366_n_d3gfr5.jpg",
+            alt_text: "Parra Kids 4",
+        },
+        {
+            url: "https://res.cloudinary.com/djvj32zic/image/upload/v1772482267/SaveClip.App_642491909_18028056896616241_4204515129068799710_n_fpem6v.jpg",
+            alt_text: "Parra Kids 5",
+        },
     ],
 };
 
 // Normalize images fetched from DB: ensure they have `url` and `alt_text`
-const dbImages = (images || []).map((img: any) => {
-    if (!img) return null;
-    const url = img.url || img.image || img.product_image || img.productImage || null;
-    return url ? { url: url as string, alt_text: (img.alt_text || img.alt || product.name) as string } : null;
-}).filter((x): x is { url: string; alt_text: string } => x !== null);
+const dbImages = (images || [])
+    .map((img: any) => {
+        if (!img) return null;
+        const url =
+            img.url ||
+            img.image ||
+            img.product_image ||
+            img.productImage ||
+            null;
+        return url
+            ? {
+                  url: url as string,
+                  alt_text: (img.alt_text || img.alt || product.name) as string,
+              }
+            : null;
+    })
+    .filter((x): x is { url: string; alt_text: string } => x !== null);
 
 // Helper to deduplicate by URL while preserving order
 function uniqueByUrl(arr: Array<{ url: string; alt_text?: string }>) {
@@ -90,10 +120,7 @@ function uniqueByUrl(arr: Array<{ url: string; alt_text?: string }>) {
 let merged: Array<{ url: string; alt_text?: string }> = [];
 // Prefer DB images if present (they are the source of truth). Otherwise use the code fallback gallery.
 if (dbImages.length > 0) {
-    merged = [
-        { url: product.image, alt_text: product.name },
-        ...dbImages,
-    ];
+    merged = [{ url: product.image, alt_text: product.name }, ...dbImages];
 } else if (extraGalleries[product.slug]) {
     merged = [
         ...extraGalleries[product.slug],
@@ -103,7 +130,7 @@ if (dbImages.length > 0) {
     merged = [{ url: product.image, alt_text: product.name }];
 }
 
-const allImages = uniqueByUrl(merged).filter(img => img && img.url);
+const allImages = uniqueByUrl(merged).filter((img) => img && img.url);
 
 const hasDiscount =
     product.compare_price && product.compare_price > product.price;
@@ -132,12 +159,103 @@ const specs = [
             "Envío gratuito en pedidos superiores a 60€. Entrega en 24-48h en Península. Devoluciones gratuitas en 30 días.",
     },
 ];
+
+// ── JSON-LD: Product schema ─────────────────────────────────────────────
+const SITE = "https://parragkgloves.es";
+const productUrl = `${SITE}/product/${product.slug}`;
+
+const productSchema = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: `${product.name} – Guantes de Portero Parra GK Gloves`,
+    description:
+        product.short_description ||
+        product.description ||
+        "Guantes de portero profesionales con látex alemán de alta adherencia.",
+    brand: { "@type": "Brand", name: "Parra GK Gloves" },
+    url: productUrl,
+    image: allImages.map((img) => img.url),
+    sku: product.id,
+    category: product.categories?.name || "Guantes de Portero",
+    offers: {
+        "@type": "Offer",
+        url: productUrl,
+        priceCurrency: "EUR",
+        price: product.price.toFixed(2),
+        priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0],
+        availability:
+            variants && variants.some((v: any) => v.stock > 0)
+                ? "https://schema.org/InStock"
+                : "https://schema.org/OutOfStock",
+        seller: { "@type": "Organization", name: "Parra GK Gloves" },
+        shippingDetails: {
+            "@type": "OfferShippingDetails",
+            shippingRate: {
+                "@type": "MonetaryAmount",
+                value: "0",
+                currency: "EUR",
+            },
+            shippingDestination: {
+                "@type": "DefinedRegion",
+                addressCountry: "ES",
+            },
+        },
+        hasMerchantReturnPolicy: {
+            "@type": "MerchantReturnPolicy",
+            returnPolicyCategory:
+                "https://schema.org/MerchantReturnFiniteReturnWindow",
+            merchantReturnDays: 30,
+        },
+    },
+});
+
+// ── JSON-LD: BreadcrumbList ─────────────────────────────────────────────
+const productBreadcrumb = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Inicio", item: `${SITE}/` },
+        {
+            "@type": "ListItem",
+            position: 2,
+            name: "Tienda",
+            item: `${SITE}/shop`,
+        },
+        ...(product.categories
+            ? [
+                  {
+                      "@type": "ListItem",
+                      position: 3,
+                      name: product.categories.name,
+                      item: `${SITE}/shop?category=${product.categories.slug}`,
+                  },
+              ]
+            : []),
+        {
+            "@type": "ListItem",
+            position: product.categories ? 4 : 3,
+            name: product.name,
+            item: productUrl,
+        },
+    ],
+});
+
+const productSchemaJson = `[${productSchema},${productBreadcrumb}]`;
+
+// ── SEO Strings ────────────────────────────────────────────────────────
+const seoTitle = `${product.name} – Guantes de Portero | Parra GK Gloves`;
+const seoDescription = product.short_description
+    ? `${product.short_description.slice(0, 130)} · Envío gratis en España · Parra GK Gloves`
+    : `Compra ${product.name}, guantes de portero profesionales de Parra GK Gloves. Látex alemán, grip élite. Envío gratis y devolución 30 días.`;
 ---
 
 <Layout
-    title={product.name}
-    description={product.short_description ||
-        product.description?.slice(0, 160)}
+    title={seoTitle}
+    description={seoDescription}
+    image={allImages[0]?.url || "https://parragkgloves.es/og-image.jpg"}
+    schemaJson={productSchemaJson}
 >
     <Header />
     <main class="min-h-screen" style="background-color: var(--bg-primary);">
@@ -510,7 +628,9 @@ const specs = [
 
     function initProductPage() {
         // Thumbnail gallery
-        const thumbButtons = Array.from(document.querySelectorAll(".thumb-btn")) as HTMLButtonElement[];
+        const thumbButtons = Array.from(
+            document.querySelectorAll(".thumb-btn"),
+        ) as HTMLButtonElement[];
 
         thumbButtons.forEach(function (btn) {
             const img = btn.querySelector("img") as HTMLImageElement | null;
@@ -533,7 +653,9 @@ const specs = [
             }
 
             btn.addEventListener("click", function () {
-                var mainImg = document.getElementById("main-image") as HTMLImageElement;
+                var mainImg = document.getElementById(
+                    "main-image",
+                ) as HTMLImageElement;
                 if (mainImg && src) {
                     mainImg.src = src;
                 }
@@ -549,28 +671,36 @@ const specs = [
 
         // After bindings, remove any thumbnails that became empty and set initial main image
         (function finalizeGallery() {
-            const remaining = Array.from(document.querySelectorAll('.thumb-btn')) as HTMLButtonElement[];
-            const mainImg = document.getElementById('main-image') as HTMLImageElement | null;
+            const remaining = Array.from(
+                document.querySelectorAll(".thumb-btn"),
+            ) as HTMLButtonElement[];
+            const mainImg = document.getElementById(
+                "main-image",
+            ) as HTMLImageElement | null;
 
             if (remaining.length === 0) {
                 // no thumbs, ensure main image exists
-                if (mainImg && (!mainImg.src || mainImg.src.trim() === '')) {
-                    mainImg.src = '/images/placeholder-product.svg';
+                if (mainImg && (!mainImg.src || mainImg.src.trim() === "")) {
+                    mainImg.src = "/images/placeholder-product.svg";
                 }
                 return;
             }
 
             // If main image is missing or failed, pick the first valid thumb
-            if (mainImg && (!mainImg.src || mainImg.src.trim() === '')) {
+            if (mainImg && (!mainImg.src || mainImg.src.trim() === "")) {
                 const first = remaining[0];
-                const src = first.dataset.src || (first.querySelector('img') as HTMLImageElement).src;
+                const src =
+                    first.dataset.src ||
+                    (first.querySelector("img") as HTMLImageElement).src;
                 if (src) mainImg.src = src;
             }
 
             // Mark first visible thumb as active if none active
-            const hasActive = remaining.some(b => b.classList.contains('border-brand'));
+            const hasActive = remaining.some((b) =>
+                b.classList.contains("border-brand"),
+            );
             if (!hasActive) {
-                remaining[0].classList.add('border-brand');
+                remaining[0].classList.add("border-brand");
             }
         })();
 

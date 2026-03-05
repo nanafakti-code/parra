@@ -68,11 +68,32 @@ try {
     console.error("Supabase products error:", e);
 }
 const filteredProducts = products || [];
+
+// ── JSON-LD: BreadcrumbList (shop) ──
+const shopSchemaJson = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+        {
+            "@type": "ListItem",
+            position: 1,
+            name: "Inicio",
+            item: "https://parragkgloves.es/",
+        },
+        {
+            "@type": "ListItem",
+            position: 2,
+            name: "Tienda de Guantes de Portero",
+            item: "https://parragkgloves.es/shop",
+        },
+    ],
+});
 ---
 
 <Layout
-    title="Tienda"
-    description="Explora nuestra colección de guantes de portero profesionales."
+    title="Guantes de Portero Profesionales – Tienda Parra GK Gloves"
+    description="Compra guantes de portero profesionales Parra GK Gloves. Látex alemán grip, modelos pro y elite para porteros. Envío gratis +60€ · Devolución 30 días."
+    schemaJson={shopSchemaJson}
 >
     <Header />
     <main class="min-h-screen" style="background-color: var(--bg-primary);">
