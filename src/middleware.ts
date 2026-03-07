@@ -17,20 +17,29 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
     let isMaintenanceMode = false;
 
     if (!isLocalhost) {
-        try {
-            const { data, error } = await supabaseAdmin
-                .from('site_settings')
-                .select('value')
-                .eq('key', 'maintenance_mode')
-                .maybeSingle();
-            if (error) {
-                console.error('[middleware] Error reading maintenance_mode:', error.message);
+        // Check environment variable first (set in Vercel)
+        const envMaintenance = import.meta.env.MAINTENANCE_MODE;
+        if (envMaintenance === 'true' || envMaintenance === true) {
+            isMaintenanceMode = true;
+        }
+
+        // Also check site_settings table in Supabase (set from admin panel)
+        if (!isMaintenanceMode) {
+            try {
+                const { data, error } = await supabaseAdmin
+                    .from('site_settings')
+                    .select('value')
+                    .eq('key', 'maintenance_mode')
+                    .maybeSingle();
+                if (error) {
+                    console.error('[middleware] Error reading maintenance_mode:', error.message);
+                }
+                // Handle various jsonb formats: true, "true", {enabled: true}
+                const val = data?.value;
+                isMaintenanceMode = val === true || val === 'true' || (typeof val === 'object' && val !== null && (val as any).enabled === true);
+            } catch (e) {
+                console.error('[middleware] Exception reading maintenance_mode:', e);
             }
-            // Handle various jsonb formats: true, "true", {enabled: true}
-            const val = data?.value;
-            isMaintenanceMode = val === true || val === 'true' || (typeof val === 'object' && val !== null && (val as any).enabled === true);
-        } catch (e) {
-            console.error('[middleware] Exception reading maintenance_mode:', e);
         }
     }
 
