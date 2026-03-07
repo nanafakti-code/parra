@@ -13,10 +13,10 @@ import { supabase, supabaseAdmin } from "./lib/supabase";
 export const onRequest = defineMiddleware(async ({ cookies, locals, request, redirect }, next) => {
     // 1. Comprobar modo mantenimiento desde site_settings en Supabase
     const url = new URL(request.url);
-    const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
     let isMaintenanceMode = false;
 
-    if (!isLocalhost) {
+    // In production, check maintenance mode (skip in local dev)
+    if (import.meta.env.PROD) {
         // Check environment variable first (set in Vercel)
         const envMaintenance = import.meta.env.MAINTENANCE_MODE;
         if (envMaintenance === 'true' || envMaintenance === true) {
