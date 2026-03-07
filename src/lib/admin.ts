@@ -117,27 +117,41 @@ export async function validateAdminAPI(request: Request, cookies: any): Promise<
     }
 
     if (!user || error) {
+        console.error('[validateAdminAPI] Token inválido. Error:', error?.message, 'User:', user?.id);
         return jsonResponse({ error: 'Token inválido' }, 401);
     }
 
+    console.log('[validateAdminAPI] Auth user:', { id: user.id, email: user.email });
+
     let dbUser: any = null;
-    const { data: byId } = await supabaseAdmin
+    const { data: byId, error: byIdError } = await supabaseAdmin
         .from('users')
         .select('id, name, email, role, is_active')
         .eq('id', user.id)
         .maybeSingle();
+
+    console.log('[validateAdminAPI] Lookup by ID:', { byId, byIdError: byIdError?.message });
+
     if (byId) {
         dbUser = byId;
     } else {
-        const { data: byEmail } = await supabaseAdmin
+        // Try case-insensitive email match
+        const userEmail = (user.email || '').toLowerCase().trim();
+        const { data: byEmail, error: byEmailError } = await supabaseAdmin
             .from('users')
             .select('id, name, email, role, is_active')
-            .eq('email', user.email)
+            .ilike('email', userEmail)
             .maybeSingle();
+
+        console.log('[validateAdminAPI] Lookup by email:', { userEmail, byEmail, byEmailError: byEmailError?.message });
         dbUser = byEmail;
     }
 
     if (!dbUser || dbUser.role !== 'admin' || !dbUser.is_active) {
+        console.error('[validateAdminAPI] Access denied.', {
+            dbUser: dbUser ? { id: dbUser.id, email: dbUser.email, role: dbUser.role, is_active: dbUser.is_active } : null,
+            authUser: { id: user.id, email: user.email }
+        });
         return jsonResponse({ error: 'Acceso denegado' }, 403);
     }
 
