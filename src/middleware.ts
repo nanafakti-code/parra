@@ -18,14 +18,19 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
 
     if (!isLocalhost) {
         try {
-            const { data } = await supabaseAdmin
+            const { data, error } = await supabaseAdmin
                 .from('site_settings')
                 .select('value')
                 .eq('key', 'maintenance_mode')
                 .maybeSingle();
-            isMaintenanceMode = data?.value === true;
+            if (error) {
+                console.error('[middleware] Error reading maintenance_mode:', error.message);
+            }
+            // Handle various jsonb formats: true, "true", {enabled: true}
+            const val = data?.value;
+            isMaintenanceMode = val === true || val === 'true' || (typeof val === 'object' && val !== null && (val as any).enabled === true);
         } catch (e) {
-            // Si falla la consulta, seguimos sin modo mantenimiento
+            console.error('[middleware] Exception reading maintenance_mode:', e);
         }
     }
 
