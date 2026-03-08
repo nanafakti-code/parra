@@ -11,79 +11,34 @@ import { supabase, supabaseAdmin } from "./lib/supabase";
  * 4. Busca el rol del usuario en la tabla 'users' y lo adjunta a locals.role.
  */
 export const onRequest = defineMiddleware(async ({ cookies, locals, request, redirect }, next) => {
-    // 1. Comprobar modo mantenimiento desde site_settings en Supabase
+    // 1. Comprobar modo mantenimiento (soporte para Vercel process.env y mayúsculas/minúsculas)
+    const rawMaintenanceMode = import.meta.env.MAINTENANCE_MODE || (typeof process !== 'undefined' ? process.env.MAINTENANCE_MODE : false);
+    const isMaintenanceMode = String(rawMaintenanceMode).trim().toLowerCase() === 'true';
     const url = new URL(request.url);
-    let isMaintenanceMode = false;
 
-    // In production, check maintenance mode from DB (skip in local dev)
-    if (import.meta.env.PROD) {
-        try {
-            const { data, error } = await supabaseAdmin
-                .from('site_settings')
-                .select('value')
-                .eq('key', 'maintenance_mode')
-                .maybeSingle();
-            if (error) {
-                console.error('[middleware] Error reading maintenance_mode:', error.message);
-            }
-            const val = data?.value;
-            isMaintenanceMode = val === true || val === 'true';
-        } catch (e) {
-            console.error('[middleware] Exception reading maintenance_mode:', e);
-        }
-    }
-
-    const pathname = url.pathname.replace(/\/+$/, '') || '/';
+    const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
 
     if (
         isMaintenanceMode &&
-        pathname !== '/maintenance' &&
-        !pathname.startsWith('/admin') &&
-        !pathname.startsWith('/_astro') &&
-        !pathname.startsWith('/api') &&
-        !pathname.match(/\.(png|jpg|jpeg|svg|css|js|ico)$/)
+        !isLocalhost &&
+        url.pathname !== '/maintenance' &&
+        !url.pathname.startsWith('/_astro') &&
+        !url.pathname.startsWith('/api') &&
+        !url.pathname.match(/\.(png|jpg|jpeg|svg|css|js|ico)$/)
     ) {
         return redirect('/maintenance', 302);
     }
 
     // 2. Obtener access_token desde cookies
     // Usamos 'sb-access-token' como nombre predeterminado de Supabase
-    let accessToken = cookies.get("sb-access-token")?.value || cookies.get("auth_token")?.value;
-    const refreshToken = cookies.get("sb-refresh-token")?.value;
+    const accessToken = cookies.get("sb-access-token")?.value || cookies.get("auth_token")?.value;
 
     locals.user = null;
     locals.role = null;
 
     if (accessToken) {
         // 3. Validar usuario con Supabase Auth (sin usar admin para este paso)
-        let { data: { user }, error } = await supabase.auth.getUser(accessToken);
-
-        // Si el token expiró, intentar refresh
-        if ((!user || error) && refreshToken) {
-            try {
-                const { data: refreshData, error: refreshError } = await supabase.auth.setSession({
-                    access_token: accessToken,
-                    refresh_token: refreshToken,
-                });
-
-                if (refreshData?.session && !refreshError) {
-                    const cookieOptions = {
-                        path: '/',
-                        httpOnly: true,
-                        secure: import.meta.env.PROD,
-                        sameSite: 'lax' as const,
-                        maxAge: 60 * 60 * 24 * 7,
-                    };
-                    cookies.set('sb-access-token', refreshData.session.access_token, cookieOptions);
-                    cookies.set('sb-refresh-token', refreshData.session.refresh_token, cookieOptions);
-
-                    user = refreshData.session.user;
-                    error = null;
-                }
-            } catch (e) {
-                // Si falla el refresh, continuamos sin usuario
-            }
-        }
+        const { data: { user }, error } = await supabase.auth.getUser(accessToken);
 
         if (user && !error) {
             locals.user = user;

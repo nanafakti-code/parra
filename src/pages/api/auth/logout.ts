@@ -30,13 +30,15 @@ export const POST: APIRoute = async ({ cookies, request, redirect }) => {
             try {
                 const { data: userResult } = await supabase.auth.getUser(accessToken);
                 const user = (userResult as any)?.user;
-                if (user && user.id) {
-                    // Cierra la sesión del usuario server-side
+                if (user && user.id && supabaseAdmin?.auth?.admin?.invalidateUserRefreshTokens) {
+                    // Invalida los refresh tokens del usuario (si la SDK lo soporta)
+                    // Esto evita reuso de refresh tokens si existieran en otros clientes
                     try {
-                        await supabaseAdmin.auth.admin.signOut(user.id);
+                        // @ts-ignore - método admin puede variar según versión
+                        await supabaseAdmin.auth.admin.invalidateUserRefreshTokens(user.id);
                     } catch (err) {
                         // No crítico si falla; seguimos con la limpieza de cookies
-                        console.warn('[logout] No se pudo cerrar sesión server-side:', err);
+                        console.warn('[logout] No se pudo invalidar refresh tokens:', err);
                     }
                 }
             } catch (err) {
@@ -61,10 +63,10 @@ export const POST: APIRoute = async ({ cookies, request, redirect }) => {
     }
 };
 
-// Mantener compatibilidad con peticiones GET (enlaces directos)
+// Compatibilidad GET: borrar cookies y redirigir al inicio
 export const GET: APIRoute = async ({ cookies, redirect }) => {
     cookies.delete('sb-access-token', cookieOptions);
     cookies.delete('sb-refresh-token', cookieOptions);
     cookies.delete('auth_token', cookieOptions);
-    return redirect('/', 303);
+    return redirect('/', 302);
 };

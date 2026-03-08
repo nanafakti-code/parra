@@ -405,11 +405,16 @@ const { user, role } = Astro.locals;
         window.addEventListener("cart:updated", updateCartCount);
 
         // ── Logout ──
-        function handleLogout() {
+        async function handleLogout() {
             // Limpiar el carrito del usuario actual y volver al modo invitado
             localStorage.removeItem("parra_cart_user_id");
             localStorage.removeItem("parra_cart_session");
-            window.location.href = "/api/auth/logout";
+            try {
+                await fetch("/api/auth/logout", { method: "POST" });
+            } catch (e) {
+                // continuar aunque falle el fetch
+            }
+            window.location.href = "/";
         }
 
         var logoutBtn = document.getElementById("logout-btn");

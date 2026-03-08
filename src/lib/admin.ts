@@ -73,8 +73,7 @@ export function jsonResponse(data: Record<string, unknown>, status = 200): Respo
 
 /** Validate admin API request – returns admin user or error Response */
 export async function validateAdminAPI(request: Request, cookies: any): Promise<{ admin: any } | Response> {
-    let accessToken = cookies.get('sb-access-token')?.value || cookies.get('auth_token')?.value;
-    const refreshToken = cookies.get('sb-refresh-token')?.value;
+    const accessToken = cookies.get('sb-access-token')?.value || cookies.get('auth_token')?.value;
 
     if (!accessToken) {
         return jsonResponse({ error: 'No autorizado' }, 401);
@@ -85,73 +84,30 @@ export async function validateAdminAPI(request: Request, cookies: any): Promise<
     const supabaseKey = import.meta.env.SUPABASE_ANON_KEY || '';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    let { data: { user }, error } = await supabase.auth.getUser(accessToken);
-
-    // Si el token expiró, intentar refresh
-    if ((!user || error) && refreshToken) {
-        try {
-            const { data: refreshData, error: refreshError } = await supabase.auth.setSession({
-                access_token: accessToken,
-                refresh_token: refreshToken,
-            });
-
-            if (refreshData?.session && !refreshError) {
-                // Actualizar cookies con los nuevos tokens
-                const cookieOptions = {
-                    path: '/',
-                    httpOnly: true,
-                    secure: import.meta.env.PROD,
-                    sameSite: 'lax' as const,
-                    maxAge: 60 * 60 * 24 * 7,
-                };
-                cookies.set('sb-access-token', refreshData.session.access_token, cookieOptions);
-                cookies.set('sb-refresh-token', refreshData.session.refresh_token, cookieOptions);
-
-                accessToken = refreshData.session.access_token;
-                user = refreshData.session.user;
-                error = null;
-            }
-        } catch (e) {
-            // Si falla el refresh, continuamos con el error original
-        }
-    }
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken);
 
     if (!user || error) {
-        console.error('[validateAdminAPI] Token inválido. Error:', error?.message, 'User:', user?.id);
         return jsonResponse({ error: 'Token inválido' }, 401);
     }
 
-    console.log('[validateAdminAPI] Auth user:', { id: user.id, email: user.email });
-
     let dbUser: any = null;
-    const { data: byId, error: byIdError } = await supabaseAdmin
+    const { data: byId } = await supabaseAdmin
         .from('users')
         .select('id, name, email, role, is_active')
         .eq('id', user.id)
         .maybeSingle();
-
-    console.log('[validateAdminAPI] Lookup by ID:', { byId, byIdError: byIdError?.message });
-
     if (byId) {
         dbUser = byId;
     } else {
-        // Try case-insensitive email match
-        const userEmail = (user.email || '').toLowerCase().trim();
-        const { data: byEmail, error: byEmailError } = await supabaseAdmin
+        const { data: byEmail } = await supabaseAdmin
             .from('users')
             .select('id, name, email, role, is_active')
-            .ilike('email', userEmail)
+            .eq('email', user.email)
             .maybeSingle();
-
-        console.log('[validateAdminAPI] Lookup by email:', { userEmail, byEmail, byEmailError: byEmailError?.message });
         dbUser = byEmail;
     }
 
     if (!dbUser || dbUser.role !== 'admin' || !dbUser.is_active) {
-        console.error('[validateAdminAPI] Access denied.', {
-            dbUser: dbUser ? { id: dbUser.id, email: dbUser.email, role: dbUser.role, is_active: dbUser.is_active } : null,
-            authUser: { id: user.id, email: user.email }
-        });
         return jsonResponse({ error: 'Acceso denegado' }, 403);
     }
 
