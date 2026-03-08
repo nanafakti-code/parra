@@ -13,429 +13,531 @@ interface Props {
         bg_image?: string;
         overlay_color?: string;
         overlay_opacity?: number;
+        // Style overrides
+        style_badge_bg?: string;
+        style_badge_text?: string;
+        style_title_line1_color?: string;
+        style_title_line2_color?: string;
+        style_subtitle_color?: string;
+        style_cta_bg?: string;
+        style_cta_text?: string;
+        style_cta_hover_bg?: string;
+        style_secondary_bg?: string;
+        style_secondary_text?: string;
+        style_secondary_border?: string;
     };
 }
 
 const { content = {} } = Astro.props;
 
 // Dynamic values with fallbacks
-const titleLine1 = content.title_line1 || 'DOMINA';
-const titleLine2 = content.title_line2 || 'EL ÁREA';
-const subtitle = content.subtitle || 'Siente el agarre absoluto. Diseñados para porteros de elite que no aceptan menos que la perfección.';
-const subtitleMobile = content.subtitle_mobile || 'Agarre absoluto. Para porteros que exigen perfección.';
-const badge = content.badge || 'Nueva Colección 2026';
-const ctaText = content.cta_text || 'Comprar Ahora';
-const ctaLink = content.cta_link || '/shop';
-const secondaryText = content.secondary_text || 'Serie Elite';
-const secondaryLink = content.secondary_link || '/shop?category=elite';
-const bgImage = content.bg_image || 'https://res.cloudinary.com/djvj32zic/image/upload/v1771850353/wmremove-transformed_qkiglz.png';
-const overlayColor = content.overlay_color || '#000000';
+const titleLine1 = content.title_line1 || "DOMINA";
+const titleLine2 = content.title_line2 || "EL ÁREA";
+const subtitle =
+    content.subtitle ||
+    "Siente el agarre absoluto. Diseñados para porteros de elite que no aceptan menos que la perfección.";
+const subtitleMobile =
+    content.subtitle_mobile ||
+    "Agarre absoluto. Para porteros que exigen perfección.";
+const badge = content.badge || "Nueva Colección 2026";
+const ctaText = content.cta_text || "Comprar Ahora";
+const ctaLink = content.cta_link || "/shop";
+const secondaryText = content.secondary_text || "Serie Elite";
+const secondaryLink = content.secondary_link || "/shop?category=elite";
+const bgImage =
+    content.bg_image ||
+    "https://res.cloudinary.com/djvj32zic/image/upload/v1771850353/wmremove-transformed_qkiglz.png";
+const overlayColor = content.overlay_color || "#000000";
 const overlayOpacity = content.overlay_opacity ?? 0.4;
+
+// Style overrides with current design defaults
+const styleBadgeBg = content.style_badge_bg || "#39FF14";
+const styleBadgeText = content.style_badge_text || "#39FF14";
+const styleTitleLine1Color = content.style_title_line1_color || "#FFFFFF";
+const styleTitleLine2Color = content.style_title_line2_color || "#39FF14";
+const styleSubtitleColor = content.style_subtitle_color || "#B0B0B0";
+const styleCtaBg = content.style_cta_bg || "#39FF14";
+const styleCtaText = content.style_cta_text || "#000000";
+const styleCtaHoverBg = content.style_cta_hover_bg || "#2DD60E";
+const styleSecondaryBg = content.style_secondary_bg || "transparent";
+const styleSecondaryText = content.style_secondary_text || "#FFFFFF";
+const styleSecondaryBorder = content.style_secondary_border || "#FFFFFF";
 ---
 
 <div class="relative overflow-hidden hero-wrapper">
-<section
-    class="hero-section relative h-full w-full bg-black"
->
-    <!-- Background Layer -->
-    <div class="absolute inset-0 z-0">
+    <section class="hero-section relative h-full w-full bg-black">
+        <!-- Background Layer -->
+        <div class="absolute inset-0 z-0">
+            <div
+                class="absolute inset-0 hero-bg"
+                style={`background-image: url('${bgImage}');`}
+            >
+            </div>
+
+            <!-- MOBILE: radial overlay – glove visible, dark edges -->
+            <div class="absolute inset-0 hero-overlay-radial md:hidden"></div>
+            <!-- MOBILE: subtle bottom gradient for text safety -->
+            <div class="absolute inset-0 hero-overlay-bottom-soft md:hidden">
+            </div>
+
+            <!-- DESKTOP overlays -->
+            <div
+                class="absolute inset-0 hidden md:block"
+                style={`background: ${overlayColor}; opacity: ${overlayOpacity};`}
+            >
+            </div>
+            <div
+                class="absolute inset-0 hidden md:block"
+                style="background: var(--gradient-hero-side);"
+            >
+            </div>
+            <div
+                class="absolute inset-0 hero-overlay-bottom-desktop hidden md:block"
+            >
+            </div>
+        </div>
+
+        <!-- Vertical accent line (desktop only) -->
         <div
-            class="absolute inset-0 hero-bg"
-            style={`background-image: url('${bgImage}');`}
+            class="absolute left-8 top-1/4 bottom-1/4 w-[2px] bg-gradient-to-b from-transparent via-brand to-transparent opacity-30 hidden lg:block"
         >
         </div>
 
-        <!-- MOBILE: radial overlay – glove visible, dark edges -->
-        <div class="absolute inset-0 hero-overlay-radial md:hidden"></div>
-        <!-- MOBILE: subtle bottom gradient for text safety -->
-        <div class="absolute inset-0 hero-overlay-bottom-soft md:hidden"></div>
-
-        <!-- DESKTOP overlays -->
-        <div class="absolute inset-0 hidden md:block" style={`background: ${overlayColor}; opacity: ${overlayOpacity};`}></div>
-        <div
-            class="absolute inset-0 hidden md:block"
-            style="background: var(--gradient-hero-side);"
-        >
-        </div>
-        <div
-            class="absolute inset-0 hero-overlay-bottom-desktop hidden md:block"
-        >
-        </div>
-    </div>
-
-    <!-- Vertical accent line (desktop only) -->
-    <div
-        class="absolute left-8 top-1/4 bottom-1/4 w-[2px] bg-gradient-to-b from-transparent via-brand to-transparent opacity-30 hidden lg:block"
-    >
-    </div>
-
-    <!-- Content -->
-    <div class="hero-content-wrapper relative z-10">
-        <!-- ═══════════════════════════════════
+        <!-- Content -->
+        <div class="hero-content-wrapper relative z-10">
+            <!-- ═══════════════════════════════════
              MOBILE: true-centered editorial
         ═══════════════════════════════════ -->
-        <div class="hero-mobile-content md:hidden">
-            <span
-                class="hero-badge-mobile inline-block px-3 py-1 bg-white/[0.08] backdrop-blur-sm border border-white/[0.15] text-brand text-[9px] font-bold uppercase tracking-[0.35em] mb-5"
-            >
-                {badge}
-            </span>
+            <div class="hero-mobile-content md:hidden">
+                <span
+                    class="hero-badge-mobile inline-block px-3 py-1 backdrop-blur-sm border border-white/[0.15] text-[9px] font-bold uppercase tracking-[0.35em] mb-5"
+                    style={`background: ${styleBadgeBg}1A; color: ${styleBadgeText}; border-color: ${styleBadgeBg}4D;`}
+                >
+                    {badge}
+                </span>
 
-            <h1
-                class="hero-title-mobile font-display font-bold uppercase leading-[0.82] tracking-tight mb-3"
-            >
-                {titleLine1}
-                <br />
-                <span class="text-brand">{titleLine2}</span>
-            </h1>
+                <h1
+                    class="hero-title-mobile font-display font-bold uppercase leading-[0.82] tracking-tight mb-3"
+                    style={`color: ${styleTitleLine1Color};`}
+                >
+                    {titleLine1}
+                    <br />
+                    <span style={`color: ${styleTitleLine2Color};`}
+                        >{titleLine2}</span
+                    >
+                </h1>
 
-            <p class="hero-sub-mobile text-[13px] font-light leading-[1.6] max-w-[260px] mx-auto mb-7">
-                {subtitleMobile}
-            </p>
+                <p
+                    class="hero-sub-mobile text-[13px] font-light leading-[1.6] max-w-[260px] mx-auto mb-7"
+                    style={`color: ${styleSubtitleColor};`}
+                >
+                    {subtitleMobile}
+                </p>
 
-            <div class="hero-cta-mobile px-2">
-                <a href={ctaLink} class="hero-btn-primary w-full">
-                    <span>{ctaText}</span>
-                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                    </svg>
-                </a>
-                <a href={secondaryLink} class="hero-link-secondary mt-4">
-                    {secondaryText}
-                    <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </a>
+                <div class="hero-cta-mobile px-2">
+                    <a
+                        href={ctaLink}
+                        class="hero-btn-primary w-full"
+                        style={`background: linear-gradient(135deg, ${styleCtaBg} 0%, ${styleCtaHoverBg} 100%); color: ${styleCtaText};`}
+                    >
+                        <span>{ctaText}</span>
+                        <svg
+                            class="w-4 h-4 ml-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </a>
+                    <a
+                        href={secondaryLink}
+                        class="hero-link-secondary mt-4"
+                        style={`color: ${styleSecondaryText};`}
+                    >
+                        {secondaryText}
+                        <svg
+                            class="w-3 h-3 ml-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
             </div>
-        </div>
 
-        <!-- ═══════════════════════════════════
+            <!-- ═══════════════════════════════════
              DESKTOP: original layout
         ═══════════════════════════════════ -->
-        <div class="hidden md:block max-w-3xl text-left">
-            <span
-                class="inline-block px-4 py-1.5 bg-brand/10 border border-brand/30 text-brand text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] mb-6 md:mb-8 opacity-0 animate-fade-up"
-            >
-                {badge}
-            </span>
+            <div class="hidden md:block max-w-3xl text-left">
+                <span
+                    class="inline-block px-4 py-1.5 border text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] mb-6 md:mb-8 opacity-0 animate-fade-up"
+                    style={`background: ${styleBadgeBg}1A; color: ${styleBadgeText}; border-color: ${styleBadgeBg}4D;`}
+                >
+                    {badge}
+                </span>
 
-            <h1
-                class="hero-title text-8xl lg:text-9xl font-display font-bold uppercase leading-[0.85] tracking-tighter mb-8 opacity-0 animate-fade-up anim-delay-100"
-            >
-                {titleLine1}
-                <br />
-                <span class="text-brand">{titleLine2}</span>
-            </h1>
-
-            <p
-                class="hero-subtitle text-xl max-w-lg mb-10 opacity-0 animate-fade-up anim-delay-200"
-            >
-                {subtitle}
-            </p>
-
-            <div
-                class="flex flex-wrap gap-4 opacity-0 animate-fade-up anim-delay-300"
-            >
-                <a href={ctaLink} class="btn-primary">
-                    <span>{ctaText}</span>
-                    <svg
-                        class="w-4 h-4 inline-block ml-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                <h1
+                    class="hero-title text-8xl lg:text-9xl font-display font-bold uppercase leading-[0.85] tracking-tighter mb-8 opacity-0 animate-fade-up anim-delay-100"
+                    style={`color: ${styleTitleLine1Color};`}
+                >
+                    {titleLine1}
+                    <br />
+                    <span style={`color: ${styleTitleLine2Color};`}
+                        >{titleLine2}</span
                     >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                    </svg>
-                </a>
-                <a href={secondaryLink} class="btn-outline">
-                    {secondaryText}
-                </a>
+                </h1>
+
+                <p
+                    class="hero-subtitle text-xl max-w-lg mb-10 opacity-0 animate-fade-up anim-delay-200"
+                    style={`color: ${styleSubtitleColor};`}
+                >
+                    {subtitle}
+                </p>
+
+                <div
+                    class="flex flex-wrap gap-4 opacity-0 animate-fade-up anim-delay-300"
+                >
+                    <a
+                        href={ctaLink}
+                        class="btn-primary"
+                        style={`background: linear-gradient(135deg, ${styleCtaBg} 0%, ${styleCtaHoverBg} 100%); color: ${styleCtaText};`}
+                    >
+                        <span>{ctaText}</span>
+                        <svg
+                            class="w-4 h-4 inline-block ml-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </a>
+                    <a
+                        href={secondaryLink}
+                        class="btn-outline"
+                        style={`background: ${styleSecondaryBg}; color: ${styleSecondaryText}; border-color: ${styleSecondaryBorder};`}
+                    >
+                        {secondaryText}
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
 
-    <style>
-        /* ═══════════════════════════════════════════
+        <style>
+            /* ═══════════════════════════════════════════
            HERO – MOBILE (<768px)
            True-centered editorial. Nike/Off-White.
         ═══════════════════════════════════════════ */
 
-        /* ── Section: mobile = true center, desktop = top-aligned ── */
-        .hero-section {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        @media (min-width: 768px) {
+            /* ── Section: mobile = true center, desktop = top-aligned ── */
             .hero-section {
-                align-items: flex-start;
-                justify-content: flex-start;
-                padding-top: 8rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
-        }
 
-        /* ── Content wrapper ── */
-        .hero-content-wrapper {
-            width: 100%;
-            padding: 0 20px;
-        }
+            @media (min-width: 768px) {
+                .hero-section {
+                    align-items: flex-start;
+                    justify-content: flex-start;
+                    padding-top: 8rem;
+                }
+            }
 
-        @media (min-width: 640px) {
+            /* ── Content wrapper ── */
             .hero-content-wrapper {
-                padding: 0 1.5rem;
+                width: 100%;
+                padding: 0 20px;
             }
-        }
 
-        @media (min-width: 768px) {
-            .hero-content-wrapper {
-                max-width: 80rem;
-                margin: 0 auto;
-                padding: 0 1rem;
+            @media (min-width: 640px) {
+                .hero-content-wrapper {
+                    padding: 0 1.5rem;
+                }
             }
-        }
 
-        @media (min-width: 1024px) {
-            .hero-content-wrapper {
-                padding: 0 2rem;
+            @media (min-width: 768px) {
+                .hero-content-wrapper {
+                    max-width: 80rem;
+                    margin: 0 auto;
+                    padding: 0 1rem;
+                }
             }
-        }
 
-        /* ── Mobile content: optical center correction ── */
-        .hero-mobile-content {
-            text-align: center;
-            transform: translateY(-5%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+            @media (min-width: 1024px) {
+                .hero-content-wrapper {
+                    padding: 0 2rem;
+                }
+            }
 
-        @media (min-width: 768px) {
+            /* ── Mobile content: optical center correction ── */
             .hero-mobile-content {
-                display: none !important;
+                text-align: center;
+                transform: translateY(-5%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
             }
-        }
 
-        /* ═══════════════════════════════════════
+            @media (min-width: 768px) {
+                .hero-mobile-content {
+                    display: none !important;
+                }
+            }
+
+            /* ═══════════════════════════════════════
            HERO WRAPPER HEIGHT
         ═══════════════════════════════════════ */
-        .hero-wrapper {
-            height: 70vh;
-            height: 70svh;
-        }
-
-        @media (min-width: 768px) {
             .hero-wrapper {
-                height: calc(100svh - 80px);
+                height: 70vh;
+                height: 70svh;
             }
-        }
 
-        /* ═══════════════════════════════════════
+            @media (min-width: 768px) {
+                .hero-wrapper {
+                    height: calc(100svh - 80px);
+                }
+            }
+
+            /* ═══════════════════════════════════════
            BACKGROUND IMAGE
         ═══════════════════════════════════════ */
-        .hero-bg {
-            background-size: cover;
-            background-position: 50% 30%;
-            background-repeat: no-repeat;
-        }
-
-        @media (max-width: 767px) {
             .hero-bg {
-                animation: hero-breathe 8s ease-in-out infinite alternate;
+                background-size: cover;
+                background-position: 50% 30%;
+                background-repeat: no-repeat;
             }
-        }
 
-        @media (min-width: 768px) {
-            .hero-bg {
-                background-size: 160%;
-                background-position: 30% center;
-                background-attachment: fixed;
-                animation: subtle-zoom 25s ease-in-out infinite alternate;
+            @media (max-width: 767px) {
+                .hero-bg {
+                    animation: hero-breathe 8s ease-in-out infinite alternate;
+                }
             }
-        }
 
-        /* ═══════════════════════════════════════
+            @media (min-width: 768px) {
+                .hero-bg {
+                    background-size: 160%;
+                    background-position: 30% center;
+                    background-attachment: fixed;
+                    animation: subtle-zoom 25s ease-in-out infinite alternate;
+                }
+            }
+
+            /* ═══════════════════════════════════════
            MOBILE OVERLAYS
         ═══════════════════════════════════════ */
 
-        /* Radial: dark edges, lighter center → glove visible */
-        .hero-overlay-radial {
-            background: radial-gradient(
-                ellipse 70% 60% at 50% 40%,
-                rgba(0, 0, 0, 0.35) 0%,
-                rgba(0, 0, 0, 0.55) 50%,
-                rgba(0, 0, 0, 0.75) 100%
-            );
-        }
+            /* Radial: dark edges, lighter center → glove visible */
+            .hero-overlay-radial {
+                background: radial-gradient(
+                    ellipse 70% 60% at 50% 40%,
+                    rgba(0, 0, 0, 0.35) 0%,
+                    rgba(0, 0, 0, 0.55) 50%,
+                    rgba(0, 0, 0, 0.75) 100%
+                );
+            }
 
-        /* Soft bottom: minimal, just enough for text legibility */
-        .hero-overlay-bottom-soft {
-            background: linear-gradient(
-                to top,
-                rgba(0, 0, 0, 0.4) 0%,
-                rgba(0, 0, 0, 0.15) 30%,
-                transparent 55%
-            );
-        }
+            /* Soft bottom: minimal, just enough for text legibility */
+            .hero-overlay-bottom-soft {
+                background: linear-gradient(
+                    to top,
+                    rgba(0, 0, 0, 0.4) 0%,
+                    rgba(0, 0, 0, 0.15) 30%,
+                    transparent 55%
+                );
+            }
 
-        /* Desktop overlay (unchanged) */
-        .hero-overlay-bottom-desktop {
-            background: var(--gradient-hero-bottom);
-        }
+            /* Desktop overlay (unchanged) */
+            .hero-overlay-bottom-desktop {
+                background: var(--gradient-hero-bottom);
+            }
 
-        /* ═══════════════════════════════════════
+            /* ═══════════════════════════════════════
            MOBILE ELEMENTS
         ═══════════════════════════════════════ */
 
-        /* ── Title ── */
-        .hero-title-mobile {
-            font-size: clamp(3.25rem, 16vw, 5rem);
-            color: #ffffff;
-            text-shadow: 0 2px 30px rgba(0, 0, 0, 0.4);
-            opacity: 0;
-            animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
-        }
-
-        /* ── Subtitle ── */
-        .hero-sub-mobile {
-            color: rgba(255, 255, 255, 0.8);
-            text-shadow: 0 1px 15px rgba(0, 0, 0, 0.3);
-            opacity: 0;
-            animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
-        }
-
-        /* ── Badge ── */
-        .hero-badge-mobile {
-            opacity: 0;
-            animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0s forwards;
-        }
-
-        /* ── CTA group ── */
-        .hero-cta-mobile {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            opacity: 0;
-            animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
-        }
-
-        /* ── Primary button with glow pulse ── */
-        .hero-btn-primary {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 11px 20px;
-            background: linear-gradient(135deg, #39FF14 0%, #2DD60E 100%);
-            color: #000;
-            font-family: 'Oswald', system-ui, sans-serif;
-            font-weight: 700;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            border-radius: 6px;
-            border: none;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 0 20px rgba(57, 255, 20, 0.2),
-                        0 0 60px rgba(57, 255, 20, 0.06);
-            text-decoration: none;
-            animation: hero-glow-pulse 3s ease-in-out infinite;
-        }
-
-        .hero-btn-primary:active {
-            transform: scale(0.97);
-            box-shadow: 0 0 10px rgba(57, 255, 20, 0.15);
-        }
-
-        @media (hover: hover) {
-            .hero-btn-primary:hover {
-                transform: translateY(-1px) scale(1.01);
-                box-shadow: 0 0 35px rgba(57, 255, 20, 0.4),
-                            0 0 80px rgba(57, 255, 20, 0.12);
+            /* ── Title ── */
+            .hero-title-mobile {
+                font-size: clamp(3.25rem, 16vw, 5rem);
+                color: #ffffff;
+                text-shadow: 0 2px 30px rgba(0, 0, 0, 0.4);
+                opacity: 0;
+                animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s
+                    forwards;
             }
-        }
 
-        /* ── Secondary link ── */
-        .hero-link-secondary {
-            display: inline-flex;
-            align-items: center;
-            color: rgba(255, 255, 255, 0.45);
-            font-family: 'Oswald', system-ui, sans-serif;
-            font-weight: 500;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            text-decoration: none;
-            transition: color 0.3s ease;
-            padding: 4px 0;
-        }
+            /* ── Subtitle ── */
+            .hero-sub-mobile {
+                color: rgba(255, 255, 255, 0.8);
+                text-shadow: 0 1px 15px rgba(0, 0, 0, 0.3);
+                opacity: 0;
+                animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.35s
+                    forwards;
+            }
 
-        .hero-link-secondary:active,
-        .hero-link-secondary:hover {
-            color: #39FF14;
-        }
+            /* ── Badge ── */
+            .hero-badge-mobile {
+                opacity: 0;
+                animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0s
+                    forwards;
+            }
 
-        /* ═══════════════════════════════════════
+            /* ── CTA group ── */
+            .hero-cta-mobile {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+                opacity: 0;
+                animation: hero-fade-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s
+                    forwards;
+            }
+
+            /* ── Primary button with glow pulse ── */
+            .hero-btn-primary {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 11px 20px;
+                background: linear-gradient(135deg, #39ff14 0%, #2dd60e 100%);
+                color: #000;
+                font-family: "Oswald", system-ui, sans-serif;
+                font-weight: 700;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.15em;
+                border-radius: 6px;
+                border: none;
+                transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+                box-shadow:
+                    0 0 20px rgba(57, 255, 20, 0.2),
+                    0 0 60px rgba(57, 255, 20, 0.06);
+                text-decoration: none;
+                animation: hero-glow-pulse 3s ease-in-out infinite;
+            }
+
+            .hero-btn-primary:active {
+                transform: scale(0.97);
+                box-shadow: 0 0 10px rgba(57, 255, 20, 0.15);
+            }
+
+            @media (hover: hover) {
+                .hero-btn-primary:hover {
+                    transform: translateY(-1px) scale(1.01);
+                    box-shadow:
+                        0 0 35px rgba(57, 255, 20, 0.4),
+                        0 0 80px rgba(57, 255, 20, 0.12);
+                }
+            }
+
+            /* ── Secondary link ── */
+            .hero-link-secondary {
+                display: inline-flex;
+                align-items: center;
+                color: rgba(255, 255, 255, 0.45);
+                font-family: "Oswald", system-ui, sans-serif;
+                font-weight: 500;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.2em;
+                text-decoration: none;
+                transition: color 0.3s ease;
+                padding: 4px 0;
+            }
+
+            .hero-link-secondary:active,
+            .hero-link-secondary:hover {
+                color: #39ff14;
+            }
+
+            /* ═══════════════════════════════════════
            DESKTOP TYPOGRAPHY (unchanged)
         ═══════════════════════════════════════ */
-        .hero-title {
-            color: var(--text-primary);
-        }
+            .hero-title {
+                color: var(--text-primary);
+            }
 
-        .hero-subtitle {
-            color: var(--text-muted);
-        }
+            .hero-subtitle {
+                color: var(--text-muted);
+            }
 
-        /* ═══════════════════════════════════════
+            /* ═══════════════════════════════════════
            KEYFRAMES
         ═══════════════════════════════════════ */
 
-        @keyframes hero-breathe {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.05); }
-        }
-
-        @keyframes subtle-zoom {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.14); }
-        }
-
-        @keyframes hero-fade-up {
-            0% {
-                opacity: 0;
-                transform: translateY(20px);
+            @keyframes hero-breathe {
+                0% {
+                    transform: scale(1);
+                }
+                100% {
+                    transform: scale(1.05);
+                }
             }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
 
-        @keyframes hero-glow-pulse {
-            0%, 100% {
-                box-shadow: 0 0 20px rgba(57, 255, 20, 0.2),
-                            0 0 60px rgba(57, 255, 20, 0.06);
+            @keyframes subtle-zoom {
+                0% {
+                    transform: scale(1);
+                }
+                100% {
+                    transform: scale(1.14);
+                }
             }
-            50% {
-                box-shadow: 0 0 28px rgba(57, 255, 20, 0.3),
-                            0 0 70px rgba(57, 255, 20, 0.1);
+
+            @keyframes hero-fade-up {
+                0% {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                100% {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
-        }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-30px); }
-        }
+            @keyframes hero-glow-pulse {
+                0%,
+                100% {
+                    box-shadow:
+                        0 0 20px rgba(57, 255, 20, 0.2),
+                        0 0 60px rgba(57, 255, 20, 0.06);
+                }
+                50% {
+                    box-shadow:
+                        0 0 28px rgba(57, 255, 20, 0.3),
+                        0 0 70px rgba(57, 255, 20, 0.1);
+                }
+            }
 
-        .animate-float {
-            animation: float 6s ease-in-out infinite;
-        }
-    </style>
-</section>
+            @keyframes float {
+                0%,
+                100% {
+                    transform: translateY(0);
+                }
+                50% {
+                    transform: translateY(-30px);
+                }
+            }
+
+            .animate-float {
+                animation: float 6s ease-in-out infinite;
+            }
+        </style>
+    </section>
 
     <!-- Marquee -->
     <div
@@ -474,11 +576,11 @@ const overlayOpacity = content.overlay_opacity ?? 0.4;
     .marquee-text {
         background: linear-gradient(
             90deg,
-            rgba(255,255,255,0.07) 0%,
-            rgba(255,255,255,0.07) 40%,
-            rgba(57,255,20,0.22) 50%,
-            rgba(255,255,255,0.07) 60%,
-            rgba(255,255,255,0.07) 100%
+            rgba(255, 255, 255, 0.07) 0%,
+            rgba(255, 255, 255, 0.07) 40%,
+            rgba(57, 255, 20, 0.22) 50%,
+            rgba(255, 255, 255, 0.07) 60%,
+            rgba(255, 255, 255, 0.07) 100%
         );
         background-size: 300% 100%;
         -webkit-background-clip: text;
@@ -488,12 +590,21 @@ const overlayOpacity = content.overlay_opacity ?? 0.4;
     }
 
     @keyframes marquee-shimmer {
-        0%   { background-position: 200% center; }
-        100% { background-position: -100% center; }
+        0% {
+            background-position: 200% center;
+        }
+        100% {
+            background-position: -100% center;
+        }
     }
 
     @keyframes marquee-pulse {
-        0%, 100% { opacity: var(--mq-low); }
-        50%       { opacity: var(--mq-high); }
+        0%,
+        100% {
+            opacity: var(--mq-low);
+        }
+        50% {
+            opacity: var(--mq-high);
+        }
     }
 </style>

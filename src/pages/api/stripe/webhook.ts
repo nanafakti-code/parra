@@ -16,6 +16,8 @@ import type { APIRoute } from 'astro';
 import type Stripe from 'stripe';
 import { getStripe } from '../../../lib/stripe';
 import { supabaseAdmin } from '../../../lib/supabase';
+import { generateInvoicePdf } from '../../../lib/pdf';
+import { sendOrderConfirmationEmail } from '../../../lib/email';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -186,7 +188,7 @@ export const POST: APIRoute = async ({ request }) => {
                 shipping_postal_code: metadata.shipping_zip ?? null,
                 shipping_phone: metadata.shipping_phone ?? null,
             })
-            .select('id')
+            .select('*')
             .single();
 
         if (orderError || !order) {
@@ -195,6 +197,9 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         console.log(`[webhook] Orden creada: ${order.id}`);
+
+        // Array para guardar los items insertados y pasarlos al generador de PDF
+        const insertedItems: any[] = [];
 
         // 10. Crear order_items y decrementar stock atómicamente
         for (const item of lineItems) {
@@ -209,22 +214,26 @@ export const POST: APIRoute = async ({ request }) => {
             const productImage = product.images?.[0] ?? null;
 
             // 10a. Insertar order_item con todos los campos requeridos
+            const newItem = {
+                order_id: order.id,
+                product_id: productId,
+                variant_id: variantId,
+                product_name: product.name,
+                product_image: productImage,
+                size: size,
+                quantity: quantity,
+                unit_price: unitPrice,
+                total_price: unitPrice * quantity,
+            };
+
             const { error: itemError } = await supabaseAdmin
                 .from('order_items')
-                .insert({
-                    order_id: order.id,
-                    product_id: productId,
-                    variant_id: variantId,
-                    product_name: product.name,
-                    product_image: productImage,
-                    size: size,
-                    quantity: quantity,
-                    unit_price: unitPrice,
-                    total_price: unitPrice * quantity,
-                });
+                .insert(newItem);
 
             if (itemError) {
                 console.error(`[webhook] Error al insertar order_item: ${itemError.message}`);
+            } else {
+                insertedItems.push(newItem);
             }
 
             // 10b. Decrementar stock atómicamente
@@ -246,7 +255,23 @@ export const POST: APIRoute = async ({ request }) => {
             }
         }
 
-        console.log(`[webhook] Orden ${order.id} procesada con éxito.`);
+        console.log(`[webhook] Items ordenados, generando factura en PDF...`);
+        try {
+            // Asignar items a la orden para que `generateInvoicePdf` pueda leerlos si es necesario
+            const orderForPdf = { ...order, order_items: insertedItems };
+
+            // Generar PDF de la factura
+            const pdfBuffer = await generateInvoicePdf(orderForPdf);
+
+            // Enviar email de confirmación con la factura adjunta
+            await sendOrderConfirmationEmail(orderForPdf, insertedItems, pdfBuffer);
+
+            console.log(`[webhook] Orden ${order.id} procesada con éxito y email enviado.`);
+        } catch (emailErr: any) {
+            console.error(`[webhook] Orden creada pero falló el envío del email:`, emailErr.message);
+            // No detenemos el flujo, la orden ya fue creada y el pago completado.
+        }
+
         return jsonResponse({ received: true, order_id: order.id }, 200);
 
     } catch (err: unknown) {

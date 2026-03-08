@@ -1436,6 +1436,392 @@ let products: any[] = [];
                 ],
             };
 
+            // ═══════ STYLE SCHEMAS (Color / Visual) ═══════
+            var STYLE_SCHEMAS = {
+                hero: [
+                    {
+                        key: "style_badge_bg",
+                        label: "Color fondo badge",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_badge_text",
+                        label: "Color texto badge",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_title_line1_color",
+                        label: "Color título línea 1",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                    {
+                        key: "style_title_line2_color",
+                        label: "Color título línea 2",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_subtitle_color",
+                        label: "Color subtítulo",
+                        type: "color",
+                        defaultValue: "#B0B0B0",
+                    },
+                    {
+                        key: "style_cta_bg",
+                        label: "Color fondo botón CTA",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_cta_text",
+                        label: "Color texto botón CTA",
+                        type: "color",
+                        defaultValue: "#000000",
+                    },
+                    {
+                        key: "style_cta_hover_bg",
+                        label: "Color hover botón CTA",
+                        type: "color",
+                        defaultValue: "#2DD60E",
+                    },
+                    {
+                        key: "style_secondary_bg",
+                        label: "Color fondo botón secundario",
+                        type: "color",
+                        defaultValue: "#0A0A0A",
+                    },
+                    {
+                        key: "style_secondary_text",
+                        label: "Color texto botón secundario",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                    {
+                        key: "style_secondary_border",
+                        label: "Color borde botón secundario",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                ],
+                featured_products: [
+                    {
+                        key: "style_title_color",
+                        label: "Color título",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                    {
+                        key: "style_accent_color",
+                        label: "Color accent",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_subtitle_color",
+                        label: "Color subtítulo",
+                        type: "color",
+                        defaultValue: "#737373",
+                    },
+                    {
+                        key: "style_card_bg",
+                        label: "Color fondo tarjeta",
+                        type: "color",
+                        defaultValue: "#111827",
+                    },
+                    {
+                        key: "style_card_border",
+                        label: "Color borde tarjeta",
+                        type: "color",
+                        defaultValue: "#1F2937",
+                    },
+                    {
+                        key: "style_price_color",
+                        label: "Color precio",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_product_name_color",
+                        label: "Color nombre producto",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                    {
+                        key: "style_cta_bg",
+                        label: "Color fondo botón",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_cta_text",
+                        label: "Color texto botón",
+                        type: "color",
+                        defaultValue: "#000000",
+                    },
+                ],
+                benefits: [
+                    {
+                        key: "style_section_bg",
+                        label: "Color fondo sección",
+                        type: "color",
+                        defaultValue: "#0A0A0A",
+                    },
+                    {
+                        key: "style_title_color",
+                        label: "Color título sección",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                    {
+                        key: "style_icon_color",
+                        label: "Color iconos",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_icon_bg",
+                        label: "Color fondo iconos",
+                        type: "color",
+                        defaultValue: "#111827",
+                    },
+                    {
+                        key: "style_item_title_color",
+                        label: "Color título beneficio",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                    {
+                        key: "style_item_desc_color",
+                        label: "Color descripción",
+                        type: "color",
+                        defaultValue: "#9CA3AF",
+                    },
+                    {
+                        key: "style_card_bg",
+                        label: "Color fondo tarjeta",
+                        type: "color",
+                        defaultValue: "#111827",
+                    },
+                    {
+                        key: "style_card_border",
+                        label: "Color borde tarjeta",
+                        type: "color",
+                        defaultValue: "#1F2937",
+                    },
+                ],
+                glove_selector: [
+                    {
+                        key: "style_title_color",
+                        label: "Color título",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                    {
+                        key: "style_subtitle_color",
+                        label: "Color subtítulo",
+                        type: "color",
+                        defaultValue: "#737373",
+                    },
+                    {
+                        key: "style_section_bg",
+                        label: "Color fondo sección",
+                        type: "color",
+                        defaultValue: "#0A0A0A",
+                    },
+                    {
+                        key: "style_card_bg",
+                        label: "Color fondo tarjeta",
+                        type: "color",
+                        defaultValue: "#111827",
+                    },
+                    {
+                        key: "style_card_border",
+                        label: "Color borde tarjeta",
+                        type: "color",
+                        defaultValue: "#1F2937",
+                    },
+                    {
+                        key: "style_card_hover_border",
+                        label: "Color borde hover",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_btn_bg",
+                        label: "Color fondo botón",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_btn_text",
+                        label: "Color texto botón",
+                        type: "color",
+                        defaultValue: "#000000",
+                    },
+                ],
+                testimonials: [
+                    {
+                        key: "style_title_color",
+                        label: "Color título",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                    {
+                        key: "style_subtitle_color",
+                        label: "Color subtítulo",
+                        type: "color",
+                        defaultValue: "#737373",
+                    },
+                    {
+                        key: "style_section_bg",
+                        label: "Color fondo sección",
+                        type: "color",
+                        defaultValue: "#0A0A0A",
+                    },
+                    {
+                        key: "style_card_bg",
+                        label: "Color fondo tarjeta",
+                        type: "color",
+                        defaultValue: "#111827",
+                    },
+                    {
+                        key: "style_card_border",
+                        label: "Color borde tarjeta",
+                        type: "color",
+                        defaultValue: "#1F2937",
+                    },
+                    {
+                        key: "style_name_color",
+                        label: "Color nombre",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                    {
+                        key: "style_text_color",
+                        label: "Color texto reseña",
+                        type: "color",
+                        defaultValue: "#D1D5DB",
+                    },
+                    {
+                        key: "style_stars_color",
+                        label: "Color estrellas",
+                        type: "color",
+                        defaultValue: "#FBBF24",
+                    },
+                ],
+                cta_banner: [
+                    {
+                        key: "style_title_line1_color",
+                        label: "Color título línea 1",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                    {
+                        key: "style_title_line2_color",
+                        label: "Color título línea 2",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_cta_bg",
+                        label: "Color fondo botón CTA",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_cta_text",
+                        label: "Color texto botón CTA",
+                        type: "color",
+                        defaultValue: "#000000",
+                    },
+                    {
+                        key: "style_cta_hover_bg",
+                        label: "Color hover botón CTA",
+                        type: "color",
+                        defaultValue: "#2DD60E",
+                    },
+                    {
+                        key: "style_overlay_color",
+                        label: "Color overlay",
+                        type: "color",
+                        defaultValue: "#000000",
+                    },
+                ],
+                newsletter: [
+                    {
+                        key: "style_section_bg",
+                        label: "Color fondo sección",
+                        type: "color",
+                        defaultValue: "#0A0A0A",
+                    },
+                    {
+                        key: "style_title_color",
+                        label: "Color título",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                    {
+                        key: "style_subtitle_color",
+                        label: "Color subtítulo",
+                        type: "color",
+                        defaultValue: "#737373",
+                    },
+                    {
+                        key: "style_input_bg",
+                        label: "Color fondo input",
+                        type: "color",
+                        defaultValue: "#111827",
+                    },
+                    {
+                        key: "style_input_border",
+                        label: "Color borde input",
+                        type: "color",
+                        defaultValue: "#1F2937",
+                    },
+                    {
+                        key: "style_input_text",
+                        label: "Color texto input",
+                        type: "color",
+                        defaultValue: "#FFFFFF",
+                    },
+                    {
+                        key: "style_btn_bg",
+                        label: "Color fondo botón",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_btn_text",
+                        label: "Color texto botón",
+                        type: "color",
+                        defaultValue: "#000000",
+                    },
+                ],
+                banner: [
+                    {
+                        key: "style_bg_color",
+                        label: "Color de fondo",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                    {
+                        key: "style_text_color",
+                        label: "Color de texto",
+                        type: "color",
+                        defaultValue: "#000000",
+                    },
+                    {
+                        key: "style_border_color",
+                        label: "Color de borde",
+                        type: "color",
+                        defaultValue: "#39FF14",
+                    },
+                ],
+            };
+
             // ═══════ HELPERS ═══════
             function $(sel) {
                 return document.querySelector(sel);
@@ -1487,7 +1873,8 @@ let products: any[] = [];
                         if (SCHEMAS[baseKey]) schemaKey = baseKey;
                     }
                     var schema = SCHEMAS[schemaKey] || [];
-                    window.VBInspector.show(section, schema);
+                    var styleSchema = STYLE_SCHEMAS[schemaKey] || [];
+                    window.VBInspector.show(section, schema, styleSchema);
                 }
             }
 
@@ -1609,8 +1996,18 @@ let products: any[] = [];
                         section.is_active = newState;
                         render();
                         if (selectedId === id && window.VBInspector) {
-                            var schema = SCHEMAS[section.section_key] || [];
-                            window.VBInspector.show(section, schema);
+                            var schemaKey2 = section.section_key;
+                            if (!SCHEMAS[schemaKey2]) {
+                                var baseKey2 = schemaKey2.replace(/_\d+$/, "");
+                                if (SCHEMAS[baseKey2]) schemaKey2 = baseKey2;
+                            }
+                            var schema = SCHEMAS[schemaKey2] || [];
+                            var styleSchema = STYLE_SCHEMAS[schemaKey2] || [];
+                            window.VBInspector.show(
+                                section,
+                                schema,
+                                styleSchema,
+                            );
                         }
                         window.adminToast?.(
                             newState

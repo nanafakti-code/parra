@@ -656,6 +656,7 @@
                     esc(value || "") +
                     "</textarea>";
             } else if (field.type === "color") {
+                var colorVal = value || field.defaultValue || "#000000";
                 h +=
                     '<label class="vb-field-label">' +
                     esc(field.label) +
@@ -665,13 +666,13 @@
                     '<input type="color" class="ve2-color-swatch" data-key="' +
                     field.key +
                     '" value="' +
-                    (value || "#000000") +
+                    colorVal +
                     '" />';
                 h +=
                     '<input type="text" class="ve2-input" data-key="' +
                     field.key +
                     '" value="' +
-                    (value || "#000000") +
+                    colorVal +
                     '" style="flex:1" />';
                 h += "</div>";
             } else if (field.type === "range") {
@@ -987,7 +988,7 @@
 
         // ── Public API ──
         window.VBInspector = {
-            show: function (section, schema, iconHtml) {
+            show: function (section, schema, styleSchema, iconHtml) {
                 document.getElementById("vbInspectorEmpty").style.display =
                     "none";
                 var active = document.getElementById("vbInspectorActive");
@@ -1025,7 +1026,7 @@
                     contentHtml ||
                     '<div class="vb-inspector-empty-sub" style="padding:1rem;text-align:center;">Sin campos editables</div>';
 
-                // Render style tab (common style fields)
+                // Render style tab — Visibilidad + dynamic style fields
                 var styleHtml =
                     '<div class="vb-field"><label class="vb-field-label">Visibilidad</label>' +
                     '<div style="display:flex;gap:0.5rem;align-items:center">' +
@@ -1035,6 +1036,20 @@
                     (section.is_active ? "Visible" : "Oculto") +
                     "</span>" +
                     "</div></div>";
+
+                // Dynamic style fields from styleSchema
+                var styleFields = styleSchema || [];
+                if (styleFields.length > 0) {
+                    styleHtml +=
+                        '<div class="vb-style-section-divider" style="margin:0.75rem 0 0.5rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.06);">' +
+                        '<label class="vb-field-label" style="margin-bottom:0.6rem;font-size:0.72rem;color:rgba(255,255,255,0.55);display:flex;align-items:center;gap:0.4rem;">' +
+                        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>' +
+                        "Personalización de colores</label></div>";
+                    styleFields.forEach(function (f) {
+                        styleHtml += renderField(f, content[f.key]);
+                    });
+                }
+
                 document.getElementById("vbPanelStyle").innerHTML = styleHtml;
 
                 // Render behavior tab
