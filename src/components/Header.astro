@@ -83,50 +83,48 @@ const { user, role } = Astro.locals;
                                 Admin
                             </a>
                         )}
-                        {role !== "admin" && (
-                            <a
-                                href="/profile"
-                                data-astro-prefetch="hover"
-                                class="icon-btn p-2.5 rounded-full transition-colors duration-200 group flex items-center gap-2"
-                                aria-label="Mi Cuenta"
-                            >
-                                <svg
-                                    class="w-5 h-5 icon-color group-hover:text-brand transition-colors"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                    />
-                                </svg>
-                            </a>
-                        )}
 
-                        {role !== "admin" && (
-                            <button
-                                id="logout-btn"
-                                class="p-2.5 rounded-full hover:bg-red-500/10 transition-colors duration-200 group"
-                                title="Cerrar Sesión"
+                        {/* Mi Cuenta y Logout para TODOS los usuarios logueados (incluso admins) */}
+                        <a
+                            href="/profile"
+                            data-astro-prefetch="hover"
+                            class="icon-btn p-2.5 rounded-full transition-colors duration-200 group flex items-center gap-2"
+                            aria-label="Mi Cuenta"
+                        >
+                            <svg
+                                class="w-5 h-5 icon-color group-hover:text-brand transition-colors"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
                             >
-                                <svg
-                                    class="w-5 h-5 icon-color group-hover:text-red-500 transition-colors"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                                    />
-                                </svg>
-                            </button>
-                        )}
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                />
+                            </svg>
+                        </a>
+
+                        <button
+                            id="logout-btn"
+                            class="p-2.5 rounded-full hover:bg-red-500/10 transition-colors duration-200 group"
+                            title="Cerrar Sesión"
+                        >
+                            <svg
+                                class="w-5 h-5 icon-color group-hover:text-red-500 transition-colors"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                />
+                            </svg>
+                        </button>
                     </div>
                 ) : (
                     <div class="flex items-center gap-2">
@@ -273,11 +271,9 @@ const { user, role } = Astro.locals;
                                 Panel Administración
                             </a>
                         )}
-                        {role !== "admin" && (
-                            <a href="/profile" class="btn-outline text-center">
-                                Mi Cuenta
-                            </a>
-                        )}
+                        <a href="/profile" class="btn-outline text-center">
+                            Mi Cuenta
+                        </a>
                         <button
                             id="mobile-logout-btn"
                             class="btn-outline text-red-500 border-red-500/30 hover:bg-red-500/10 text-center"
