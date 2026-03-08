@@ -25,10 +25,10 @@ if (!product) {
     return Astro.redirect("/shop");
 }
 
-// Cache pública del producto (10 min CDN, stale-while-revalidate 30 min)
+// Cache privada del producto (el CDN no debe guardar porque mezcla sesiones de login)
 Astro.response.headers.set(
     "Cache-Control",
-    "public, s-maxage=600, stale-while-revalidate=1800",
+    "private, max-age=60, stale-while-revalidate=300",
 );
 
 // Fetch images + variants + related en paralelo
