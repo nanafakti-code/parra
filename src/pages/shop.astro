@@ -5,10 +5,10 @@ import ProductCard from "../components/ProductCard.astro";
 import Footer from "../components/Footer.astro";
 import { supabase } from "../lib/supabase";
 
-// Cache privada: El navegador guarda, se evita el CDN public
+// No cachear para evitar que el navegador guarde la sesión antigua y no actualice el Header sin pulsar F5
 Astro.response.headers.set(
     "Cache-Control",
-    "private, max-age=30, stale-while-revalidate=60",
+    "no-store, no-cache, must-revalidate, max-age=0",
 );
 
 // Fetch categories

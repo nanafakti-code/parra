@@ -8,12 +8,18 @@ const authUser = Astro.locals.user;
 if (!authUser) return Astro.redirect("/login");
 
 const { data: userProfile, error: profileError } = await supabaseAdmin
-    .from("users").select("*").eq("id", authUser.id).single();
+    .from("users")
+    .select("*")
+    .eq("id", authUser.id)
+    .single();
 if (profileError || !userProfile) return Astro.redirect("/login");
 
 // Cache 30s en el navegador (private = solo browser, no CDN)
 // Permite que back/forward y revisitas recientes sean instantáneas
-Astro.response.headers.set("Cache-Control", "private, max-age=30, stale-while-revalidate=60");
+Astro.response.headers.set(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, max-age=0",
+);
 
 const tab = Astro.url.searchParams.get("tab") || "perfil";
 
@@ -50,125 +56,319 @@ const [
 // Normalizar items para que el template funcione igual
 const ordersWithItems: any[] = (rawOrders || []).map((o: any) => ({
     ...o,
-    items: (o.order_items || []).map((i: any) => ({ ...i, product: i.products })),
+    items: (o.order_items || []).map((i: any) => ({
+        ...i,
+        product: i.products,
+    })),
 }));
 
 // Devoluciones = pedidos cancelados o reembolsados
 const returns = ordersWithItems.filter((o: any) =>
-    ["cancelled", "refunded"].includes(o.status)
+    ["cancelled", "refunded"].includes(o.status),
 );
 
 const statusMap: Record<string, string> = {
-    pending: "Pendiente", confirmed: "Confirmado", processing: "Procesando",
-    shipped: "Enviado", delivered: "Entregado", cancelled: "Cancelado", refunded: "Reembolsado",
+    pending: "Pendiente",
+    confirmed: "Confirmado",
+    processing: "Procesando",
+    shipped: "Enviado",
+    delivered: "Entregado",
+    cancelled: "Cancelado",
+    refunded: "Reembolsado",
 };
 
 const tabs = [
-    { id: "perfil",      label: "Mi Perfil",         icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
-    { id: "pedidos",     label: "Mis Pedidos",       icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" },
-    { id: "devoluciones",label: "Mis Devoluciones",  icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" },
-    { id: "reseñas",     label: "Mis Reseñas",       icon: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" },
-    { id: "direcciones", label: "Mis Direcciones",   icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z" },
-    { id: "cupones",     label: "Mis Cupones",       icon: "M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" },
+    {
+        id: "perfil",
+        label: "Mi Perfil",
+        icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
+    },
+    {
+        id: "pedidos",
+        label: "Mis Pedidos",
+        icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
+    },
+    {
+        id: "devoluciones",
+        label: "Mis Devoluciones",
+        icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
+    },
+    {
+        id: "reseñas",
+        label: "Mis Reseñas",
+        icon: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z",
+    },
+    {
+        id: "direcciones",
+        label: "Mis Direcciones",
+        icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z",
+    },
+    {
+        id: "cupones",
+        label: "Mis Cupones",
+        icon: "M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z",
+    },
 ];
 ---
 
 <Layout title="Mi Perfil | PARRA">
     <Header />
-    <main class="min-h-screen py-24" style="background-color: var(--bg-primary);">
+    <main
+        class="min-h-screen py-24"
+        style="background-color: var(--bg-primary);"
+    >
         <div class="container">
             <div class="flex flex-col lg:flex-row gap-10 lg:gap-14">
-
                 <!-- ── Sidebar ───────────────────────────────────────────── -->
                 <aside class="w-full lg:w-72 shrink-0 space-y-4">
                     <!-- Avatar card -->
                     <div class="card p-6 text-center">
-                        <div id="sidebar-avatar" class="w-16 h-16 bg-brand/10 border border-brand/20 flex items-center justify-center mx-auto mb-3 text-brand font-display text-2xl font-bold">
+                        <div
+                            id="sidebar-avatar"
+                            class="w-16 h-16 bg-brand/10 border border-brand/20 flex items-center justify-center mx-auto mb-3 text-brand font-display text-2xl font-bold"
+                        >
                             {userProfile.name.charAt(0).toUpperCase()}
                         </div>
-                        <h2 id="sidebar-name" class="font-display text-base font-bold uppercase tracking-tight mb-0.5">{userProfile.name}</h2>
-                        <p class="text-xs mb-2" style="color: var(--text-muted);">{userProfile.email}</p>
-                        <p class="text-[10px] uppercase tracking-widest" style="color: var(--text-muted); opacity:.5;">
-                            Miembro desde {new Date(userProfile.created_at).toLocaleDateString("es-ES")}
+                        <h2
+                            id="sidebar-name"
+                            class="font-display text-base font-bold uppercase tracking-tight mb-0.5"
+                        >
+                            {userProfile.name}
+                        </h2>
+                        <p
+                            class="text-xs mb-2"
+                            style="color: var(--text-muted);"
+                        >
+                            {userProfile.email}
+                        </p>
+                        <p
+                            class="text-[10px] uppercase tracking-widest"
+                            style="color: var(--text-muted); opacity:.5;"
+                        >
+                            Miembro desde {
+                                new Date(
+                                    userProfile.created_at,
+                                ).toLocaleDateString("es-ES")
+                            }
                         </p>
                     </div>
 
                     <!-- Nav tabs -->
                     <nav class="space-y-1" id="profile-nav">
-                        {tabs.map(t => (
-                            <a
-                                href={`/profile?tab=${t.id}`}
-                                data-tab-link={t.id}
-                                class:list={[
-                                    "flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all duration-200",
-                                    tab === t.id
-                                        ? "bg-brand text-black"
-                                        : "card hover:text-brand"
-                                ]}
-                                style={tab !== t.id ? "color: var(--text-muted);" : ""}
-                            >
-                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d={t.icon} />
-                                </svg>
-                                {t.label}
-                            </a>
-                        ))}
-                        {userProfile.role === "admin" && (
-                            <a href="/admin" class="flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider card hover:text-brand transition-colors" style="color: var(--text-muted);">
-                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                Panel Admin
-                            </a>
-                        )}
+                        {
+                            tabs.map((t) => (
+                                <a
+                                    href={`/profile?tab=${t.id}`}
+                                    data-tab-link={t.id}
+                                    class:list={[
+                                        "flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all duration-200",
+                                        tab === t.id
+                                            ? "bg-brand text-black"
+                                            : "card hover:text-brand",
+                                    ]}
+                                    style={
+                                        tab !== t.id
+                                            ? "color: var(--text-muted);"
+                                            : ""
+                                    }
+                                >
+                                    <svg
+                                        class="w-4 h-4 shrink-0"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.5"
+                                            d={t.icon}
+                                        />
+                                    </svg>
+                                    {t.label}
+                                </a>
+                            ))
+                        }
+                        {
+                            userProfile.role === "admin" && (
+                                <a
+                                    href="/admin"
+                                    class="flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider card hover:text-brand transition-colors"
+                                    style="color: var(--text-muted);"
+                                >
+                                    <svg
+                                        class="w-4 h-4 shrink-0"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <>
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="1.5"
+                                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                                            />
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="1.5"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                            />
+                                        </>
+                                    </svg>
+                                    Panel Admin
+                                </a>
+                            )
+                        }
                     </nav>
                 </aside>
 
                 <!-- ── Contenido principal ─────────────────────────────── -->
                 <div class="flex-1 min-w-0">
-
                     {/* ════ MIS PEDIDOS ════ */}
                     <div data-tab-panel="pedidos" hidden={tab !== "pedidos"}>
-                            <h2 class="section-title mb-8">Mis <span class="text-brand">Pedidos</span></h2>
-                            {ordersWithItems.length > 0 ? (
+                        <h2 class="section-title mb-8">
+                            Mis <span class="text-brand">Pedidos</span>
+                        </h2>
+                        {
+                            ordersWithItems.length > 0 ? (
                                 <div class="space-y-5">
                                     {ordersWithItems.map((order: any) => (
                                         <div class="card p-6">
                                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
                                                 <div>
-                                                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1" style="color: var(--text-muted);">Pedido</p>
-                                                    <p class="text-sm font-mono text-brand">{order.order_number || `#${order.id.slice(-8).toUpperCase()}`}</p>
+                                                    <p
+                                                        class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1"
+                                                        style="color: var(--text-muted);"
+                                                    >
+                                                        Pedido
+                                                    </p>
+                                                    <p class="text-sm font-mono text-brand">
+                                                        {order.order_number ||
+                                                            `#${order.id.slice(-8).toUpperCase()}`}
+                                                    </p>
                                                 </div>
                                                 <div>
-                                                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1" style="color: var(--text-muted);">Fecha</p>
-                                                    <p class="text-sm" style="color: var(--text-secondary);">{new Date(order.created_at).toLocaleDateString("es-ES")}</p>
+                                                    <p
+                                                        class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1"
+                                                        style="color: var(--text-muted);"
+                                                    >
+                                                        Fecha
+                                                    </p>
+                                                    <p
+                                                        class="text-sm"
+                                                        style="color: var(--text-secondary);"
+                                                    >
+                                                        {new Date(
+                                                            order.created_at,
+                                                        ).toLocaleDateString(
+                                                            "es-ES",
+                                                        )}
+                                                    </p>
                                                 </div>
                                                 <div>
-                                                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1" style="color: var(--text-muted);">Estado</p>
-                                                    <span class:list={["inline-block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider", order.status === "delivered" ? "bg-brand/10 text-brand" : order.status === "cancelled" ? "bg-red-500/10 text-red-500" : order.status === "pending" ? "bg-amber-500/10 text-amber-500" : "bg-blue-500/10 text-blue-500"]}>
-                                                        {statusMap[order.status] || order.status}
+                                                    <p
+                                                        class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1"
+                                                        style="color: var(--text-muted);"
+                                                    >
+                                                        Estado
+                                                    </p>
+                                                    <span
+                                                        class:list={[
+                                                            "inline-block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
+                                                            order.status ===
+                                                            "delivered"
+                                                                ? "bg-brand/10 text-brand"
+                                                                : order.status ===
+                                                                    "cancelled"
+                                                                  ? "bg-red-500/10 text-red-500"
+                                                                  : order.status ===
+                                                                      "pending"
+                                                                    ? "bg-amber-500/10 text-amber-500"
+                                                                    : "bg-blue-500/10 text-blue-500",
+                                                        ]}
+                                                    >
+                                                        {statusMap[
+                                                            order.status
+                                                        ] || order.status}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1" style="color: var(--text-muted);">Total</p>
-                                                    <p class="text-lg font-bold">€{parseFloat(order.total).toFixed(2)}</p>
+                                                    <p
+                                                        class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1"
+                                                        style="color: var(--text-muted);"
+                                                    >
+                                                        Total
+                                                    </p>
+                                                    <p class="text-lg font-bold">
+                                                        €
+                                                        {parseFloat(
+                                                            order.total,
+                                                        ).toFixed(2)}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <div class="space-y-3 pt-4" style="border-top: 1px solid var(--border-color);">
-                                                {order.items.map((item: any) => (
-                                                    <div class="flex items-center gap-4">
-                                                        <div class="w-12 h-12 overflow-hidden flex-shrink-0" style="background-color: var(--bg-secondary);">
-                                                            <img src={item.product?.image || item.product_image} alt={item.product?.name || item.product_name} class="w-full h-full object-cover" />
+                                            <div
+                                                class="space-y-3 pt-4"
+                                                style="border-top: 1px solid var(--border-color);"
+                                            >
+                                                {order.items.map(
+                                                    (item: any) => (
+                                                        <div class="flex items-center gap-4">
+                                                            <div
+                                                                class="w-12 h-12 overflow-hidden flex-shrink-0"
+                                                                style="background-color: var(--bg-secondary);"
+                                                            >
+                                                                <img
+                                                                    src={
+                                                                        item
+                                                                            .product
+                                                                            ?.image ||
+                                                                        item.product_image
+                                                                    }
+                                                                    alt={
+                                                                        item
+                                                                            .product
+                                                                            ?.name ||
+                                                                        item.product_name
+                                                                    }
+                                                                    class="w-full h-full object-cover"
+                                                                />
+                                                            </div>
+                                                            <div class="flex-1 min-w-0">
+                                                                <p class="text-sm font-semibold uppercase truncate">
+                                                                    {item
+                                                                        .product
+                                                                        ?.name ||
+                                                                        item.product_name}
+                                                                </p>
+                                                                <p
+                                                                    class="text-xs uppercase tracking-wider"
+                                                                    style="color: var(--text-muted);"
+                                                                >
+                                                                    {
+                                                                        item.quantity
+                                                                    }{" "}
+                                                                    x €
+                                                                    {parseFloat(
+                                                                        item.unit_price,
+                                                                    ).toFixed(
+                                                                        2,
+                                                                    )}
+                                                                    {item.size &&
+                                                                        ` · Talla ${item.size}`}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                        <div class="flex-1 min-w-0">
-                                                            <p class="text-sm font-semibold uppercase truncate">{item.product?.name || item.product_name}</p>
-                                                            <p class="text-xs uppercase tracking-wider" style="color: var(--text-muted);">{item.quantity} x €{parseFloat(item.unit_price).toFixed(2)}{item.size && ` · Talla ${item.size}`}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                    ),
+                                                )}
                                             </div>
                                             {/* ── Descarga de factura ── */}
-                                            <div class="flex justify-end pt-3 mt-1" style="border-top: 1px solid var(--border-color);">
+                                            <div
+                                                class="flex justify-end pt-3 mt-1"
+                                                style="border-top: 1px solid var(--border-color);"
+                                            >
                                                 <button
                                                     type="button"
                                                     data-invoice-url={`/api/orders/invoice/${order.id}`}
@@ -178,8 +378,18 @@ const tabs = [
                                                     onmouseover="this.style.background='#22c55e';this.style.color='#0a0a0a';"
                                                     onmouseout="this.style.background='rgba(34,197,94,0.08)';this.style.color='#22c55e';"
                                                 >
-                                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                                                    <svg
+                                                        class="w-3.5 h-3.5 flex-shrink-0"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                        stroke-width="2.5"
+                                                    >
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                                                        />
                                                     </svg>
                                                     Descargar Factura PDF
                                                 </button>
@@ -189,168 +399,589 @@ const tabs = [
                                 </div>
                             ) : (
                                 <div class="py-24 text-center card">
-                                    <svg class="w-12 h-12 mx-auto mb-6" style="color: var(--text-muted); opacity:.4;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-                                    <p class="uppercase tracking-[0.2em] text-sm mb-6" style="color: var(--text-muted);">No has realizado ningún pedido todavía.</p>
-                                    <a href="/shop" class="btn-primary inline-flex">Ir a la tienda</a>
+                                    <svg
+                                        class="w-12 h-12 mx-auto mb-6"
+                                        style="color: var(--text-muted); opacity:.4;"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.5"
+                                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                                        />
+                                    </svg>
+                                    <p
+                                        class="uppercase tracking-[0.2em] text-sm mb-6"
+                                        style="color: var(--text-muted);"
+                                    >
+                                        No has realizado ningún pedido todavía.
+                                    </p>
+                                    <a
+                                        href="/shop"
+                                        class="btn-primary inline-flex"
+                                    >
+                                        Ir a la tienda
+                                    </a>
                                 </div>
-                            )}
+                            )
+                        }
                     </div>
 
                     {/* ════ MIS DEVOLUCIONES ════ */}
-                    <div data-tab-panel="devoluciones" hidden={tab !== "devoluciones"}>
-                            <h2 class="section-title mb-8">Mis <span class="text-brand">Devoluciones</span></h2>
-                            {returns.length > 0 ? (
+                    <div
+                        data-tab-panel="devoluciones"
+                        hidden={tab !== "devoluciones"}
+                    >
+                        <h2 class="section-title mb-8">
+                            Mis <span class="text-brand">Devoluciones</span>
+                        </h2>
+                        {
+                            returns.length > 0 ? (
                                 <div class="space-y-5">
                                     {returns.map((order: any) => (
                                         <div class="card p-6">
                                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
                                                 <div>
-                                                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1" style="color: var(--text-muted);">Pedido</p>
-                                                    <p class="text-sm font-mono text-brand">{order.order_number || `#${order.id.slice(-8).toUpperCase()}`}</p>
+                                                    <p
+                                                        class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1"
+                                                        style="color: var(--text-muted);"
+                                                    >
+                                                        Pedido
+                                                    </p>
+                                                    <p class="text-sm font-mono text-brand">
+                                                        {order.order_number ||
+                                                            `#${order.id.slice(-8).toUpperCase()}`}
+                                                    </p>
                                                 </div>
                                                 <div>
-                                                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1" style="color: var(--text-muted);">Fecha</p>
-                                                    <p class="text-sm" style="color: var(--text-secondary);">{new Date(order.created_at).toLocaleDateString("es-ES")}</p>
+                                                    <p
+                                                        class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1"
+                                                        style="color: var(--text-muted);"
+                                                    >
+                                                        Fecha
+                                                    </p>
+                                                    <p
+                                                        class="text-sm"
+                                                        style="color: var(--text-secondary);"
+                                                    >
+                                                        {new Date(
+                                                            order.created_at,
+                                                        ).toLocaleDateString(
+                                                            "es-ES",
+                                                        )}
+                                                    </p>
                                                 </div>
                                                 <div>
-                                                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1" style="color: var(--text-muted);">Estado</p>
-                                                    <span class:list={["inline-block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider", order.status === "refunded" ? "bg-brand/10 text-brand" : "bg-red-500/10 text-red-500"]}>
-                                                        {statusMap[order.status] || order.status}
+                                                    <p
+                                                        class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1"
+                                                        style="color: var(--text-muted);"
+                                                    >
+                                                        Estado
+                                                    </p>
+                                                    <span
+                                                        class:list={[
+                                                            "inline-block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
+                                                            order.status ===
+                                                            "refunded"
+                                                                ? "bg-brand/10 text-brand"
+                                                                : "bg-red-500/10 text-red-500",
+                                                        ]}
+                                                    >
+                                                        {statusMap[
+                                                            order.status
+                                                        ] || order.status}
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1" style="color: var(--text-muted);">Total</p>
-                                                    <p class="text-lg font-bold">€{parseFloat(order.total).toFixed(2)}</p>
+                                                    <p
+                                                        class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1"
+                                                        style="color: var(--text-muted);"
+                                                    >
+                                                        Total
+                                                    </p>
+                                                    <p class="text-lg font-bold">
+                                                        €
+                                                        {parseFloat(
+                                                            order.total,
+                                                        ).toFixed(2)}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <div class="space-y-3 pt-4" style="border-top: 1px solid var(--border-color);">
-                                                {order.items.map((item: any) => (
-                                                    <div class="flex items-center gap-4">
-                                                        <div class="w-12 h-12 overflow-hidden flex-shrink-0" style="background-color: var(--bg-secondary);">
-                                                            <img src={item.product?.image || item.product_image} alt={item.product?.name || item.product_name} class="w-full h-full object-cover" />
+                                            <div
+                                                class="space-y-3 pt-4"
+                                                style="border-top: 1px solid var(--border-color);"
+                                            >
+                                                {order.items.map(
+                                                    (item: any) => (
+                                                        <div class="flex items-center gap-4">
+                                                            <div
+                                                                class="w-12 h-12 overflow-hidden flex-shrink-0"
+                                                                style="background-color: var(--bg-secondary);"
+                                                            >
+                                                                <img
+                                                                    src={
+                                                                        item
+                                                                            .product
+                                                                            ?.image ||
+                                                                        item.product_image
+                                                                    }
+                                                                    alt={
+                                                                        item
+                                                                            .product
+                                                                            ?.name ||
+                                                                        item.product_name
+                                                                    }
+                                                                    class="w-full h-full object-cover"
+                                                                />
+                                                            </div>
+                                                            <div class="flex-1 min-w-0">
+                                                                <p class="text-sm font-semibold uppercase truncate">
+                                                                    {item
+                                                                        .product
+                                                                        ?.name ||
+                                                                        item.product_name}
+                                                                </p>
+                                                                <p
+                                                                    class="text-xs uppercase tracking-wider"
+                                                                    style="color: var(--text-muted);"
+                                                                >
+                                                                    {
+                                                                        item.quantity
+                                                                    }{" "}
+                                                                    x €
+                                                                    {parseFloat(
+                                                                        item.unit_price,
+                                                                    ).toFixed(
+                                                                        2,
+                                                                    )}
+                                                                    {item.size &&
+                                                                        ` · Talla ${item.size}`}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                        <div class="flex-1 min-w-0">
-                                                            <p class="text-sm font-semibold uppercase truncate">{item.product?.name || item.product_name}</p>
-                                                            <p class="text-xs uppercase tracking-wider" style="color: var(--text-muted);">{item.quantity} x €{parseFloat(item.unit_price).toFixed(2)}{item.size && ` · Talla ${item.size}`}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                    ),
+                                                )}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
                                 <div class="py-24 text-center card">
-                                    <svg class="w-12 h-12 mx-auto mb-6" style="color: var(--text-muted); opacity:.4;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                    <p class="uppercase tracking-[0.2em] text-sm" style="color: var(--text-muted);">No tienes devoluciones registradas.</p>
+                                    <svg
+                                        class="w-12 h-12 mx-auto mb-6"
+                                        style="color: var(--text-muted); opacity:.4;"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.5"
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                        />
+                                    </svg>
+                                    <p
+                                        class="uppercase tracking-[0.2em] text-sm"
+                                        style="color: var(--text-muted);"
+                                    >
+                                        No tienes devoluciones registradas.
+                                    </p>
                                 </div>
-                            )}
+                            )
+                        }
                     </div>
 
                     {/* ════ MI PERFIL ════ */}
                     <div data-tab-panel="perfil" hidden={tab !== "perfil"}>
-                            <h2 class="section-title mb-8">Mi <span class="text-brand">Perfil</span></h2>
-                            <div class="card p-8 max-w-xl">
-                                <form id="profile-form" class="space-y-5">
-                                    <div>
-                                        <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style="color: var(--text-muted);">Nombre</label>
-                                        <input type="text" name="name" value={userProfile.name} class="w-full px-4 py-3 text-sm font-medium bg-transparent border focus:outline-none focus:border-brand transition-colors" style="border-color: var(--border-color); color: var(--text-primary);" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style="color: var(--text-muted);">Email</label>
-                                        <input type="email" value={userProfile.email} disabled class="w-full px-4 py-3 text-sm font-medium bg-transparent border opacity-40 cursor-not-allowed" style="border-color: var(--border-color); color: var(--text-muted);" />
-                                        <p class="text-[10px] mt-1" style="color: var(--text-muted);">El email no se puede modificar.</p>
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style="color: var(--text-muted);">Teléfono</label>
-                                        <input type="tel" name="phone" value={userProfile.phone || ""} placeholder="+34 600 000 000" class="w-full px-4 py-3 text-sm font-medium bg-transparent border focus:outline-none focus:border-brand transition-colors" style="border-color: var(--border-color); color: var(--text-primary);" />
-                                    </div>
-                                    <div class="pt-2">
-                                        <button id="save-profile-btn" type="submit" disabled class="btn-primary w-full opacity-40 cursor-not-allowed transition-opacity">Guardar cambios</button>
-                                        <p id="profile-msg" class="text-xs text-center mt-3 hidden" style="color: var(--text-muted);"></p>
-                                    </div>
-                                </form>
-                                <div class="mt-8 pt-8" style="border-top: 1px solid var(--border-color);">
-                                    <h3 class="text-xs font-bold uppercase tracking-[0.2em] mb-5" style="color: var(--text-muted);">Cambiar contraseña</h3>
-                                    <form id="pwd-form" class="space-y-4">
-                                        <!-- Contraseña actual -->
-                                        <div>
-                                            <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style="color: var(--text-muted);">Contraseña actual</label>
-                                            <div class="relative">
-                                                <input id="pwd-current" type="password" name="current_password" autocomplete="current-password" required class="w-full px-4 py-3 pr-12 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors" style="border-color: var(--border-color); color: var(--text-primary);" />
-                                                <button type="button" data-eye="pwd-current" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 opacity-40 hover:opacity-80 transition-opacity" tabindex="-1">
-                                                    <svg class="eye-off w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
-                                                    <svg class="eye-on w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <!-- Nueva contraseña -->
-                                        <div>
-                                            <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style="color: var(--text-muted);">Nueva contraseña</label>
-                                            <div class="relative">
-                                                <input id="pwd-new" type="password" name="password" autocomplete="new-password" required class="w-full px-4 py-3 pr-12 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors" style="border-color: var(--border-color); color: var(--text-primary);" />
-                                                <button type="button" data-eye="pwd-new" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 opacity-40 hover:opacity-80 transition-opacity" tabindex="-1">
-                                                    <svg class="eye-off w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
-                                                    <svg class="eye-on w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                </button>
-                                            </div>
-                                            <!-- Barra de seguridad -->
-                                            <div class="mt-2 space-y-1">
-                                                <div class="flex gap-1 h-1">
-                                                    <div id="str-1" class="flex-1 rounded-full transition-colors duration-300" style="background-color: var(--border-color);"></div>
-                                                    <div id="str-2" class="flex-1 rounded-full transition-colors duration-300" style="background-color: var(--border-color);"></div>
-                                                    <div id="str-3" class="flex-1 rounded-full transition-colors duration-300" style="background-color: var(--border-color);"></div>
-                                                    <div id="str-4" class="flex-1 rounded-full transition-colors duration-300" style="background-color: var(--border-color);"></div>
-                                                </div>
-                                                <p id="str-label" class="text-[10px]" style="color: var(--text-muted);"></p>
-                                            </div>
-                                        </div>
-                                        <!-- Repetir contraseña -->
-                                        <div>
-                                            <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style="color: var(--text-muted);">Repetir nueva contraseña</label>
-                                            <div class="relative">
-                                                <input id="pwd-repeat" type="password" name="password_repeat" autocomplete="new-password" required class="w-full px-4 py-3 pr-12 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors" style="border-color: var(--border-color); color: var(--text-primary);" />
-                                                <button type="button" data-eye="pwd-repeat" class="absolute right-3 top-1/2 -translate-y-1/2 p-1 opacity-40 hover:opacity-80 transition-opacity" tabindex="-1">
-                                                    <svg class="eye-off w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
-                                                    <svg class="eye-on w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <button type="submit" class="btn-outline w-full text-sm mt-2">Actualizar contraseña</button>
-                                        <p id="pwd-msg" class="text-xs text-center hidden" style="color: var(--text-muted);"></p>
-                                    </form>
+                        <h2 class="section-title mb-8">
+                            Mi <span class="text-brand">Perfil</span>
+                        </h2>
+                        <div class="card p-8 max-w-xl">
+                            <form id="profile-form" class="space-y-5">
+                                <div>
+                                    <label
+                                        class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-2"
+                                        style="color: var(--text-muted);"
+                                        >Nombre</label
+                                    >
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={userProfile.name}
+                                        class="w-full px-4 py-3 text-sm font-medium bg-transparent border focus:outline-none focus:border-brand transition-colors"
+                                        style="border-color: var(--border-color); color: var(--text-primary);"
+                                    />
                                 </div>
+                                <div>
+                                    <label
+                                        class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-2"
+                                        style="color: var(--text-muted);"
+                                        >Email</label
+                                    >
+                                    <input
+                                        type="email"
+                                        value={userProfile.email}
+                                        disabled
+                                        class="w-full px-4 py-3 text-sm font-medium bg-transparent border opacity-40 cursor-not-allowed"
+                                        style="border-color: var(--border-color); color: var(--text-muted);"
+                                    />
+                                    <p
+                                        class="text-[10px] mt-1"
+                                        style="color: var(--text-muted);"
+                                    >
+                                        El email no se puede modificar.
+                                    </p>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-2"
+                                        style="color: var(--text-muted);"
+                                        >Teléfono</label
+                                    >
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        value={userProfile.phone || ""}
+                                        placeholder="+34 600 000 000"
+                                        class="w-full px-4 py-3 text-sm font-medium bg-transparent border focus:outline-none focus:border-brand transition-colors"
+                                        style="border-color: var(--border-color); color: var(--text-primary);"
+                                    />
+                                </div>
+                                <div class="pt-2">
+                                    <button
+                                        id="save-profile-btn"
+                                        type="submit"
+                                        disabled
+                                        class="btn-primary w-full opacity-40 cursor-not-allowed transition-opacity"
+                                        >Guardar cambios</button
+                                    >
+                                    <p
+                                        id="profile-msg"
+                                        class="text-xs text-center mt-3 hidden"
+                                        style="color: var(--text-muted);"
+                                    >
+                                    </p>
+                                </div>
+                            </form>
+                            <div
+                                class="mt-8 pt-8"
+                                style="border-top: 1px solid var(--border-color);"
+                            >
+                                <h3
+                                    class="text-xs font-bold uppercase tracking-[0.2em] mb-5"
+                                    style="color: var(--text-muted);"
+                                >
+                                    Cambiar contraseña
+                                </h3>
+                                <form id="pwd-form" class="space-y-4">
+                                    <!-- Contraseña actual -->
+                                    <div>
+                                        <label
+                                            class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-2"
+                                            style="color: var(--text-muted);"
+                                            >Contraseña actual</label
+                                        >
+                                        <div class="relative">
+                                            <input
+                                                id="pwd-current"
+                                                type="password"
+                                                name="current_password"
+                                                autocomplete="current-password"
+                                                required
+                                                class="w-full px-4 py-3 pr-12 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors"
+                                                style="border-color: var(--border-color); color: var(--text-primary);"
+                                            />
+                                            <button
+                                                type="button"
+                                                data-eye="pwd-current"
+                                                class="absolute right-3 top-1/2 -translate-y-1/2 p-1 opacity-40 hover:opacity-80 transition-opacity"
+                                                tabindex="-1"
+                                            >
+                                                <svg
+                                                    class="eye-off w-4 h-4"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                    ><path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="1.5"
+                                                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                                                    ></path></svg
+                                                >
+                                                <svg
+                                                    class="eye-on w-4 h-4 hidden"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                    ><path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="1.5"
+                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                                    ></path><path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="1.5"
+                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                                    ></path></svg
+                                                >
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- Nueva contraseña -->
+                                    <div>
+                                        <label
+                                            class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-2"
+                                            style="color: var(--text-muted);"
+                                            >Nueva contraseña</label
+                                        >
+                                        <div class="relative">
+                                            <input
+                                                id="pwd-new"
+                                                type="password"
+                                                name="password"
+                                                autocomplete="new-password"
+                                                required
+                                                class="w-full px-4 py-3 pr-12 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors"
+                                                style="border-color: var(--border-color); color: var(--text-primary);"
+                                            />
+                                            <button
+                                                type="button"
+                                                data-eye="pwd-new"
+                                                class="absolute right-3 top-1/2 -translate-y-1/2 p-1 opacity-40 hover:opacity-80 transition-opacity"
+                                                tabindex="-1"
+                                            >
+                                                <svg
+                                                    class="eye-off w-4 h-4"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                    ><path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="1.5"
+                                                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                                                    ></path></svg
+                                                >
+                                                <svg
+                                                    class="eye-on w-4 h-4 hidden"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                    ><path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="1.5"
+                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                                    ></path><path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="1.5"
+                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                                    ></path></svg
+                                                >
+                                            </button>
+                                        </div>
+                                        <!-- Barra de seguridad -->
+                                        <div class="mt-2 space-y-1">
+                                            <div class="flex gap-1 h-1">
+                                                <div
+                                                    id="str-1"
+                                                    class="flex-1 rounded-full transition-colors duration-300"
+                                                    style="background-color: var(--border-color);"
+                                                >
+                                                </div>
+                                                <div
+                                                    id="str-2"
+                                                    class="flex-1 rounded-full transition-colors duration-300"
+                                                    style="background-color: var(--border-color);"
+                                                >
+                                                </div>
+                                                <div
+                                                    id="str-3"
+                                                    class="flex-1 rounded-full transition-colors duration-300"
+                                                    style="background-color: var(--border-color);"
+                                                >
+                                                </div>
+                                                <div
+                                                    id="str-4"
+                                                    class="flex-1 rounded-full transition-colors duration-300"
+                                                    style="background-color: var(--border-color);"
+                                                >
+                                                </div>
+                                            </div>
+                                            <p
+                                                id="str-label"
+                                                class="text-[10px]"
+                                                style="color: var(--text-muted);"
+                                            >
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <!-- Repetir contraseña -->
+                                    <div>
+                                        <label
+                                            class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-2"
+                                            style="color: var(--text-muted);"
+                                            >Repetir nueva contraseña</label
+                                        >
+                                        <div class="relative">
+                                            <input
+                                                id="pwd-repeat"
+                                                type="password"
+                                                name="password_repeat"
+                                                autocomplete="new-password"
+                                                required
+                                                class="w-full px-4 py-3 pr-12 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors"
+                                                style="border-color: var(--border-color); color: var(--text-primary);"
+                                            />
+                                            <button
+                                                type="button"
+                                                data-eye="pwd-repeat"
+                                                class="absolute right-3 top-1/2 -translate-y-1/2 p-1 opacity-40 hover:opacity-80 transition-opacity"
+                                                tabindex="-1"
+                                            >
+                                                <svg
+                                                    class="eye-off w-4 h-4"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                    ><path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="1.5"
+                                                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                                                    ></path></svg
+                                                >
+                                                <svg
+                                                    class="eye-on w-4 h-4 hidden"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                    ><path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="1.5"
+                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                                    ></path><path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="1.5"
+                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                                    ></path></svg
+                                                >
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        class="btn-outline w-full text-sm mt-2"
+                                        >Actualizar contraseña</button
+                                    >
+                                    <p
+                                        id="pwd-msg"
+                                        class="text-xs text-center hidden"
+                                        style="color: var(--text-muted);"
+                                    >
+                                    </p>
+                                </form>
                             </div>
+                        </div>
                     </div>
 
                     {/* ════ MIS RESEÑAS ════ */}
                     <div data-tab-panel="reseñas" hidden={tab !== "reseñas"}>
-                            <h2 class="section-title mb-8">Mis <span class="text-brand">Reseñas</span></h2>
-                            {(reviews || []).length > 0 ? (
+                        <h2 class="section-title mb-8">
+                            Mis <span class="text-brand">Reseñas</span>
+                        </h2>
+                        {
+                            (reviews || []).length > 0 ? (
                                 <div class="space-y-4">
                                     {(reviews || []).map((r: any) => (
                                         <div class="card p-6">
                                             <div class="flex items-start gap-5">
                                                 {r.products?.image && (
-                                                    <div class="w-14 h-14 overflow-hidden flex-shrink-0" style="background-color: var(--bg-secondary);">
-                                                        <img src={r.products.image} alt={r.products.name} class="w-full h-full object-cover" />
+                                                    <div
+                                                        class="w-14 h-14 overflow-hidden flex-shrink-0"
+                                                        style="background-color: var(--bg-secondary);"
+                                                    >
+                                                        <img
+                                                            src={
+                                                                r.products.image
+                                                            }
+                                                            alt={
+                                                                r.products.name
+                                                            }
+                                                            class="w-full h-full object-cover"
+                                                        />
                                                     </div>
                                                 )}
                                                 <div class="flex-1">
                                                     <div class="flex items-center justify-between gap-2 mb-1 flex-wrap">
-                                                        <p class="text-sm font-bold uppercase">{r.products?.name || "Producto"}</p>
+                                                        <p class="text-sm font-bold uppercase">
+                                                            {r.products?.name ||
+                                                                "Producto"}
+                                                        </p>
                                                         <div class="flex gap-0.5">
-                                                            {[1,2,3,4,5].map((s) => (
-                                                                <svg class:list={["w-4 h-4", s <= r.rating ? "text-brand" : "text-white/20"]} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                                            {[
+                                                                1, 2, 3, 4, 5,
+                                                            ].map((s) => (
+                                                                <svg
+                                                                    class:list={[
+                                                                        "w-4 h-4",
+                                                                        s <=
+                                                                        r.rating
+                                                                            ? "text-brand"
+                                                                            : "text-white/20",
+                                                                    ]}
+                                                                    fill="currentColor"
+                                                                    viewBox="0 0 20 20"
+                                                                >
+                                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                                </svg>
                                                             ))}
                                                         </div>
                                                     </div>
-                                                    {r.title && <p class="text-sm font-semibold mb-1">{r.title}</p>}
-                                                    {r.comment && <p class="text-sm" style="color: var(--text-muted);">{r.comment}</p>}
+                                                    {r.title && (
+                                                        <p class="text-sm font-semibold mb-1">
+                                                            {r.title}
+                                                        </p>
+                                                    )}
+                                                    {r.comment && (
+                                                        <p
+                                                            class="text-sm"
+                                                            style="color: var(--text-muted);"
+                                                        >
+                                                            {r.comment}
+                                                        </p>
+                                                    )}
                                                     <div class="flex items-center gap-3 mt-2">
-                                                        <p class="text-[10px] uppercase tracking-wider" style="color: var(--text-muted);">{new Date(r.created_at).toLocaleDateString("es-ES")}</p>
-                                                        {!r.is_approved && <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 bg-amber-500/10 text-amber-500">Pendiente aprobación</span>}
-                                                        {r.is_approved && <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 bg-brand/10 text-brand">Publicada</span>}
+                                                        <p
+                                                            class="text-[10px] uppercase tracking-wider"
+                                                            style="color: var(--text-muted);"
+                                                        >
+                                                            {new Date(
+                                                                r.created_at,
+                                                            ).toLocaleDateString(
+                                                                "es-ES",
+                                                            )}
+                                                        </p>
+                                                        {!r.is_approved && (
+                                                            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 bg-amber-500/10 text-amber-500">
+                                                                Pendiente
+                                                                aprobación
+                                                            </span>
+                                                        )}
+                                                        {r.is_approved && (
+                                                            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 bg-brand/10 text-brand">
+                                                                Publicada
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -359,83 +990,272 @@ const tabs = [
                                 </div>
                             ) : (
                                 <div class="py-24 text-center card">
-                                    <svg class="w-12 h-12 mx-auto mb-6" style="color: var(--text-muted); opacity:.4;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
-                                    <p class="uppercase tracking-[0.2em] text-sm mb-6" style="color: var(--text-muted);">Todavía no has escrito ninguna reseña.</p>
-                                    <a href="/shop" class="btn-primary inline-flex">Explorar productos</a>
+                                    <svg
+                                        class="w-12 h-12 mx-auto mb-6"
+                                        style="color: var(--text-muted); opacity:.4;"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.5"
+                                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                        />
+                                    </svg>
+                                    <p
+                                        class="uppercase tracking-[0.2em] text-sm mb-6"
+                                        style="color: var(--text-muted);"
+                                    >
+                                        Todavía no has escrito ninguna reseña.
+                                    </p>
+                                    <a
+                                        href="/shop"
+                                        class="btn-primary inline-flex"
+                                    >
+                                        Explorar productos
+                                    </a>
                                 </div>
-                            )}
+                            )
+                        }
                     </div>
 
                     {/* ════ MIS DIRECCIONES ════ */}
-                    <div data-tab-panel="direcciones" hidden={tab !== "direcciones"}>
-                            <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
-                                <h2 class="section-title">Mis <span class="text-brand">Direcciones</span></h2>
-                                <button id="new-address-btn" class="btn-outline text-sm">+ Nueva dirección</button>
-                            </div>
+                    <div
+                        data-tab-panel="direcciones"
+                        hidden={tab !== "direcciones"}
+                    >
+                        <div
+                            class="flex items-center justify-between mb-8 flex-wrap gap-4"
+                        >
+                            <h2 class="section-title">
+                                Mis <span class="text-brand">Direcciones</span>
+                            </h2>
+                            <button
+                                id="new-address-btn"
+                                class="btn-outline text-sm"
+                                >+ Nueva dirección</button
+                            >
+                        </div>
 
-                            <!-- Form nueva dirección (oculto por defecto) -->
-                            <div id="address-form-wrap" class="card p-6 mb-6 hidden">
-                                <h3 class="text-xs font-bold uppercase tracking-[0.2em] mb-5" style="color: var(--text-muted);">Nueva dirección</h3>
-                                <form id="address-form" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div class="sm:col-span-2">
-                                        <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5" style="color: var(--text-muted);">Etiqueta (ej: Casa, Trabajo)</label>
-                                        <input type="text" name="label" placeholder="Casa" class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors" style="border-color: var(--border-color); color: var(--text-primary);" />
-                                    </div>
-                                    <div class="sm:col-span-2">
-                                        <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5" style="color: var(--text-muted);">Nombre completo</label>
-                                        <input type="text" name="full_name" required class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors" style="border-color: var(--border-color); color: var(--text-primary);" />
-                                    </div>
-                                    <div class="sm:col-span-2">
-                                        <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5" style="color: var(--text-muted);">Dirección</label>
-                                        <input type="text" name="street" required class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors" style="border-color: var(--border-color); color: var(--text-primary);" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5" style="color: var(--text-muted);">Ciudad</label>
-                                        <input type="text" name="city" required class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors" style="border-color: var(--border-color); color: var(--text-primary);" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5" style="color: var(--text-muted);">Código postal</label>
-                                        <input type="text" name="postal_code" required class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors" style="border-color: var(--border-color); color: var(--text-primary);" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5" style="color: var(--text-muted);">Provincia</label>
-                                        <input type="text" name="state" class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors" style="border-color: var(--border-color); color: var(--text-primary);" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5" style="color: var(--text-muted);">Teléfono</label>
-                                        <input type="tel" name="phone" class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors" style="border-color: var(--border-color); color: var(--text-primary);" />
-                                    </div>
-                                    <div class="sm:col-span-2 flex items-center gap-2">
-                                        <input type="checkbox" name="is_default" id="is_default" class="w-4 h-4 accent-brand" />
-                                        <label for="is_default" class="text-xs uppercase tracking-wider" style="color: var(--text-muted);">Establecer como dirección predeterminada</label>
-                                    </div>
-                                    <div class="sm:col-span-2 flex gap-3">
-                                        <button type="submit" class="btn-primary flex-1">Guardar dirección</button>
-                                        <button type="button" id="cancel-address-btn" class="btn-outline flex-1">Cancelar</button>
-                                    </div>
-                                    <p id="address-msg" class="sm:col-span-2 text-xs text-center hidden" style="color: var(--text-muted);"></p>
-                                </form>
-                            </div>
+                        <!-- Form nueva dirección (oculto por defecto) -->
+                        <div
+                            id="address-form-wrap"
+                            class="card p-6 mb-6 hidden"
+                        >
+                            <h3
+                                class="text-xs font-bold uppercase tracking-[0.2em] mb-5"
+                                style="color: var(--text-muted);"
+                            >
+                                Nueva dirección
+                            </h3>
+                            <form
+                                id="address-form"
+                                class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                            >
+                                <div class="sm:col-span-2">
+                                    <label
+                                        class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5"
+                                        style="color: var(--text-muted);"
+                                        >Etiqueta (ej: Casa, Trabajo)</label
+                                    >
+                                    <input
+                                        type="text"
+                                        name="label"
+                                        placeholder="Casa"
+                                        class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors"
+                                        style="border-color: var(--border-color); color: var(--text-primary);"
+                                    />
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label
+                                        class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5"
+                                        style="color: var(--text-muted);"
+                                        >Nombre completo</label
+                                    >
+                                    <input
+                                        type="text"
+                                        name="full_name"
+                                        required
+                                        class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors"
+                                        style="border-color: var(--border-color); color: var(--text-primary);"
+                                    />
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label
+                                        class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5"
+                                        style="color: var(--text-muted);"
+                                        >Dirección</label
+                                    >
+                                    <input
+                                        type="text"
+                                        name="street"
+                                        required
+                                        class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors"
+                                        style="border-color: var(--border-color); color: var(--text-primary);"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5"
+                                        style="color: var(--text-muted);"
+                                        >Ciudad</label
+                                    >
+                                    <input
+                                        type="text"
+                                        name="city"
+                                        required
+                                        class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors"
+                                        style="border-color: var(--border-color); color: var(--text-primary);"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5"
+                                        style="color: var(--text-muted);"
+                                        >Código postal</label
+                                    >
+                                    <input
+                                        type="text"
+                                        name="postal_code"
+                                        required
+                                        class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors"
+                                        style="border-color: var(--border-color); color: var(--text-primary);"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5"
+                                        style="color: var(--text-muted);"
+                                        >Provincia</label
+                                    >
+                                    <input
+                                        type="text"
+                                        name="state"
+                                        class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors"
+                                        style="border-color: var(--border-color); color: var(--text-primary);"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-[10px] font-bold uppercase tracking-[0.2em] mb-1.5"
+                                        style="color: var(--text-muted);"
+                                        >Teléfono</label
+                                    >
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        class="w-full px-4 py-3 text-sm bg-transparent border focus:outline-none focus:border-brand transition-colors"
+                                        style="border-color: var(--border-color); color: var(--text-primary);"
+                                    />
+                                </div>
+                                <div
+                                    class="sm:col-span-2 flex items-center gap-2"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        name="is_default"
+                                        id="is_default"
+                                        class="w-4 h-4 accent-brand"
+                                    />
+                                    <label
+                                        for="is_default"
+                                        class="text-xs uppercase tracking-wider"
+                                        style="color: var(--text-muted);"
+                                        >Establecer como dirección
+                                        predeterminada</label
+                                    >
+                                </div>
+                                <div class="sm:col-span-2 flex gap-3">
+                                    <button
+                                        type="submit"
+                                        class="btn-primary flex-1"
+                                        >Guardar dirección</button
+                                    >
+                                    <button
+                                        type="button"
+                                        id="cancel-address-btn"
+                                        class="btn-outline flex-1"
+                                        >Cancelar</button
+                                    >
+                                </div>
+                                <p
+                                    id="address-msg"
+                                    class="sm:col-span-2 text-xs text-center hidden"
+                                    style="color: var(--text-muted);"
+                                >
+                                </p>
+                            </form>
+                        </div>
 
-                            {(addresses || []).length > 0 ? (
+                        {
+                            (addresses || []).length > 0 ? (
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {(addresses || []).map((addr: any) => (
-                                        <div class:list={["card p-5 relative", addr.is_default && "border-brand/30"]}>
+                                        <div
+                                            class:list={[
+                                                "card p-5 relative",
+                                                addr.is_default &&
+                                                    "border-brand/30",
+                                            ]}
+                                        >
                                             {addr.is_default && (
-                                                <span class="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-brand/10 text-brand">Predeterminada</span>
+                                                <span class="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-brand/10 text-brand">
+                                                    Predeterminada
+                                                </span>
                                             )}
-                                            <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color: var(--text-muted);">{addr.label || "Dirección"}</p>
-                                            <p class="font-semibold text-sm mb-0.5">{addr.full_name}</p>
-                                            <p class="text-sm" style="color: var(--text-secondary);">{addr.street}</p>
-                                            <p class="text-sm" style="color: var(--text-secondary);">{addr.postal_code} {addr.city}{addr.state ? `, ${addr.state}` : ""}</p>
-                                            {addr.phone && <p class="text-sm mt-1" style="color: var(--text-muted);">{addr.phone}</p>}
-                                            <div class="flex gap-2 mt-4 pt-3" style="border-top: 1px solid var(--border-color);">
+                                            <p
+                                                class="text-xs font-bold uppercase tracking-widest mb-2"
+                                                style="color: var(--text-muted);"
+                                            >
+                                                {addr.label || "Dirección"}
+                                            </p>
+                                            <p class="font-semibold text-sm mb-0.5">
+                                                {addr.full_name}
+                                            </p>
+                                            <p
+                                                class="text-sm"
+                                                style="color: var(--text-secondary);"
+                                            >
+                                                {addr.street}
+                                            </p>
+                                            <p
+                                                class="text-sm"
+                                                style="color: var(--text-secondary);"
+                                            >
+                                                {addr.postal_code} {addr.city}
+                                                {addr.state
+                                                    ? `, ${addr.state}`
+                                                    : ""}
+                                            </p>
+                                            {addr.phone && (
+                                                <p
+                                                    class="text-sm mt-1"
+                                                    style="color: var(--text-muted);"
+                                                >
+                                                    {addr.phone}
+                                                </p>
+                                            )}
+                                            <div
+                                                class="flex gap-2 mt-4 pt-3"
+                                                style="border-top: 1px solid var(--border-color);"
+                                            >
                                                 {!addr.is_default && (
-                                                    <button data-set-default={addr.id} class="text-[10px] font-bold uppercase tracking-widest btn-outline py-1.5 px-3 flex-1 hover:border-brand hover:text-brand transition-colors">
+                                                    <button
+                                                        data-set-default={
+                                                            addr.id
+                                                        }
+                                                        class="text-[10px] font-bold uppercase tracking-widest btn-outline py-1.5 px-3 flex-1 hover:border-brand hover:text-brand transition-colors"
+                                                    >
                                                         ★ Predeterminada
                                                     </button>
                                                 )}
-                                                <button data-delete-addr={addr.id} class="text-[10px] font-bold uppercase tracking-widest py-1.5 px-3 border transition-colors hover:border-red-400/50 hover:text-red-400" style="border-color: var(--border-color); color: var(--text-muted);">
+                                                <button
+                                                    data-delete-addr={addr.id}
+                                                    class="text-[10px] font-bold uppercase tracking-widest py-1.5 px-3 border transition-colors hover:border-red-400/50 hover:text-red-400"
+                                                    style="border-color: var(--border-color); color: var(--text-muted);"
+                                                >
                                                     Eliminar
                                                 </button>
                                             </div>
@@ -444,63 +1264,170 @@ const tabs = [
                                 </div>
                             ) : (
                                 <div class="py-24 text-center card">
-                                    <svg class="w-12 h-12 mx-auto mb-6" style="color: var(--text-muted); opacity:.4;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                    <p class="uppercase tracking-[0.2em] text-sm" style="color: var(--text-muted);">No tienes direcciones guardadas.</p>
+                                    <svg
+                                        class="w-12 h-12 mx-auto mb-6"
+                                        style="color: var(--text-muted); opacity:.4;"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.5"
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                        />
+                                    </svg>
+                                    <p
+                                        class="uppercase tracking-[0.2em] text-sm"
+                                        style="color: var(--text-muted);"
+                                    >
+                                        No tienes direcciones guardadas.
+                                    </p>
                                 </div>
-                            )}
+                            )
+                        }
                     </div>
 
                     {/* ════ MIS CUPONES ════ */}
                     <div data-tab-panel="cupones" hidden={tab !== "cupones"}>
-                            <h2 class="section-title mb-8">Mis <span class="text-brand">Cupones</span></h2>
-                            {(couponUsages || []).length > 0 ? (
+                        <h2 class="section-title mb-8">
+                            Mis <span class="text-brand">Cupones</span>
+                        </h2>
+                        {
+                            (couponUsages || []).length > 0 ? (
                                 <div class="space-y-4">
                                     {(couponUsages || []).map((cu: any) => (
                                         <div class="card p-5 flex items-center justify-between gap-4 flex-wrap">
                                             <div>
-                                                <p class="font-mono font-bold text-brand tracking-widest text-base">{cu.coupons?.code}</p>
-                                                {cu.coupons?.description && <p class="text-xs mt-0.5" style="color: var(--text-muted);">{cu.coupons.description}</p>}
-                                                <p class="text-[10px] uppercase tracking-wider mt-1" style="color: var(--text-muted);">Usado el {new Date(cu.used_at).toLocaleDateString("es-ES")}</p>
+                                                <p class="font-mono font-bold text-brand tracking-widest text-base">
+                                                    {cu.coupons?.code}
+                                                </p>
+                                                {cu.coupons?.description && (
+                                                    <p
+                                                        class="text-xs mt-0.5"
+                                                        style="color: var(--text-muted);"
+                                                    >
+                                                        {cu.coupons.description}
+                                                    </p>
+                                                )}
+                                                <p
+                                                    class="text-[10px] uppercase tracking-wider mt-1"
+                                                    style="color: var(--text-muted);"
+                                                >
+                                                    Usado el{" "}
+                                                    {new Date(
+                                                        cu.used_at,
+                                                    ).toLocaleDateString(
+                                                        "es-ES",
+                                                    )}
+                                                </p>
                                             </div>
                                             <div class="text-right">
                                                 <p class="text-lg font-bold text-brand">
-                                                    {cu.coupons?.discount_type === "percentage"
+                                                    {cu.coupons
+                                                        ?.discount_type ===
+                                                    "percentage"
                                                         ? `-${cu.coupons.discount_value}%`
                                                         : `-€${parseFloat(cu.coupons?.discount_value || 0).toFixed(2)}`}
                                                 </p>
-                                                <p class="text-[10px] uppercase tracking-wider" style="color: var(--text-muted);">descuento aplicado</p>
+                                                <p
+                                                    class="text-[10px] uppercase tracking-wider"
+                                                    style="color: var(--text-muted);"
+                                                >
+                                                    descuento aplicado
+                                                </p>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
                                 <div class="py-24 text-center card">
-                                    <svg class="w-12 h-12 mx-auto mb-6" style="color: var(--text-muted); opacity:.4;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
-                                    <p class="uppercase tracking-[0.2em] text-sm" style="color: var(--text-muted);">No has usado ningún cupón todavía.</p>
+                                    <svg
+                                        class="w-12 h-12 mx-auto mb-6"
+                                        style="color: var(--text-muted); opacity:.4;"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="1.5"
+                                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                                        />
+                                    </svg>
+                                    <p
+                                        class="uppercase tracking-[0.2em] text-sm"
+                                        style="color: var(--text-muted);"
+                                    >
+                                        No has usado ningún cupón todavía.
+                                    </p>
                                 </div>
-                            )}
+                            )
+                        }
                     </div>
-
                 </div>
             </div>
         </div>
     </main>
 
     <!-- ── Modal de confirmación personalizado ── -->
-    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);">
-        <div class="card max-w-sm w-full p-8 space-y-6 text-center" style="border-color: var(--border-color);">
-            <div class="w-12 h-12 mx-auto flex items-center justify-center" style="background: rgba(255,59,59,0.1); border: 1px solid rgba(255,59,59,0.2);">
-                <svg class="w-6 h-6" style="color: #ff3b3b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    <div
+        id="confirm-modal"
+        class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+        style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);"
+    >
+        <div
+            class="card max-w-sm w-full p-8 space-y-6 text-center"
+            style="border-color: var(--border-color);"
+        >
+            <div
+                class="w-12 h-12 mx-auto flex items-center justify-center"
+                style="background: rgba(255,59,59,0.1); border: 1px solid rgba(255,59,59,0.2);"
+            >
+                <svg
+                    class="w-6 h-6"
+                    style="color: #ff3b3b;"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    ></path>
                 </svg>
             </div>
             <div>
-                <p id="confirm-modal-title" class="font-display font-bold uppercase tracking-tight text-base mb-1">¿Eliminar dirección?</p>
-                <p id="confirm-modal-body" class="text-xs" style="color: var(--text-muted);">Esta acción no se puede deshacer.</p>
+                <p
+                    id="confirm-modal-title"
+                    class="font-display font-bold uppercase tracking-tight text-base mb-1"
+                >
+                    ¿Eliminar dirección?
+                </p>
+                <p
+                    id="confirm-modal-body"
+                    class="text-xs"
+                    style="color: var(--text-muted);"
+                >
+                    Esta acción no se puede deshacer.
+                </p>
             </div>
             <div class="flex gap-3">
-                <button id="confirm-modal-cancel" class="btn-outline flex-1 h-10 text-xs uppercase tracking-widest">Cancelar</button>
-                <button id="confirm-modal-ok" class="flex-1 h-10 text-xs font-bold uppercase tracking-widest transition-colors" style="background: rgba(255,59,59,0.15); border: 1px solid rgba(255,59,59,0.3); color: #ff3b3b;">Eliminar</button>
+                <button
+                    id="confirm-modal-cancel"
+                    class="btn-outline flex-1 h-10 text-xs uppercase tracking-widest"
+                    >Cancelar</button
+                >
+                <button
+                    id="confirm-modal-ok"
+                    class="flex-1 h-10 text-xs font-bold uppercase tracking-widest transition-colors"
+                    style="background: rgba(255,59,59,0.15); border: 1px solid rgba(255,59,59,0.3); color: #ff3b3b;"
+                    >Eliminar</button
+                >
             </div>
         </div>
     </div>
@@ -512,95 +1439,117 @@ const tabs = [
     // ── Modal de confirmación (Promise-based) ─────────────────────────────────
     function customConfirm(title: string, body: string): Promise<boolean> {
         return new Promise((resolve) => {
-            const modal  = document.getElementById('confirm-modal')!;
-            const titleEl = document.getElementById('confirm-modal-title')!;
-            const bodyEl  = document.getElementById('confirm-modal-body')!;
-            const okBtn   = document.getElementById('confirm-modal-ok')!;
-            const cancelBtn = document.getElementById('confirm-modal-cancel')!;
+            const modal = document.getElementById("confirm-modal")!;
+            const titleEl = document.getElementById("confirm-modal-title")!;
+            const bodyEl = document.getElementById("confirm-modal-body")!;
+            const okBtn = document.getElementById("confirm-modal-ok")!;
+            const cancelBtn = document.getElementById("confirm-modal-cancel")!;
 
             titleEl.textContent = title;
-            bodyEl.textContent  = body;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.style.overflow = 'hidden';
+            bodyEl.textContent = body;
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            document.body.style.overflow = "hidden";
 
             function close(result: boolean) {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                document.body.style.overflow = '';
-                okBtn.removeEventListener('click', onOk);
-                cancelBtn.removeEventListener('click', onCancel);
-                modal.removeEventListener('click', onBackdrop);
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+                document.body.style.overflow = "";
+                okBtn.removeEventListener("click", onOk);
+                cancelBtn.removeEventListener("click", onCancel);
+                modal.removeEventListener("click", onBackdrop);
                 resolve(result);
             }
-            const onOk      = () => close(true);
-            const onCancel  = () => close(false);
-            const onBackdrop = (e: Event) => { if (e.target === modal) close(false); };
+            const onOk = () => close(true);
+            const onCancel = () => close(false);
+            const onBackdrop = (e: Event) => {
+                if (e.target === modal) close(false);
+            };
 
-            okBtn.addEventListener('click', onOk);
-            cancelBtn.addEventListener('click', onCancel);
-            modal.addEventListener('click', onBackdrop);
+            okBtn.addEventListener("click", onOk);
+            cancelBtn.addEventListener("click", onCancel);
+            modal.addEventListener("click", onBackdrop);
         });
     }
 
     function initProfilePage() {
         // ── Tab switching client-side (sin recarga) ──────────────────────────
-        const ACTIVE      = ['bg-brand', 'text-black'];
-        const INACTIVE    = ['card', 'hover:text-brand'];
-        const MUTED_STYLE = 'color: var(--text-muted);';
+        const ACTIVE = ["bg-brand", "text-black"];
+        const INACTIVE = ["card", "hover:text-brand"];
+        const MUTED_STYLE = "color: var(--text-muted);";
 
         function activateTab(id: string, pushUrl = true) {
-            document.querySelectorAll<HTMLElement>('[data-tab-panel]').forEach(panel => {
-                panel.hidden = panel.dataset.tabPanel !== id;
-            });
-            document.querySelectorAll<HTMLElement>('[data-tab-link]').forEach(link => {
-                const isActive = link.dataset.tabLink === id;
-                ACTIVE.forEach(c   => link.classList.toggle(c, isActive));
-                INACTIVE.forEach(c => link.classList.toggle(c, !isActive));
-                if (isActive) { link.removeAttribute('style'); }
-                else          { link.setAttribute('style', MUTED_STYLE); }
-            });
+            document
+                .querySelectorAll<HTMLElement>("[data-tab-panel]")
+                .forEach((panel) => {
+                    panel.hidden = panel.dataset.tabPanel !== id;
+                });
+            document
+                .querySelectorAll<HTMLElement>("[data-tab-link]")
+                .forEach((link) => {
+                    const isActive = link.dataset.tabLink === id;
+                    ACTIVE.forEach((c) => link.classList.toggle(c, isActive));
+                    INACTIVE.forEach((c) =>
+                        link.classList.toggle(c, !isActive),
+                    );
+                    if (isActive) {
+                        link.removeAttribute("style");
+                    } else {
+                        link.setAttribute("style", MUTED_STYLE);
+                    }
+                });
             if (pushUrl) {
                 const url = new URL(window.location.href);
-                url.searchParams.set('tab', id);
-                history.replaceState(null, '', url.toString());
+                url.searchParams.set("tab", id);
+                history.replaceState(null, "", url.toString());
             }
         }
 
-        document.getElementById('profile-nav')?.addEventListener('click', (e) => {
-            const link = (e.target as HTMLElement).closest<HTMLElement>('[data-tab-link]');
-            if (!link) return;
-            e.preventDefault();
-            activateTab(link.dataset.tabLink!);
-        });
+        document
+            .getElementById("profile-nav")
+            ?.addEventListener("click", (e) => {
+                const link = (e.target as HTMLElement).closest<HTMLElement>(
+                    "[data-tab-link]",
+                );
+                if (!link) return;
+                e.preventDefault();
+                activateTab(link.dataset.tabLink!);
+            });
 
         // ── Formulario perfil ─────────────────────────────────────────────────
-        const profileForm = document.getElementById("profile-form") as HTMLFormElement | null;
-        const profileMsg  = document.getElementById("profile-msg");
-        const saveBtn     = document.getElementById("save-profile-btn") as HTMLButtonElement | null;
+        const profileForm = document.getElementById(
+            "profile-form",
+        ) as HTMLFormElement | null;
+        const profileMsg = document.getElementById("profile-msg");
+        const saveBtn = document.getElementById(
+            "save-profile-btn",
+        ) as HTMLButtonElement | null;
         if (profileForm && saveBtn) {
-            const nameInput  = profileForm.querySelector<HTMLInputElement>('[name="name"]')!;
-            const phoneInput = profileForm.querySelector<HTMLInputElement>('[name="phone"]')!;
+            const nameInput =
+                profileForm.querySelector<HTMLInputElement>('[name="name"]')!;
+            const phoneInput =
+                profileForm.querySelector<HTMLInputElement>('[name="phone"]')!;
             // Valores iniciales al cargar la página
-            let origName  = nameInput.value;
+            let origName = nameInput.value;
             let origPhone = phoneInput.value;
 
             function checkDirty() {
-                const dirty = nameInput.value.trim() !== origName.trim() ||
-                              phoneInput.value.trim() !== origPhone.trim();
+                const dirty =
+                    nameInput.value.trim() !== origName.trim() ||
+                    phoneInput.value.trim() !== origPhone.trim();
                 if (!saveBtn) return;
                 saveBtn.disabled = !dirty;
-                saveBtn.classList.toggle('opacity-40', !dirty);
-                saveBtn.classList.toggle('cursor-not-allowed', !dirty);
+                saveBtn.classList.toggle("opacity-40", !dirty);
+                saveBtn.classList.toggle("cursor-not-allowed", !dirty);
             }
 
-            nameInput.addEventListener('input', checkDirty);
-            phoneInput.addEventListener('input', checkDirty);
+            nameInput.addEventListener("input", checkDirty);
+            phoneInput.addEventListener("input", checkDirty);
 
             profileForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
-                const fd   = new FormData(profileForm);
-                const name  = fd.get("name") as string;
+                const fd = new FormData(profileForm);
+                const name = fd.get("name") as string;
                 const phone = fd.get("phone") as string;
                 const res = await fetch("/api/auth/update-profile", {
                     method: "POST",
@@ -610,114 +1559,169 @@ const tabs = [
                 if (profileMsg) {
                     profileMsg.classList.remove("hidden");
                     if (res.ok) {
-                        profileMsg.textContent = "✓ Datos guardados correctamente.";
+                        profileMsg.textContent =
+                            "✓ Datos guardados correctamente.";
                         profileMsg.style.color = "#22c55e";
                         // Actualizar valores de referencia → botón vuelve a deshabilitarse
-                        origName  = name;
+                        origName = name;
                         origPhone = phone;
                         checkDirty();
                         // ── Actualizar sidebar sin recargar ──
-                        const sidebarName   = document.getElementById("sidebar-name");
-                        const sidebarAvatar = document.getElementById("sidebar-avatar");
-                        if (sidebarName)   sidebarName.textContent   = name;
-                        if (sidebarAvatar) sidebarAvatar.textContent = name.charAt(0).toUpperCase();
-                        setTimeout(() => profileMsg.classList.add("hidden"), 3000);
+                        const sidebarName =
+                            document.getElementById("sidebar-name");
+                        const sidebarAvatar =
+                            document.getElementById("sidebar-avatar");
+                        if (sidebarName) sidebarName.textContent = name;
+                        if (sidebarAvatar)
+                            sidebarAvatar.textContent = name
+                                .charAt(0)
+                                .toUpperCase();
+                        setTimeout(
+                            () => profileMsg.classList.add("hidden"),
+                            3000,
+                        );
                     } else {
-                        profileMsg.textContent = "Error al guardar. Inténtalo de nuevo.";
+                        profileMsg.textContent =
+                            "Error al guardar. Inténtalo de nuevo.";
                         profileMsg.style.color = "#ef4444";
-                        setTimeout(() => profileMsg.classList.add("hidden"), 4000);
+                        setTimeout(
+                            () => profileMsg.classList.add("hidden"),
+                            4000,
+                        );
                     }
                 }
             });
         }
 
         // ── Eye toggle (mostrar/ocultar contraseña) ───────────────────────────
-        document.querySelectorAll<HTMLButtonElement>('[data-eye]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const input = document.getElementById(btn.dataset.eye!) as HTMLInputElement | null;
-                if (!input) return;
-                const show = input.type === 'password';
-                input.type = show ? 'text' : 'password';
-                btn.querySelector('.eye-off')!.classList.toggle('hidden', show);
-                btn.querySelector('.eye-on')!.classList.toggle('hidden', !show);
+        document
+            .querySelectorAll<HTMLButtonElement>("[data-eye]")
+            .forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const input = document.getElementById(
+                        btn.dataset.eye!,
+                    ) as HTMLInputElement | null;
+                    if (!input) return;
+                    const show = input.type === "password";
+                    input.type = show ? "text" : "password";
+                    btn.querySelector(".eye-off")!.classList.toggle(
+                        "hidden",
+                        show,
+                    );
+                    btn.querySelector(".eye-on")!.classList.toggle(
+                        "hidden",
+                        !show,
+                    );
+                });
             });
-        });
 
         // ── Barra de seguridad ────────────────────────────────────────────────
-        const pwdNewInput = document.getElementById('pwd-new') as HTMLInputElement | null;
-        const bars = [1,2,3,4].map(n => document.getElementById(`str-${n}`));
-        const strLabel = document.getElementById('str-label');
-        const COLORS = ['#ef4444','#f97316','#eab308','#22c55e'];
-        const LABELS = ['Muy débil','Débil','Aceptable','Fuerte'];
+        const pwdNewInput = document.getElementById(
+            "pwd-new",
+        ) as HTMLInputElement | null;
+        const bars = [1, 2, 3, 4].map((n) =>
+            document.getElementById(`str-${n}`),
+        );
+        const strLabel = document.getElementById("str-label");
+        const COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e"];
+        const LABELS = ["Muy débil", "Débil", "Aceptable", "Fuerte"];
         function getStrength(pw: string): number {
             let score = 0;
-            if (pw.length >= 8)  score++;
+            if (pw.length >= 8) score++;
             if (pw.length >= 12) score++;
             if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
             if (/[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw)) score++;
             return score; // 0-4
         }
-        pwdNewInput?.addEventListener('input', () => {
+        pwdNewInput?.addEventListener("input", () => {
             const pw = pwdNewInput.value;
-            const s  = pw.length === 0 ? 0 : Math.max(1, getStrength(pw));
+            const s = pw.length === 0 ? 0 : Math.max(1, getStrength(pw));
             bars.forEach((bar, i) => {
                 if (!bar) return;
-                bar.style.backgroundColor = i < s ? COLORS[s - 1] : 'var(--border-color)';
+                bar.style.backgroundColor =
+                    i < s ? COLORS[s - 1] : "var(--border-color)";
             });
             if (strLabel) {
-                strLabel.textContent = pw.length === 0 ? '' : LABELS[s - 1];
-                strLabel.style.color = pw.length === 0 ? 'var(--text-muted)' : COLORS[s - 1];
+                strLabel.textContent = pw.length === 0 ? "" : LABELS[s - 1];
+                strLabel.style.color =
+                    pw.length === 0 ? "var(--text-muted)" : COLORS[s - 1];
             }
         });
 
         // ── Formulario contraseña ─────────────────────────────────────────────
-        const pwdForm = document.getElementById("pwd-form") as HTMLFormElement | null;
-        const pwdMsg  = document.getElementById("pwd-msg");
+        const pwdForm = document.getElementById(
+            "pwd-form",
+        ) as HTMLFormElement | null;
+        const pwdMsg = document.getElementById("pwd-msg");
         if (pwdForm) {
             pwdForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
-                const fd          = new FormData(pwdForm);
-                const currentPw   = fd.get("current_password") as string;
-                const pw          = fd.get("password") as string;
-                const pwRepeat    = fd.get("password_repeat") as string;
+                const fd = new FormData(pwdForm);
+                const currentPw = fd.get("current_password") as string;
+                const pw = fd.get("password") as string;
+                const pwRepeat = fd.get("password_repeat") as string;
 
-                const showMsg = (text: string, color = 'var(--text-muted)') => {
+                const showMsg = (text: string, color = "var(--text-muted)") => {
                     if (pwdMsg) {
-                        pwdMsg.classList.remove('hidden');
+                        pwdMsg.classList.remove("hidden");
                         pwdMsg.textContent = text;
                         pwdMsg.style.color = color;
                     }
                 };
 
-                if (!currentPw) { showMsg('Introduce tu contraseña actual.'); return; }
-                if (pw.length < 8) { showMsg('La nueva contraseña debe tener al menos 8 caracteres.'); return; }
-                if (pw !== pwRepeat) { showMsg('Las contraseñas no coinciden.', '#ef4444'); return; }
+                if (!currentPw) {
+                    showMsg("Introduce tu contraseña actual.");
+                    return;
+                }
+                if (pw.length < 8) {
+                    showMsg(
+                        "La nueva contraseña debe tener al menos 8 caracteres.",
+                    );
+                    return;
+                }
+                if (pw !== pwRepeat) {
+                    showMsg("Las contraseñas no coinciden.", "#ef4444");
+                    return;
+                }
 
                 const res = await fetch("/api/auth/update-password", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ current_password: currentPw, password: pw }),
+                    body: JSON.stringify({
+                        current_password: currentPw,
+                        password: pw,
+                    }),
                 });
                 const data = await res.json().catch(() => ({}));
                 if (res.ok) {
-                    showMsg('✓ Contraseña actualizada.', '#22c55e');
+                    showMsg("✓ Contraseña actualizada.", "#22c55e");
                     pwdForm.reset();
-                    bars.forEach(b => { if (b) b.style.backgroundColor = 'var(--border-color)'; });
-                    if (strLabel) strLabel.textContent = '';
-                    setTimeout(() => pwdMsg?.classList.add('hidden'), 3000);
+                    bars.forEach((b) => {
+                        if (b) b.style.backgroundColor = "var(--border-color)";
+                    });
+                    if (strLabel) strLabel.textContent = "";
+                    setTimeout(() => pwdMsg?.classList.add("hidden"), 3000);
                 } else {
-                    showMsg(data.error || 'Error al actualizar. Inténtalo de nuevo.', '#ef4444');
-                    setTimeout(() => pwdMsg?.classList.add('hidden'), 4000);
+                    showMsg(
+                        data.error ||
+                            "Error al actualizar. Inténtalo de nuevo.",
+                        "#ef4444",
+                    );
+                    setTimeout(() => pwdMsg?.classList.add("hidden"), 4000);
                 }
             });
         }
 
         // ── Establecer predeterminada / eliminar (delegación en el panel) ─────
         // Anclar al panel (no a document) para evitar duplicados en navegación
-        const addrPanel = document.querySelector<HTMLElement>('[data-tab-panel="direcciones"]');
+        const addrPanel = document.querySelector<HTMLElement>(
+            '[data-tab-panel="direcciones"]',
+        );
         addrPanel?.addEventListener("click", async (e) => {
             const target = e.target as HTMLElement;
-            const btn = target.closest<HTMLButtonElement>("[data-set-default], [data-delete-addr]");
+            const btn = target.closest<HTMLButtonElement>(
+                "[data-set-default], [data-delete-addr]",
+            );
             if (!btn) return;
 
             if (btn.dataset.setDefault) {
@@ -726,7 +1730,9 @@ const tabs = [
                 const res = await fetch("/api/auth/set-default-address", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ address_id: btn.dataset.setDefault }),
+                    body: JSON.stringify({
+                        address_id: btn.dataset.setDefault,
+                    }),
                 });
                 if (res.ok) {
                     window.location.reload();
@@ -737,14 +1743,19 @@ const tabs = [
                     toast.error("Error al actualizar la dirección.");
                 }
             } else if (btn.dataset.deleteAddr) {
-                const ok = await customConfirm('¿Eliminar dirección?', 'Esta acción no se puede deshacer.');
+                const ok = await customConfirm(
+                    "¿Eliminar dirección?",
+                    "Esta acción no se puede deshacer.",
+                );
                 if (!ok) return;
                 btn.textContent = "…";
                 btn.disabled = true;
                 const res = await fetch("/api/auth/delete-address", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ address_id: btn.dataset.deleteAddr }),
+                    body: JSON.stringify({
+                        address_id: btn.dataset.deleteAddr,
+                    }),
                 });
                 if (res.ok) {
                     window.location.reload();
@@ -758,28 +1769,34 @@ const tabs = [
         });
 
         // ── Formulario nueva dirección ────────────────────────────────────────
-        const newAddrBtn    = document.getElementById("new-address-btn");
+        const newAddrBtn = document.getElementById("new-address-btn");
         const cancelAddrBtn = document.getElementById("cancel-address-btn");
-        const addrFormWrap  = document.getElementById("address-form-wrap");
-        const addrForm      = document.getElementById("address-form") as HTMLFormElement | null;
-        const addrMsg       = document.getElementById("address-msg");
+        const addrFormWrap = document.getElementById("address-form-wrap");
+        const addrForm = document.getElementById(
+            "address-form",
+        ) as HTMLFormElement | null;
+        const addrMsg = document.getElementById("address-msg");
 
-        newAddrBtn?.addEventListener("click", () => addrFormWrap?.classList.remove("hidden"));
-        cancelAddrBtn?.addEventListener("click", () => addrFormWrap?.classList.add("hidden"));
+        newAddrBtn?.addEventListener("click", () =>
+            addrFormWrap?.classList.remove("hidden"),
+        );
+        cancelAddrBtn?.addEventListener("click", () =>
+            addrFormWrap?.classList.add("hidden"),
+        );
 
         if (addrForm) {
             addrForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
                 const fd = new FormData(addrForm);
                 const body = {
-                    label:       fd.get("label") || "Casa",
-                    full_name:   fd.get("full_name"),
-                    street:      fd.get("street"),
-                    city:        fd.get("city"),
+                    label: fd.get("label") || "Casa",
+                    full_name: fd.get("full_name"),
+                    street: fd.get("street"),
+                    city: fd.get("city"),
                     postal_code: fd.get("postal_code"),
-                    state:       fd.get("state"),
-                    phone:       fd.get("phone"),
-                    is_default:  fd.get("is_default") === "on",
+                    state: fd.get("state"),
+                    phone: fd.get("phone"),
+                    is_default: fd.get("is_default") === "on",
                 };
                 const res = await fetch("/api/auth/save-address", {
                     method: "POST",
@@ -789,7 +1806,8 @@ const tabs = [
                 if (addrMsg) {
                     addrMsg.classList.remove("hidden");
                     if (res.ok) {
-                        addrMsg.textContent = "✓ Dirección guardada. Recargando…";
+                        addrMsg.textContent =
+                            "✓ Dirección guardada. Recargando…";
                         setTimeout(() => window.location.reload(), 800);
                     } else {
                         addrMsg.textContent = "Error al guardar la dirección.";
@@ -799,38 +1817,46 @@ const tabs = [
         }
 
         // ── Invoice download via fetch (sends cookies reliably) ──────────────
-        document.querySelectorAll<HTMLButtonElement>('.invoice-dl-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const url  = btn.dataset.invoiceUrl;
-                const name = btn.dataset.invoiceName || 'factura.pdf';
-                if (!url) return;
+        document
+            .querySelectorAll<HTMLButtonElement>(".invoice-dl-btn")
+            .forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    const url = btn.dataset.invoiceUrl;
+                    const name = btn.dataset.invoiceName || "factura.pdf";
+                    if (!url) return;
 
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Generando...';
-                btn.disabled = true;
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML =
+                        '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Generando...';
+                    btn.disabled = true;
 
-                try {
-                    const res = await fetch(url, { credentials: 'include' });
-                    if (!res.ok) {
-                        const text = await res.text();
-                        throw new Error(text || `Error ${res.status}`);
+                    try {
+                        const res = await fetch(url, {
+                            credentials: "include",
+                        });
+                        if (!res.ok) {
+                            const text = await res.text();
+                            throw new Error(text || `Error ${res.status}`);
+                        }
+                        const blob = await res.blob();
+                        const a = document.createElement("a");
+                        a.href = URL.createObjectURL(blob);
+                        a.download = name;
+                        document.body.appendChild(a);
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                        a.remove();
+                    } catch (err: any) {
+                        alert(
+                            "Error al descargar la factura: " +
+                                (err?.message || "desconocido"),
+                        );
+                    } finally {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
                     }
-                    const blob = await res.blob();
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = name;
-                    document.body.appendChild(a);
-                    a.click();
-                    URL.revokeObjectURL(a.href);
-                    a.remove();
-                } catch (err: any) {
-                    alert('Error al descargar la factura: ' + (err?.message || 'desconocido'));
-                } finally {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }
+                });
             });
-        });
     }
 
     // Se ejecuta en cada navegación de Astro (y en la carga inicial)
