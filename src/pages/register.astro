@@ -206,7 +206,7 @@ if (user) return Astro.redirect("/");
                     <div class="reg-actions">
                         <button
                             type="button"
-                            class="btn-glow reg-next-btn"
+                            class="btn-glow reg-next-btn w-full"
                             id="next-1"
                         >
                             Continuar
@@ -407,7 +407,7 @@ if (user) return Astro.redirect("/");
                         </button>
                         <button
                             type="button"
-                            class="btn-glow reg-next-btn reg-next-half"
+                            class="btn-glow reg-next-btn w-full"
                             id="next-2"
                         >
                             Continuar
@@ -564,7 +564,7 @@ if (user) return Astro.redirect("/");
                         </button>
                         <button
                             type="button"
-                            class="btn-glow reg-next-btn reg-next-half"
+                            class="btn-glow reg-next-btn w-full"
                             id="next-3"
                         >
                             Ver resumen
@@ -771,7 +771,7 @@ if (user) return Astro.redirect("/");
                         </button>
                         <button
                             type="button"
-                            class="btn-glow reg-next-btn reg-next-half"
+                            class="btn-glow reg-next-btn w-full"
                             id="submit-reg"
                         >
                             <span id="reg-btn-text">Crear cuenta</span>
@@ -1185,24 +1185,33 @@ if (user) return Astro.redirect("/");
         display: flex;
         justify-content: flex-end;
         margin-bottom: 20px;
+        overflow: visible; /* ensure absolutely positioned back button is visible */
     }
     .reg-actions-split {
-        justify-content: space-between;
-        align-items: center;
+        /* Stack vertically: back above CTA; CTA full width, back left */
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+        width: 100%;
     }
 
     .reg-next-btn {
-        height: 48px;
-        font-size: 11px !important;
-        display: flex;
+        height: 50px !important;
+        font-size: 12px !important;
+        display: inline-flex;
         align-items: center;
-        gap: 8px;
-        padding: 0 28px !important;
-    }
-    .reg-next-half {
-        flex: 1;
-        max-width: 200px;
         justify-content: center;
+        gap: 10px;
+        padding: 0 28px !important;
+        border-radius: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-family: var(--font-heading);
+        border: none;
+        transition:
+            box-shadow 0.3s,
+            transform 0.2s !important;
     }
 
     .reg-back-btn {
@@ -1219,6 +1228,11 @@ if (user) return Astro.redirect("/");
         color: var(--text-muted);
         padding: 0;
         transition: color 0.2s;
+        /* place above CTA and align left */
+        position: static;
+        align-self: flex-start;
+        padding-left: 4px;
+        margin-bottom: 6px;
     }
     .reg-back-btn:hover {
         color: var(--text-primary);
@@ -1317,18 +1331,93 @@ if (user) return Astro.redirect("/");
 
     /* Mobile form adjustments */
     @media (max-width: 768px) {
-        .reg-main { min-height: calc(100vh - 120px); }
-        .reg-brand-col { display: none; }
-        .reg-form-col { padding: 28px 20px !important; align-items: flex-start; }
-        .reg-form-inner { max-width: 100%; width: 100%; }
-        .rpanel-title { font-size: 24px; }
-        .rfields-grid { grid-template-columns: 1fr; }
-        .rinput { height: 46px; font-size: 15px !important; padding-left: 44px !important; padding-right:44px !important; }
-        .rinput-icon { left: 12px; }
-        .rpw-toggle { right: 12px; }
-        .reg-actions { flex-direction: column; gap: 10px; align-items: stretch; }
-        .reg-next-btn, .reg-back-btn, .btn-glow { width: 100%; max-width: 100%; }
-        .reg-main::before { width: 360px; height: 360px; }
+        .reg-main {
+            min-height: calc(100vh - 120px);
+        }
+        .reg-brand-col {
+            display: none;
+        }
+        .reg-form-col {
+            padding: 28px 20px !important;
+            align-items: flex-start;
+        }
+        .reg-form-inner {
+            max-width: 100%;
+            width: 100%;
+        }
+        .rpanel-title {
+            font-size: 24px;
+        }
+        .rfields-grid {
+            grid-template-columns: 1fr;
+        }
+        .rinput {
+            height: 46px;
+            font-size: 15px !important;
+            padding-left: 44px !important;
+            padding-right: 44px !important;
+        }
+        .rinput-icon {
+            left: 12px;
+        }
+        .rpw-toggle {
+            right: 12px;
+        }
+        .reg-actions {
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+        }
+        .reg-next-btn,
+        .reg-back-btn,
+        .btn-glow {
+            width: 100%;
+            max-width: 100%;
+        }
+        .reg-next-btn {
+            width: 100%;
+            min-width: 0;
+            height: 48px !important;
+            font-size: 13px !important;
+            border-radius: 8px;
+            box-shadow:
+                0 6px 18px rgba(0, 0, 0, 0.5),
+                0 0 12px rgba(57, 255, 20, 0.06);
+        }
+        .reg-next-btn svg {
+            margin-left: 8px;
+        }
+        .reg-main::before {
+            width: 360px;
+            height: 360px;
+        }
+    }
+
+    /* Desktop: center main CTA and make it wider to match reference */
+    @media (min-width: 769px) {
+        .reg-actions {
+            justify-content: center;
+        }
+        .reg-next-btn {
+            width: 100% !important;
+            margin: 0 auto;
+        }
+
+        .reg-back-btn {
+            align-self: flex-start;
+            margin-left: 0;
+        }
+    }
+
+    /* If the container is narrow, ensure the back button doesn't overlap CTA */
+    @media (max-width: 520px) {
+        .reg-back-btn {
+            position: relative;
+            left: 0;
+        }
+        .reg-next-btn {
+            width: 100% !important;
+        }
     }
 
     /* ── Spin ──────────────────────────────────────────────────── */
