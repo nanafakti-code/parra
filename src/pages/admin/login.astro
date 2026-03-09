@@ -1,291 +1,369 @@
 ---
 const { user, role } = Astro.locals;
-if (user && role === 'admin') {
-    return Astro.redirect('/admin');
+if (user && role === "admin") {
+    return Astro.redirect("/admin");
 }
 ---
+
 <!doctype html>
 <html lang="es" class="dark">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Login | PARRA</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background: #050505;
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            -webkit-font-smoothing: antialiased;
-        }
-        .login-card {
-            width: 100%;
-            max-width: 400px;
-            padding: 2.5rem;
-            margin: 1rem;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 12px;
-        
-        }
-        .logo {
-            position: relative;
-            z-index: 1;
-            font-family: 'Oswald', system-ui, sans-serif;
-            font-size: 1.75rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            text-align: center;
-            margin-bottom: 0.25rem;
-            /* Animated neon gradient text */
-            background: linear-gradient(90deg, #39FF14 0%, #b8ff14 25%, #39FF14 50%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            /* keep a soft edge shadow */
-            text-shadow: 0 0 6px rgba(57,255,20,0.12);
-            /* subtle lift to read better */
-            transform: translateZ(0);
-        }
-        .logo::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            width: 220%;
-            height: 80%;
-            pointer-events: none;
-            z-index: -1;
-            background: radial-gradient(circle at 50% 40%, rgba(57,255,20,0.35) 0%, rgba(57,255,20,0.18) 18%, rgba(57,255,20,0.06) 36%, rgba(57,255,20,0) 60%);
-            filter: blur(18px);
-            opacity: 0;
-            mix-blend-mode: screen;
-            animation: logo-bloom 3.6s ease-in-out infinite;
-        }
-        .logo-sub {
-            text-align: center;
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 0.3em;
-            color: rgba(255,255,255,0.25);
-            margin-bottom: 2.5rem;
-        }
-        .form-group { margin-bottom: 1.25rem; }
-        label {
-            display: block;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: rgba(255,255,255,0.4);
-            margin-bottom: 0.5rem;
-        }
-        input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 0.875rem;
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        input:focus {
-            border-color: rgba(57,255,20,0.4);
-        }
-        input::placeholder {
-            color: rgba(255,255,255,0.15);
-        }
-        .btn-login {
-            width: 100%;
-            padding: 0.85rem;
-            background: linear-gradient(135deg, #39FF14 0%, #2DD60E 50%, #39FF14 100%);
-            color: #000;
-            font-family: 'Oswald', system-ui, sans-serif;
-            font-weight: 700;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.18s ease, box-shadow 0.18s ease;
-            margin-top: 0.5rem;
-            position: relative;
-            overflow: hidden;
-            /* subtle breathing */
-            animation: btn-breathe 4s ease-in-out infinite;
-        }
-        .btn-login::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(90deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 50%, rgba(255,255,255,0.06) 100%);
-            transform: translateX(-120%);
-            mix-blend-mode: overlay;
-            pointer-events: none;
-            animation: btn-shimmer 2.8s linear infinite;
-        }
-        .btn-login:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 12px 36px rgba(57,255,20,0.12);
-        }
-
-        @keyframes logo-bloom {
-            0% {
-                opacity: 0.0;
-                transform: translate(-50%, -50%) scale(0.85);
-                filter: blur(14px);
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Admin Login | PARRA</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
             }
-            30% {
-                opacity: 0.7;
-                transform: translate(-50%, -50%) scale(1.05);
+            html {
+                overflow-x: hidden;
+                width: 100%;
+            }
+            body {
+                font-family: "Inter", system-ui, sans-serif;
+                background: #050505;
+                color: #fff;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                -webkit-font-smoothing: antialiased;
+                overflow-x: hidden;
+                width: 100%;
+                padding: 1rem;
+            }
+            .login-card {
+                width: 100%;
+                max-width: 400px;
+                padding: 2.5rem;
+                background: rgba(255, 255, 255, 0.02);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 12px;
+            }
+            .logo {
+                position: relative;
+                z-index: 1;
+                font-family: "Oswald", system-ui, sans-serif;
+                font-size: 1.75rem;
+                font-weight: 700;
+                letter-spacing: -0.02em;
+                text-align: center;
+                margin-bottom: 0.25rem;
+                /* Animated neon gradient text */
+                background: linear-gradient(
+                    90deg,
+                    #39ff14 0%,
+                    #b8ff14 25%,
+                    #39ff14 50%
+                );
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                /* keep a soft edge shadow */
+                text-shadow: 0 0 6px rgba(57, 255, 20, 0.12);
+                /* subtle lift to read better */
+                transform: translateZ(0);
+            }
+            .logo::after {
+                content: "";
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%) scale(0.9);
+                width: 220%;
+                height: 80%;
+                pointer-events: none;
+                z-index: -1;
+                background: radial-gradient(
+                    circle at 50% 40%,
+                    rgba(57, 255, 20, 0.35) 0%,
+                    rgba(57, 255, 20, 0.18) 18%,
+                    rgba(57, 255, 20, 0.06) 36%,
+                    rgba(57, 255, 20, 0) 60%
+                );
                 filter: blur(18px);
+                opacity: 0;
+                mix-blend-mode: screen;
+                animation: logo-bloom 3.6s ease-in-out infinite;
             }
-            55% {
-                opacity: 0.45;
-                transform: translate(-50%, -50%) scale(1.12);
-                filter: blur(22px);
+            .logo-sub {
+                text-align: center;
+                font-size: 0.65rem;
+                text-transform: uppercase;
+                letter-spacing: 0.3em;
+                color: rgba(255, 255, 255, 0.25);
+                margin-bottom: 2.5rem;
             }
-            100% {
-                opacity: 0.0;
-                transform: translate(-50%, -50%) scale(1.25);
-                filter: blur(26px);
+            .form-group {
+                margin-bottom: 1.25rem;
             }
-        }
-
-        @keyframes btn-shimmer {
-            0% { transform: translateX(-120%); }
-            50% { transform: translateX(100%); }
-            100% { transform: translateX(260%); }
-        }
-
-        @keyframes btn-breathe {
-            0% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-2px) scale(1.01); }
-            100% { transform: translateY(0) scale(1); }
-        }
-        .btn-login:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        .error-msg {
-            background: rgba(239,68,68,0.08);
-            border: 1px solid rgba(239,68,68,0.2);
-            color: #f87171;
-            font-size: 0.775rem;
-            padding: 0.65rem 0.85rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            display: none;
-        }
-        .error-msg.visible { display: block; }
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.75rem;
-            color: rgba(255,255,255,0.2);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        .back-link:hover { color: #39FF14; }
-    </style>
-</head>
-<body>
-    <div class="login-card">
-        <div class="logo">PARRA</div>
-        <div class="logo-sub">Panel de Administración</div>
-
-        <div id="error" class="error-msg"></div>
-
-        <form id="login-form">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="admin@parra.com" required autocomplete="email" />
-            </div>
-            <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
-            </div>
-            <button type="submit" class="btn-login" id="submit-btn">Acceder</button>
-        </form>
-
-        <a href="/" class="back-link">Volver a la tienda</a>
-    </div>
-
-    <script is:inline>
-        var form = document.getElementById('login-form');
-        var errorEl = document.getElementById('error');
-        var submitBtn = document.getElementById('submit-btn');
-        var attempts = 0;
-        var maxAttempts = 5;
-        var lockoutUntil = 0;
-
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            errorEl.classList.remove('visible');
-
-            // Rate limit
-            if (Date.now() < lockoutUntil) {
-                var secs = Math.ceil((lockoutUntil - Date.now()) / 1000);
-                errorEl.textContent = 'Demasiados intentos. Espera ' + secs + ' segundos.';
-                errorEl.classList.add('visible');
-                return;
+            label {
+                display: block;
+                font-size: 0.7rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: rgba(255, 255, 255, 0.4);
+                margin-bottom: 0.5rem;
+            }
+            input {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 8px;
+                color: #fff;
+                font-size: 0.875rem;
+                font-family: inherit;
+                outline: none;
+                transition: border-color 0.2s;
+            }
+            input:focus {
+                border-color: rgba(57, 255, 20, 0.4);
+            }
+            input::placeholder {
+                color: rgba(255, 255, 255, 0.15);
+            }
+            .btn-login {
+                width: 100%;
+                padding: 0.85rem;
+                background: linear-gradient(
+                    135deg,
+                    #39ff14 0%,
+                    #2dd60e 50%,
+                    #39ff14 100%
+                );
+                color: #000;
+                font-family: "Oswald", system-ui, sans-serif;
+                font-weight: 700;
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.15em;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                transition:
+                    transform 0.18s ease,
+                    box-shadow 0.18s ease;
+                margin-top: 0.5rem;
+                position: relative;
+                overflow: hidden;
+                /* subtle breathing */
+                animation: btn-breathe 4s ease-in-out infinite;
+            }
+            .btn-login::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(
+                    90deg,
+                    rgba(255, 255, 255, 0.06) 0%,
+                    rgba(255, 255, 255, 0.02) 50%,
+                    rgba(255, 255, 255, 0.06) 100%
+                );
+                transform: translateX(-120%);
+                mix-blend-mode: overlay;
+                pointer-events: none;
+                animation: btn-shimmer 2.8s linear infinite;
+            }
+            .btn-login:hover {
+                transform: translateY(-3px) scale(1.02);
+                box-shadow: 0 12px 36px rgba(57, 255, 20, 0.12);
             }
 
-            var email = document.getElementById('email').value.trim();
-            var password = document.getElementById('password').value;
-
-            if (!email || !password) return;
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Verificando...';
-
-            try {
-                var res = await fetch('/api/admin/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, password: password }),
-                });
-
-                var data = await res.json();
-
-                if (res.ok) {
-                    submitBtn.textContent = 'Acceso concedido';
-                    window.location.href = '/admin';
-                } else {
-                    attempts++;
-                    if (attempts >= maxAttempts) {
-                        lockoutUntil = Date.now() + 60000; // 1 min lockout
-                        attempts = 0;
-                        errorEl.textContent = 'Demasiados intentos. Espera 60 segundos.';
-                    } else {
-                        errorEl.textContent = data.message || 'Credenciales inválidas.';
-                    }
-                    errorEl.classList.add('visible');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Acceder';
+            @keyframes logo-bloom {
+                0% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.85);
+                    filter: blur(14px);
                 }
-            } catch (err) {
-                errorEl.textContent = 'Error de conexión.';
-                errorEl.classList.add('visible');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Acceder';
+                30% {
+                    opacity: 0.7;
+                    transform: translate(-50%, -50%) scale(1.05);
+                    filter: blur(18px);
+                }
+                55% {
+                    opacity: 0.45;
+                    transform: translate(-50%, -50%) scale(1.12);
+                    filter: blur(22px);
+                }
+                100% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(1.25);
+                    filter: blur(26px);
+                }
             }
-        });
-    </script>
-</body>
+
+            @keyframes btn-shimmer {
+                0% {
+                    transform: translateX(-120%);
+                }
+                50% {
+                    transform: translateX(100%);
+                }
+                100% {
+                    transform: translateX(260%);
+                }
+            }
+
+            @keyframes btn-breathe {
+                0% {
+                    transform: translateY(0) scale(1);
+                }
+                50% {
+                    transform: translateY(-2px) scale(1.01);
+                }
+                100% {
+                    transform: translateY(0) scale(1);
+                }
+            }
+            .btn-login:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+            .error-msg {
+                background: rgba(239, 68, 68, 0.08);
+                border: 1px solid rgba(239, 68, 68, 0.2);
+                color: #f87171;
+                font-size: 0.775rem;
+                padding: 0.65rem 0.85rem;
+                border-radius: 6px;
+                margin-bottom: 1rem;
+                display: none;
+            }
+            .error-msg.visible {
+                display: block;
+            }
+            .back-link {
+                display: block;
+                text-align: center;
+                margin-top: 1.5rem;
+                font-size: 0.75rem;
+                color: rgba(255, 255, 255, 0.2);
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+            .back-link:hover {
+                color: #39ff14;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="login-card">
+            <div class="logo">PARRA</div>
+            <div class="logo-sub">Panel de Administración</div>
+
+            <div id="error" class="error-msg"></div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="admin@parra.com"
+                        required
+                        autocomplete="email"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="••••••••"
+                        required
+                        autocomplete="current-password"
+                    />
+                </div>
+                <button type="submit" class="btn-login" id="submit-btn"
+                    >Acceder</button
+                >
+            </form>
+
+            <a href="/" class="back-link">Volver a la tienda</a>
+        </div>
+
+        <script is:inline>
+            var form = document.getElementById("login-form");
+            var errorEl = document.getElementById("error");
+            var submitBtn = document.getElementById("submit-btn");
+            var attempts = 0;
+            var maxAttempts = 5;
+            var lockoutUntil = 0;
+
+            form.addEventListener("submit", async function (e) {
+                e.preventDefault();
+                errorEl.classList.remove("visible");
+
+                // Rate limit
+                if (Date.now() < lockoutUntil) {
+                    var secs = Math.ceil((lockoutUntil - Date.now()) / 1000);
+                    errorEl.textContent =
+                        "Demasiados intentos. Espera " + secs + " segundos.";
+                    errorEl.classList.add("visible");
+                    return;
+                }
+
+                var email = document.getElementById("email").value.trim();
+                var password = document.getElementById("password").value;
+
+                if (!email || !password) return;
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Verificando...";
+
+                try {
+                    var res = await fetch("/api/admin/login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            email: email,
+                            password: password,
+                        }),
+                    });
+
+                    var data = await res.json();
+
+                    if (res.ok) {
+                        submitBtn.textContent = "Acceso concedido";
+                        window.location.href = "/admin";
+                    } else {
+                        attempts++;
+                        if (attempts >= maxAttempts) {
+                            lockoutUntil = Date.now() + 60000; // 1 min lockout
+                            attempts = 0;
+                            errorEl.textContent =
+                                "Demasiados intentos. Espera 60 segundos.";
+                        } else {
+                            errorEl.textContent =
+                                data.message || "Credenciales inválidas.";
+                        }
+                        errorEl.classList.add("visible");
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "Acceder";
+                    }
+                } catch (err) {
+                    errorEl.textContent = "Error de conexión.";
+                    errorEl.classList.add("visible");
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = "Acceder";
+                }
+            });
+        </script>
+    </body>
 </html>
