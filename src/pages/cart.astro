@@ -92,7 +92,7 @@ import Footer from "../components/Footer.astro";
 
                 <!-- Summary Sidebar -->
                 <div class="lg:col-span-1">
-                    <div class="card p-8 sticky lg:top-24">
+                                <div class="card p-8 sticky lg:top-24">
                         <h3
                             class="font-display text-xl font-bold uppercase tracking-tight mb-8"
                         >
@@ -162,7 +162,7 @@ import Footer from "../components/Footer.astro";
                             id="checkout-btn"
                             class="btn-glow w-full flex items-center justify-center gap-3 h-14"
                         >
-                            Tramitar Pedido
+                            <span class="btn-text">Tramitar Pedido</span>
                             <svg
                                 class="w-4 h-4"
                                 fill="none"
@@ -340,5 +340,15 @@ import Footer from "../components/Footer.astro";
         #cart-container { gap: 18px !important; }
         .qty-btn-page { width: 44px !important; height: 44px !important; }
         .remove-btn-page { font-size: 12px !important; }
+    }
+
+    /* Additional mobile polish */
+    @media (max-width: 767px) {
+        .container { padding-left: 12px; padding-right: 12px; }
+        .card { padding: 12px !important; }
+        .btn-glow { height: 48px; }
+        .btn-glow .btn-text { display: inline-block; font-size: 15px; }
+        .w-24.h-24 { width: 72px !important; height: 72px !important; }
+        .gap-12 { gap: 12px !important; }
     }
 </style>

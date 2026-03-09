@@ -275,6 +275,17 @@ if (user) {
     <Footer />
 </Layout>
 
+<style>
+    @media (max-width: 767px) {
+        .container { padding-left: 12px; padding-right: 12px; }
+        #checkout-form-container { gap: 18px !important; }
+        .card.p-6, .card.p-4 { padding: 12px !important; }
+        .btn-glow { height: 48px; font-size: 15px; }
+        .saved-addr-card { padding: 10px; font-size: 14px; }
+        .input { padding: 10px 12px; }
+    }
+</style>
+
 <script>
     import { getCart, getSessionId } from "../lib/cart";
 
