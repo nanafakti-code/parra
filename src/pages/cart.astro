@@ -92,7 +92,7 @@ import Footer from "../components/Footer.astro";
 
                 <!-- Summary Sidebar -->
                 <div class="lg:col-span-1">
-                    <div class="card p-8 sticky top-24">
+                    <div class="card p-8 sticky lg:top-24">
                         <h3
                             class="font-display text-xl font-bold uppercase tracking-tight mb-8"
                         >
@@ -327,3 +327,18 @@ import Footer from "../components/Footer.astro";
 
     document.addEventListener('astro:page-load', initCartPage);
 </script>
+
+<style>
+    @media (max-width: 1024px) {
+        /* Disable sticky sidebar on tablets/phones */
+        .card.sticky { position: static !important; top: auto !important; }
+        .card.p-8 { padding: 20px !important; }
+    }
+
+    @media (max-width: 640px) {
+        /* Ensure cart list and controls fit nicely */
+        #cart-container { gap: 18px !important; }
+        .qty-btn-page { width: 44px !important; height: 44px !important; }
+        .remove-btn-page { font-size: 12px !important; }
+    }
+</style>

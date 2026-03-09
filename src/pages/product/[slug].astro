@@ -482,7 +482,7 @@ const seoDescription = product.short_description
 
                         {/* Benefits Row */}
                         <div
-                            class="grid grid-cols-3 gap-4 mb-10 py-6"
+                            class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 py-6"
                             style="border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);"
                         >
                             <div class="text-center">
@@ -821,3 +821,12 @@ const seoDescription = product.short_description
     // Run on every page load (including View Transitions)
     document.addEventListener("astro:page-load", initProductPage);
 </script>
+
+<style>
+    /* Mobile product tweaks */
+    @media (max-width: 768px) {
+        .size-btn { width: 48px !important; height: 48px !important; font-size: 12px !important; }
+        .thumb-btn { width: 64px !important; height: 64px !important; }
+        .grid.grid-cols-3 { grid-template-columns: repeat(1, minmax(0,1fr)); }
+    }
+</style>

@@ -1315,6 +1315,22 @@ if (user) return Astro.redirect("/");
         margin-bottom: 16px;
     }
 
+    /* Mobile form adjustments */
+    @media (max-width: 768px) {
+        .reg-main { min-height: calc(100vh - 120px); }
+        .reg-brand-col { display: none; }
+        .reg-form-col { padding: 28px 20px !important; align-items: flex-start; }
+        .reg-form-inner { max-width: 100%; width: 100%; }
+        .rpanel-title { font-size: 24px; }
+        .rfields-grid { grid-template-columns: 1fr; }
+        .rinput { height: 46px; font-size: 15px !important; padding-left: 44px !important; padding-right:44px !important; }
+        .rinput-icon { left: 12px; }
+        .rpw-toggle { right: 12px; }
+        .reg-actions { flex-direction: column; gap: 10px; align-items: stretch; }
+        .reg-next-btn, .reg-back-btn, .btn-glow { width: 100%; max-width: 100%; }
+        .reg-main::before { width: 360px; height: 360px; }
+    }
+
     /* ── Spin ──────────────────────────────────────────────────── */
     @keyframes rlspin {
         to {

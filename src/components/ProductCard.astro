@@ -145,3 +145,14 @@ const discountPercent = hasDiscount
 
     document.addEventListener("astro:page-load", initProductCard);
 </script>
+
+<style>
+    /* Make product cards more compact on small screens */
+    @media (max-width: 767px) {
+        .card-product { border-radius: 8px; }
+        .card-product a { aspect-ratio: 4 / 5; }
+        .card-product .p-3 { padding: 8px; }
+        .card-product h3 { font-size: 0.95rem; }
+        .card-product .badge-sale { font-size: 9px; }
+    }
+</style>

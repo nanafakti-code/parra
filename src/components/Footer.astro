@@ -265,4 +265,13 @@ const year = new Date().getFullYear();
     .payment-icon {
         fill: var(--text-primary);
     }
+
+    /* Mobile footer tweaks */
+    @media (max-width: 767px) {
+        .footer-wrapper .container { padding-top: 8px; padding-bottom: 8px; }
+        .footer-wrapper .grid { gap: 10px; }
+        .social-icon { width: 36px; height: 36px; }
+        .footer-text { font-size: 12px; }
+        .footer-wrapper input[type="email"], .footer-wrapper .btn-primary { width: 100%; }
+    }
 </style>

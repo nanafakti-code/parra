@@ -1442,6 +1442,16 @@ const tabs = [
     <Footer />
 </Layout>
 
+<style>
+    @media (max-width: 767px) {
+        .container { padding-left: 12px; padding-right: 12px; }
+        .card { padding: 10px !important; }
+        .section-title { font-size: 1.15rem; }
+        .invoice-dl-btn { width: 100%; justify-content: center; }
+        #profile-nav a { display: flex; flex-direction: row; }
+    }
+</style>
+
 <script>
     // ── Modal de confirmación (Promise-based) ─────────────────────────────────
     function customConfirm(title: string, body: string): Promise<boolean> {

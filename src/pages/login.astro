@@ -567,6 +567,60 @@ if (user) return Astro.redirect("/");
         color: var(--text-muted);
         white-space: nowrap;
     }
+
+    /* Mobile tweaks to ensure forms adapt well */
+    @media (max-width: 768px) {
+        .login-main {
+            min-height: calc(100vh - 120px);
+        }
+
+        .brand-col {
+            display: none;
+        }
+
+        .form-col {
+            padding: 32px 20px !important;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        .form-inner {
+            max-width: 100%;
+            width: 100%;
+            padding-top: 18px;
+        }
+
+        .form-title {
+            font-size: 28px;
+        }
+
+        .linput {
+            height: 48px;
+            font-size: 15px !important;
+            padding-left: 44px !important;
+            padding-right: 44px !important;
+        }
+
+        .linput-icon { left: 12px; }
+        .lpw-toggle { right: 12px; }
+
+        /* Make submit button pleasant and not oversized */
+        .lsubmit {
+            width: 100%;
+            min-width: 0;
+            height: 48px !important;
+            font-size: 13px !important;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.5), 0 0 12px rgba(57,255,20,0.06);
+        }
+
+        /* Reduce hero/branding pseudo-size to avoid overflow */
+        .login-main::before {
+            width: 360px;
+            height: 360px;
+            opacity: 0.7;
+        }
+    }
 </style>
 
 <script is:inline>
