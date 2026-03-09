@@ -14,8 +14,6 @@
         />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="theme-color" content="#000000" />
-
-        <!-- Bold athletic fonts (Bebas Neue for strong uppercase headings, Inter for body) -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
@@ -24,118 +22,101 @@
         />
     </head>
     <body>
-        <div class="maintenance-container">
-            <!-- Subtle green center cinematic glow -->
-            <div class="glow-bg"></div>
+        <div class="maintenance-wrapper">
+            <!-- Animated background elements -->
+            <div class="bg-grid"></div>
+            <div class="bg-glow"></div>
 
-            <div class="content">
-                <div class="glass-card fade-in-up">
-                    <a href="/" class="btn-shop" aria-label="Ver tienda"
-                        >VER TIENDA</a
-                    >
-
-                    <!-- Bold Logo -->
-                    <div class="logo-container">
-                        <span class="logo-text">PARRA</span>
-                    </div>
-
-                    <!-- Compact maintenance card (admin-like visual) -->
-                    <main class="main-content">
-                        <div class="maintenance-card fade-in-up">
-                            <header class="maintenance-header">
-                                <div class="header-left">
-                                    <svg
-                                        width="36"
-                                        height="36"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="1.5"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        ><path d="M12 2v6"></path><path
-                                            d="M12 22v-6"></path><path
-                                            d="M4.9 4.9l4.2 4.2"></path><path
-                                            d="M19.1 19.1l-4.2-4.2"></path></svg
-                                    >
-                                    <div class="header-title">
-                                        <h2 class="maintenance-title">
-                                            Modo Mantenimiento
-                                        </h2>
-                                        <p class="maintenance-sub">
-                                            Estamos realizando mejoras. Disculpa
-                                            las molestias.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="status-pill status-on">
-                                    <span class="dot"></span> Tienda en mantenimiento
-                                </div>
-                            </header>
-
-                            <div class="alert alert-danger">
-                                <svg
-                                    width="18"
-                                    height="18"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    ><path
-                                        d="M10.29 3.86L1.82 18a1.75 1.75 0 0 0 1.51 2.64h16.34A1.75 1.75 0 0 0 22.18 18L13.71 3.86a1.75 1.75 0 0 0-3.42 0z"
-                                    ></path><path d="M12 9v4"></path><path
-                                        d="M12 17h.01"></path></svg
-                                >
-                                <div>
-                                    La tienda está en modo mantenimiento. Los
-                                    clientes no pueden acceder a ninguna página
-                                    excepto la de mantenimiento.
-                                </div>
-                            </div>
-
-                            <div class="card-body">
-                                <p class="public-message">
-                                    Volvemos en breve — gracias por tu
-                                    paciencia.
-                                </p>
-                            </div>
-
-                            <div class="actions" style="margin-top:1rem;">
-                                <a
-                                    href="mailto:raafaablanco@gmail.com"
-                                    class="btn">Contactar</a
-                                >
-                                <a
-                                    href="https://wa.me/34658823543"
-                                    target="_blank"
-                                    rel="noopener"
-                                    class="btn">WhatsApp</a
-                                >
-                            </div>
-                        </div>
-                    </main>
+            <main class="content-container">
+                <!-- Branding -->
+                <div class="brand-container fade-in-up">
+                    <h1 class="logo">PARRA</h1>
                 </div>
-            </div>
+
+                <!-- Main Message -->
+                <div class="message-container fade-in-up delay-1">
+                    <h2 class="title" data-text="MANTENIMIENTO">
+                        MANTENIMIENTO
+                    </h2>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-wrapper fade-in-up delay-2">
+                    <div class="progress-details">
+                        <span class="progress-label">ACTUALIZANDO SISTEMAS</span
+                        >
+                        <span class="progress-value" id="progress-text">0%</span
+                        >
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill"></div>
+                        <div class="progress-glow"></div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="actions-wrapper fade-in-up delay-3">
+                    <a
+                        href="mailto:raafaablanco@gmail.com"
+                        class="btn btn-outline"
+                        aria-label="Contactar por Email"
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            width="20"
+                            height="20"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path
+                                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                            ></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        CONTACTAR
+                    </a>
+                    <a
+                        href="https://wa.me/34658823543"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="btn btn-solid"
+                        aria-label="Contactar por WhatsApp"
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            width="20"
+                            height="20"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path
+                                d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+                            ></path>
+                        </svg>
+                        WHATSAPP
+                    </a>
+                </div>
+            </main>
         </div>
     </body>
 </html>
 
 <style>
-    /* PARRA Brand Variables */
     :root {
-        --color-black: #000000;
-        --color-neon-green: #39ff14;
-        --color-dark-gray: #1a1a1a;
-        --color-charcoal: #2d2d2d;
-        --color-text-main: #ffffff;
-        --color-text-muted: #a0a0a0;
-
+        --color-bg: #030303;
+        --color-green: #39ff14;
+        --color-green-glow: rgba(57, 255, 20, 0.4);
+        --color-green-dim: rgba(57, 255, 20, 0.08);
+        --color-text: #ffffff;
+        --color-text-muted: #a1a1aa;
         --font-heading: "Bebas Neue", Impact, sans-serif;
         --font-body: "Inter", system-ui, sans-serif;
-
-        --transition-base: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     * {
@@ -145,414 +126,253 @@
     }
 
     body {
-        margin: 0;
-        min-height: 100vh;
-        background-color: var(--color-black);
+        background-color: var(--color-bg);
+        color: var(--color-text);
         font-family: var(--font-body);
-        color: var(--color-text-main);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         overflow-x: hidden;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .maintenance-container {
         position: relative;
-        width: 100%;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 2rem;
-        z-index: 1;
     }
 
-    /* Cinematic green background glow */
-    .glow-bg {
+    /* Background effects */
+    .maintenance-wrapper {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+        padding: 2rem;
+    }
+
+    .bg-grid {
         position: absolute;
-        width: 100vw;
-        height: 100vh;
-        background: radial-gradient(
+        inset: 0;
+        z-index: -2;
+        background-size: 50px 50px;
+        background-image:
+            linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0.02) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                to bottom,
+                rgba(255, 255, 255, 0.02) 1px,
+                transparent 1px
+            );
+        -webkit-mask-image: radial-gradient(
             circle at center,
-            rgba(57, 255, 20, 0.04) 0%,
-            transparent 60%
+            black 40%,
+            transparent 80%
         );
-        top: 0;
-        left: 0;
+        mask-image: radial-gradient(
+            circle at center,
+            black 40%,
+            transparent 80%
+        );
+    }
+
+    .bg-glow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 60vw;
+        height: 60vw;
+        max-width: 800px;
+        max-height: 800px;
+        background: radial-gradient(
+            circle,
+            var(--color-green-dim) 0%,
+            transparent 70%
+        );
+        border-radius: 50%;
         z-index: -1;
         pointer-events: none;
-        animation: breathingGlow 8s ease-in-out infinite alternate;
+        animation: pulse-glow 8s ease-in-out infinite alternate;
     }
 
-    @keyframes breathingGlow {
+    @keyframes pulse-glow {
         0% {
+            transform: translate(-50%, -50%) scale(0.8);
             opacity: 0.5;
-            transform: scale(1);
         }
         100% {
+            transform: translate(-50%, -50%) scale(1.1);
             opacity: 1;
-            transform: scale(1.05);
         }
     }
 
-    .content {
+    .content-container {
+        max-width: 700px;
+        width: 100%;
+        text-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
-        text-align: center;
-        max-width: 800px;
-        width: 100%;
     }
 
-    /* Glass card to align with site admin aesthetic */
-    .glass-card {
+    /* Typography & Brand */
+    .logo {
+        font-family: var(--font-heading);
+        font-size: clamp(6rem, 15vw, 10rem);
+        line-height: 0.9;
+        letter-spacing: 0.05em;
+        color: var(--color-green);
+        text-shadow:
+            0 0 20px var(--color-green-glow),
+            0 0 50px var(--color-green-dim);
+        margin-bottom: 2rem;
+    }
+
+    .title {
+        font-family: var(--font-heading);
+        font-size: clamp(3rem, 8vw, 4.5rem);
+        letter-spacing: 0.05em;
+        color: var(--color-text);
+        margin-bottom: 1rem;
         position: relative;
-        width: 100%;
-        background: linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.02),
-            rgba(255, 255, 255, 0.01)
-        );
-        border: 1px solid rgba(255, 255, 255, 0.04);
-        box-shadow:
-            0 10px 40px rgba(0, 0, 0, 0.6),
-            0 0 40px rgba(57, 255, 20, 0.03);
-        backdrop-filter: blur(6px) saturate(120%);
-        padding: 2.5rem;
-        border-radius: 12px;
-        overflow: hidden;
+        display: inline-block;
     }
 
-    /* Shop button styled to match neon brand */
-    .btn-shop {
+    /* Glitch effect on hover for title */
+    .title::before,
+    .title::after {
+        content: attr(data-text);
         position: absolute;
-        right: 1.25rem;
-        top: 1.25rem;
-        text-decoration: none;
-        padding: 0.5rem 0.85rem;
-        background: var(--color-neon-green);
-        color: #000000;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        border-radius: 6px;
-        box-shadow:
-            0 4px 18px rgba(57, 255, 20, 0.25),
-            0 0 10px rgba(57, 255, 20, 0.08) inset;
-        text-transform: uppercase;
-        font-family: var(--font-body);
-        font-size: 0.85rem;
-        transition:
-            transform 160ms var(--transition-base),
-            box-shadow 160ms var(--transition-base);
-    }
-
-    .btn-shop:hover {
-        transform: translateY(-3px);
-        box-shadow:
-            0 10px 30px rgba(57, 255, 20, 0.35),
-            0 0 18px rgba(57, 255, 20, 0.12) inset;
-    }
-
-    /* Decorative neon left accent */
-    .glass-card::before {
-        content: "";
-        position: absolute;
-        left: 0;
         top: 0;
+        left: 0;
+        width: 100%;
         height: 100%;
-        width: 6px;
-        background: linear-gradient(
-            180deg,
-            rgba(57, 255, 20, 0.9),
-            rgba(57, 255, 20, 0.25)
-        );
-        box-shadow: 0 0 24px rgba(57, 255, 20, 0.12);
-        border-top-left-radius: 12px;
-        border-bottom-left-radius: 12px;
-        pointer-events: none;
+        opacity: 0.8;
     }
 
-    /* Public message small box */
-    .public-message-box {
-        margin: 0 auto 1.25rem auto;
-        max-width: 720px;
+    .title::before {
+        left: 2px;
+        text-shadow: -2px 0 var(--color-green);
+        clip: rect(24px, 550px, 90px, 0);
+        animation: glitch-anim 3s infinite linear alternate-reverse;
     }
 
-    .public-message {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        background: rgba(255, 255, 255, 0.02);
+    .title::after {
+        left: -2px;
+        text-shadow: -2px 0 rgba(255, 255, 255, 0.5);
+        clip: rect(85px, 550px, 140px, 0);
+        animation: glitch-anim 2.5s infinite linear alternate-reverse;
+    }
+
+    @keyframes glitch-anim {
+        0% {
+            clip: rect(31px, 9999px, 94px, 0);
+        }
+        10% {
+            clip: rect(112px, 9999px, 76px, 0);
+        }
+        20% {
+            clip: rect(85px, 9999px, 77px, 0);
+        }
+        30% {
+            clip: rect(27px, 9999px, 97px, 0);
+        }
+        40% {
+            clip: rect(64px, 9999px, 98px, 0);
+        }
+        50% {
+            clip: rect(61px, 9999px, 85px, 0);
+        }
+        60% {
+            clip: rect(99px, 9999px, 114px, 0);
+        }
+        70% {
+            clip: rect(34px, 9999px, 115px, 0);
+        }
+        80% {
+            clip: rect(98px, 9999px, 104px, 0);
+        }
+        90% {
+            clip: rect(43px, 9999px, 96px, 0);
+        }
+        100% {
+            clip: rect(82px, 9999px, 64px, 0);
+        }
+    }
+
+    .message {
+        font-size: clamp(1rem, 2.5vw, 1.15rem);
+        line-height: 1.6;
         color: var(--color-text-muted);
-        border: 1px solid rgba(255, 255, 255, 0.03);
-        border-radius: 8px;
-        font-size: 0.9rem;
-        letter-spacing: 0.04em;
-        text-transform: none;
+        max-width: 540px;
+        margin: 0 auto;
+        white-space: pre-wrap;
     }
 
-    /* Title underline accent */
-    .title-container {
-        position: relative;
-        display: inline-block;
-    }
-    .title-container::after {
-        content: "";
-        display: block;
-        height: 6px;
-        width: 60%;
-        margin: 0.6rem auto 0;
-        background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(57, 255, 20, 0.35),
-            transparent
-        );
-        border-radius: 6px;
-        filter: blur(6px);
-        opacity: 0.9;
-    }
-
-    /* Brand Logo Text */
-    .logo-container {
+    .message-container {
         margin-bottom: 3.5rem;
     }
 
-    .logo-text {
-        font-family: var(--font-heading);
-        font-size: clamp(4rem, 10vw, 7rem);
-        font-weight: 400; /* Bebas Neue is bold natively */
-        letter-spacing: 0.05em;
-        color: var(--color-neon-green);
-        line-height: 1;
-        will-change: opacity, text-shadow;
-        /* Premium neon elite animation */
-        animation:
-            premiumNeonPulse 4.5s ease-in-out infinite alternate,
-            neonFlicker 12s linear infinite;
-    }
-
-    /* Constant Neon Pulse & Shadow Layering */
-    @keyframes premiumNeonPulse {
-        0% {
-            text-shadow:
-                0 0 2px rgba(57, 255, 20, 0.5),
-                0 0 10px rgba(57, 255, 20, 0.15),
-                0 0 25px rgba(57, 255, 20, 0.02);
-        }
-        100% {
-            text-shadow:
-                0 0 3px rgba(57, 255, 20, 0.8),
-                0 0 15px rgba(57, 255, 20, 0.35),
-                0 0 40px rgba(57, 255, 20, 0.15);
-        }
-    }
-
-    /* Subtle Neon Flicker (Very Premium) 
-       Occurs rarely like a high-end LED voltage shift */
-    @keyframes neonFlicker {
-        0%,
-        93%,
-        94%,
-        95.5%,
-        97%,
-        100% {
-            opacity: 1;
-        }
-        93.5% {
-            opacity: 0.85;
-        }
-        96% {
-            opacity: 0.9;
-        }
-    }
-
-    /* Primary Heading & Subtext */
-    .main-content {
-        width: 100%;
-        max-width: 760px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
-    }
-
-    .title-container {
-        margin: 0;
-    }
-
-    .block {
-        display: block;
-    }
-
-    h1 {
-        font-family: var(--font-heading);
-        font-size: clamp(3rem, 7vw, 5.5rem);
-        line-height: 1.05;
-        letter-spacing: 0.03em;
-        text-transform: uppercase;
-        color: var(--color-text-main);
-    }
-
-    .accent-text {
-        color: var(--color-neon-green);
-    }
-
-    /* Subtle neon pulse for green elements */
-    .glow-text {
-        display: inline-block;
-        animation: neonPulse 3.5s ease-in-out infinite alternate 0.8s;
-    }
-
-    @keyframes neonPulse {
-        0% {
-            text-shadow: 0 0 4px rgba(57, 255, 20, 0.1);
-        }
-        100% {
-            text-shadow: 0 0 16px rgba(57, 255, 20, 0.4);
-        }
-    }
-
-    .description {
-        font-size: clamp(1rem, 2.5vw, 1.25rem);
-        color: var(--color-text-muted);
-        line-height: 1.6;
-        max-width: 600px;
-        margin: 0 auto;
-        font-weight: 400;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    /* Slightly brighter description for readability */
-    .description {
-        color: #d6d6d6;
-    }
-
-    /* Progress Mechanics */
-    .progress-section {
+    /* Progress Section */
+    .progress-wrapper {
         width: 100%;
         max-width: 500px;
-        margin: 2.5rem 0;
+        margin-bottom: 3.5rem;
     }
 
-    .progress-header {
+    .progress-details {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 0.6rem;
+        margin-bottom: 0.75rem;
         font-family: var(--font-heading);
-        font-size: clamp(1.2rem, 3vw, 1.5rem);
-        color: var(--color-text-muted);
-        letter-spacing: 0.1em;
+        letter-spacing: 0.08em;
+        font-size: clamp(1.1rem, 3vw, 1.4rem);
+        color: rgba(255, 255, 255, 0.7);
     }
 
-    .progress-percentage {
-        color: var(--color-neon-green);
+    .progress-value {
+        color: var(--color-green);
     }
 
     .progress-track {
         width: 100%;
         height: 6px;
-        background-color: var(--color-dark-gray);
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 99px;
         position: relative;
-        overflow: hidden; /* Important for tail effect */
+        overflow: hidden;
     }
 
-    .progress-bar {
+    .progress-fill {
         position: absolute;
         top: 0;
         left: 0;
         height: 100%;
         width: 0%;
-        background-color: var(--color-neon-green);
-        box-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
-        /* Elegant smooth acceleration */
-        animation: fill-progress 2s cubic-bezier(0.22, 1, 0.36, 1) forwards 1s;
-        will-change: width;
-        overflow: hidden; /* Contains the sweep effect */
+        background: var(--color-green);
+        border-radius: 99px;
+        box-shadow: 0 0 10px var(--color-green-glow);
+        animation: fill-bar 2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 1s;
     }
 
-    /* Infinite premium neon sweep effect over the filled bar */
-    .progress-bar::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        height: 100%;
-        width: 100%;
-        background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.4),
-            rgba(57, 255, 20, 0.8),
-            rgba(255, 255, 255, 0.4),
-            transparent
-        );
-        animation: active-sweep 2.5s linear infinite 3s; /* Starts after fill finishes */
-        will-change: transform;
-    }
-
-    @keyframes active-sweep {
-        0% {
-            transform: translateX(0);
-        }
-        100% {
-            transform: translateX(200%);
-        } /* Sweeps entirely across and disappears before looping */
-    }
-
-    /* Tail glow effect for progress bar during initial fill */
-    .progress-bar::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        right: 0;
-        height: 100%;
-        width: 30px;
-        background: linear-gradient(
-            to right,
-            transparent,
-            rgba(255, 255, 255, 0.8)
-        );
-        box-shadow: 5px 0 15px rgba(57, 255, 20, 0.9);
-        opacity: 0;
-        animation: progress-trail 2s cubic-bezier(0.22, 1, 0.36, 1) forwards 1s;
-    }
-
-    @keyframes progress-trail {
-        0% {
-            opacity: 0;
-            transform: translateX(-10px);
-        }
-        15% {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        85% {
-            opacity: 1;
-        }
-        100% {
-            opacity: 0;
-        }
-    }
-
-    @keyframes fill-progress {
+    @keyframes fill-bar {
         0% {
             width: 0%;
         }
         100% {
-            width: 65%;
+            width: 78%;
         }
     }
 
-    /* Action Buttons - Athletic & Rectangular */
-    .actions {
+    /* Action Buttons */
+    .actions-wrapper {
         display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
         gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
         width: 100%;
-        margin-top: 1.5rem;
     }
 
     .btn {
@@ -560,93 +380,66 @@
         align-items: center;
         justify-content: center;
         gap: 0.75rem;
-        padding: 1.1rem 2rem;
+        padding: 1.1rem 2.5rem;
         font-family: var(--font-heading);
         font-size: clamp(1.2rem, 3vw, 1.4rem);
-        letter-spacing: 0.05em;
+        letter-spacing: 0.08em;
         text-decoration: none;
-        text-transform: uppercase;
-        cursor: pointer;
-
-        /* Core Athletic Button Styles with 200ms transition */
-        background-color: var(--color-black);
-        color: var(--color-neon-green);
-        border: 1px solid rgba(57, 255, 20, 0.4);
-        border-radius: 0; /* Sharp edges */
-        box-shadow: inset 0 0 0 transparent;
-        transition: all 200ms var(--transition-base);
-        will-change: transform, box-shadow, border-color;
+        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        border-radius: 2px;
+        min-width: 200px;
     }
 
-    .btn:hover {
-        border-color: var(--color-neon-green);
-        box-shadow:
-            inset 0 0 15px rgba(57, 255, 20, 0.15),
-            0 0 15px rgba(57, 255, 20, 0.2);
+    .btn-solid {
+        background: var(--color-green);
+        color: var(--color-bg);
+        border: 1px solid var(--color-green);
+        box-shadow: 0 0 20px rgba(57, 255, 20, 0.15);
+    }
+
+    .btn-solid:hover {
+        background: #4bff20;
+        border-color: #4bff20;
+        box-shadow: 0 0 30px rgba(57, 255, 20, 0.3);
         transform: translateY(-2px);
     }
 
-    /* Admin Access Button */
-    .admin-access {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-        margin-top: 2rem;
+    .btn-outline {
+        background: transparent;
+        color: var(--color-text);
+        border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    .btn-admin {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.7rem 1.5rem;
-        font-family: var(--font-body);
-        font-size: 0.7rem;
-        font-weight: 500;
-        letter-spacing: 0.15em;
-        text-decoration: none;
-        text-transform: uppercase;
-        cursor: pointer;
-        background-color: transparent;
-        color: rgba(255, 255, 255, 0.25);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 0;
-        transition: all 300ms var(--transition-base);
+    .btn-outline:hover {
+        border-color: var(--color-green);
+        color: var(--color-green);
+        background: rgba(57, 255, 20, 0.05);
+        transform: translateY(-2px);
     }
 
-    .btn-admin:hover {
-        color: rgba(255, 255, 255, 0.6);
-        border-color: rgba(255, 255, 255, 0.2);
-        transform: translateY(-1px);
-    }
-
-    /* Elegant Fade In Up Animations */
+    /* Animations */
     .fade-in-up {
         opacity: 0;
-        transform: translateY(15px);
-        animation: fadeInUp 0.8s var(--transition-base) forwards;
+        transform: translateY(20px);
+        animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
 
     .delay-1 {
-        animation-delay: 0.15s;
+        animation-delay: 0.2s;
     }
     .delay-2 {
-        animation-delay: 0.3s;
+        animation-delay: 0.4s;
     }
     .delay-3 {
-        animation-delay: 0.45s;
-    }
-    .delay-4 {
         animation-delay: 0.6s;
-    }
-    .delay-5 {
-        animation-delay: 0.75s;
     }
 
     @keyframes fadeInUp {
         from {
             opacity: 0;
-            transform: translateY(15px);
+            transform: translateY(20px);
         }
         to {
             opacity: 1;
@@ -654,65 +447,31 @@
         }
     }
 
-    /* Accessibility: Prefers Reduced Motion */
+    /* Reduced Motion */
     @media (prefers-reduced-motion: reduce) {
         *,
         ::before,
         ::after {
             animation: none !important;
             transition: none !important;
-            scroll-behavior: auto !important;
         }
-
-        /* Reset initial states for elements that use forwards animation */
         .fade-in-up {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
+            opacity: 1;
+            transform: translateY(0);
         }
-
-        .progress-bar {
-            width: 50% !important;
-        }
-
-        .progress-bar::after,
-        .progress-bar::before {
-            display: none !important;
+        .progress-fill {
+            width: 78%;
         }
     }
 
-    /* Responsive Mobile Layout */
+    /* Mobile adjustments */
     @media (max-width: 640px) {
-        .actions {
-            flex-direction: column;
-            width: 100%;
-            max-width: 340px;
-        }
-
         .btn {
             width: 100%;
         }
-
-        .logo-container {
-            margin-bottom: 1.25rem;
-        }
-
-        .glass-card {
-            padding: 1.2rem;
-        }
-
-        .logo-text {
-            font-size: clamp(2.2rem, 12vw, 4rem);
-        }
-
-        .btn-shop {
-            right: 0.75rem;
-            top: 0.75rem;
-            padding: 0.45rem 0.7rem;
-            font-size: 0.75rem;
-        }
-
-        .progress-section {
-            padding: 0;
+        .actions-wrapper {
+            flex-direction: column;
+            max-width: 320px;
         }
     }
 </style>
@@ -720,29 +479,24 @@
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const progressText = document.getElementById("progress-text");
-
-        // Handles user disabling animations
         const prefersReducedMotion = window.matchMedia(
             "(prefers-reduced-motion: reduce)",
         ).matches;
 
         if (prefersReducedMotion) {
-            if (progressText) progressText.innerText = "50%";
+            if (progressText) progressText.innerText = "78%";
             return;
         }
 
         if (progressText) {
-            const targetPercent = 50;
-            const duration = 2000; // 2s duration to match CSS
-            const delay = 1000; // 1s delay to match CSS
+            const targetPercent = 78;
+            const duration = 2000;
+            const delay = 1000;
             const fps = 60;
             const totalFrames = (duration / 1000) * fps;
             let currentFrame = 0;
 
-            // Premium fast-start slow-end easing function (outCubic)
-            const easeOutCubic = (x: number) => {
-                return 1 - Math.pow(1 - x, 3);
-            };
+            const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
 
             setTimeout(() => {
                 const interval = setInterval(() => {
@@ -754,11 +508,13 @@
                         targetPercent,
                     );
 
-                    progressText.innerText = currentPercent + "%";
+                    if (progressText)
+                        progressText.innerText = currentPercent + "%";
 
                     if (currentFrame >= totalFrames) {
                         clearInterval(interval);
-                        progressText.innerText = targetPercent + "%";
+                        if (progressText)
+                            progressText.innerText = targetPercent + "%";
                     }
                 }, 1000 / fps);
             }, delay);

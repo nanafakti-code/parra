@@ -122,11 +122,6 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
                     </div>
                 </div>
             </div>
-            <div class="flex justify-end mt-6">
-                <button type="submit" class="btn-primary"
-                    >Guardar cambios</button
-                >
-            </div>
         </form>
     </div>
 
@@ -169,11 +164,6 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
                         placeholder="Calle..."
                     />
                 </div>
-            </div>
-            <div class="flex justify-end mt-6">
-                <button type="submit" class="btn-primary"
-                    >Guardar cambios</button
-                >
             </div>
         </form>
     </div>
@@ -218,11 +208,6 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
                     />
                 </div>
             </div>
-            <div class="flex justify-end mt-6">
-                <button type="submit" class="btn-primary"
-                    >Guardar cambios</button
-                >
-            </div>
         </form>
     </div>
 
@@ -260,11 +245,6 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
                     </label>
                 </div>
             </div>
-            <div class="flex justify-end mt-6">
-                <button type="submit" class="btn-primary"
-                    >Guardar cambios</button
-                >
-            </div>
         </form>
     </div>
 
@@ -294,34 +274,48 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
                     >
                 </div>
             </div>
-            <div class="flex justify-end mt-6">
-                <button type="submit" class="btn-primary"
-                    >Guardar cambios</button
-                >
-            </div>
         </form>
     </div>
 
     <!-- Maintenance -->
     <div class="settings-panel" id="panel-maintenance">
         <form class="card p-6" data-key="maintenance">
-            <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <h2
+                class="text-lg font-semibold text-white mb-4 flex items-center gap-2"
+            >
                 <i data-feather="tool" class="w-5 h-5 text-[var(--brand)]"></i>
                 Modo Mantenimiento
             </h2>
 
             <p class="text-sm text-gray-300 mb-4">
-                Cuando el modo mantenimiento está activado, los visitantes verán una página de mantenimiento y no podrán acceder a la tienda. Solo el panel de administración seguirá siendo accesible.
+                Cuando el modo mantenimiento está activado, los visitantes verán
+                una página de mantenimiento y no podrán acceder a la tienda.
+                Solo el panel de administración seguirá siendo accesible.
             </p>
 
             <div class="maintenance-card mb-4">
                 <div class="maintenance-row">
                     <div class="maintenance-info">
                         <div class="flex items-center gap-3">
-                            <span class="dot dot-red" aria-hidden></span>
+                            <span
+                                class={`dot ${maintenance.enabled ? "dot-red" : "dot-green"}`}
+                                id="maintenance-dot"
+                                aria-hidden="true"></span>
                             <div>
-                                <div class="font-semibold text-white">Tienda en mantenimiento</div>
-                                <div class="text-xs text-gray-400">Los visitantes ven la página de mantenimiento</div>
+                                <div
+                                    class="font-semibold text-white"
+                                    id="maintenance-title"
+                                >
+                                    {
+                                        maintenance.enabled
+                                            ? "Mantenimiento activado"
+                                            : "Mantenimiento desactivado"
+                                    }
+                                </div>
+                                <div class="text-xs text-gray-400">
+                                    Los visitantes ven la página de
+                                    mantenimiento
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -331,6 +325,7 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
                             <input
                                 type="checkbox"
                                 name="enabled"
+                                id="maintenance-toggle"
                                 class="sr-only toggle-input"
                                 checked={maintenance.enabled}
                             />
@@ -338,19 +333,6 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
                         </label>
                     </div>
                 </div>
-            </div>
-
-            <div class="alert alert-error mb-4">
-                La tienda está en modo mantenimiento. Los clientes no pueden acceder a ninguna página excepto la de mantenimiento.
-            </div>
-
-            <div class="card p-4 mb-4">
-                <label class="form-label">Mensaje público</label>
-                <textarea name="message" class="form-input h-28" placeholder="Volvemos en breve...">{maintenance.message}</textarea>
-            </div>
-
-            <div class="flex justify-end mt-2">
-                <button type="submit" class="btn-primary">Guardar cambios</button>
             </div>
         </form>
     </div>
@@ -393,16 +375,15 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
                     />
                 </div>
             </div>
-            <div class="flex justify-end mt-6">
-                <button type="submit" class="btn-primary"
-                    >Guardar cambios</button
-                >
-            </div>
         </form>
     </div>
 </AdminLayout>
 
-<button id="floating-save" class="btn-primary floating-save" title="Guardar cambios">Guardar cambios</button>
+<button
+    id="floating-save"
+    class="btn-primary floating-save"
+    title="Guardar cambios">Guardar cambios</button
+>
 
 <style>
     .settings-panel {
@@ -412,21 +393,91 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
         display: block;
     }
     /* Local maintenance styles for admin settings page */
-    .maintenance-card { border-radius: 10px; padding: 1rem; border: 1px solid rgba(255,59,48,0.06); background: rgba(255,59,48,0.02); }
-    .maintenance-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
-    .maintenance-info { flex:1; }
-    .maintenance-toggle { flex:0 0 auto; }
-    .dot { display:inline-block; width:10px; height:10px; border-radius:999px; }
-    .dot-red { background:#ff3b30; box-shadow: 0 0 0 6px rgba(255,59,48,0.04); }
-    .alert.alert-error { border:1px solid rgba(255,59,48,0.18); background: rgba(255,59,48,0.02); color: #ffd6d6; padding:0.85rem; border-radius:8px; }
-    .switch { display:inline-block; position:relative; }
-    .switch .switch-track { display:inline-block; width:64px; height:34px; background: rgba(255,255,255,0.06); border-radius:999px; position:relative; cursor:pointer; transition: all 180ms ease; }
-    .switch .switch-track::after { content: ''; position:absolute; top:4px; left:4px; width:26px; height:26px; background: #fff; border-radius:999px; transition: transform 180ms ease, box-shadow 180ms ease; box-shadow: 0 2px 6px rgba(0,0,0,0.45); }
-    .toggle-input:checked + .switch-track { background: linear-gradient(90deg, var(--brand) 0%, #2DD60E 100%); box-shadow: 0 0 18px rgba(57,255,20,0.12); }
-    .toggle-input:checked + .switch-track::after { transform: translateX(30px); box-shadow: 0 4px 18px rgba(57,255,20,0.18); }
+    .maintenance-card {
+        border-radius: 10px;
+        padding: 1rem;
+        border: 1px solid rgba(255, 59, 48, 0.06);
+        background: rgba(255, 59, 48, 0.02);
+    }
+    .maintenance-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+    .maintenance-info {
+        flex: 1;
+    }
+    .maintenance-toggle {
+        flex: 0 0 auto;
+    }
+    .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+    }
+    .dot-red {
+        background: #ff3b30;
+        box-shadow: 0 0 0 6px rgba(255, 59, 48, 0.04);
+    }
+    .dot-green {
+        background: #39ff14;
+        box-shadow: 0 0 0 6px rgba(57, 255, 20, 0.04);
+    }
+    .switch {
+        display: inline-block;
+        position: relative;
+    }
+    .switch .switch-track {
+        display: inline-block;
+        width: 64px;
+        height: 34px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 999px;
+        position: relative;
+        cursor: pointer;
+        transition: all 180ms ease;
+    }
+    .switch .switch-track::after {
+        content: "";
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 26px;
+        height: 26px;
+        background: #fff;
+        border-radius: 999px;
+        transition:
+            transform 180ms ease,
+            box-shadow 180ms ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    }
+    .toggle-input:checked + .switch-track {
+        background: linear-gradient(90deg, var(--brand) 0%, #2dd60e 100%);
+        box-shadow: 0 0 18px rgba(57, 255, 20, 0.12);
+    }
+    .toggle-input:checked + .switch-track::after {
+        transform: translateX(30px);
+        box-shadow: 0 4px 18px rgba(57, 255, 20, 0.18);
+    }
     /* Floating save button */
-    .floating-save { position: fixed; right: 24px; bottom: 24px; padding: 0.45rem 0.9rem; border-radius:6px; font-size:0.85rem; z-index:60; box-shadow: 0 6px 28px rgba(57,255,20,0.28), inset 0 0 8px rgba(57,255,20,0.06); border:1px solid rgba(57,255,20,0.85); }
-    .floating-save:hover{ transform: translateY(-2px); }
+    .floating-save {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        padding: 0.45rem 0.9rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        z-index: 60;
+        box-shadow:
+            0 6px 28px rgba(57, 255, 20, 0.28),
+            inset 0 0 8px rgba(57, 255, 20, 0.06);
+        border: 1px solid rgba(57, 255, 20, 0.85);
+    }
+    .floating-save:hover {
+        transform: translateY(-2px);
+    }
 </style>
 
 <script is:inline>
@@ -460,6 +511,20 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
         }
     });
 
+    // Floating save button logic
+    const floatingBtn = document.getElementById("floating-save");
+    if (floatingBtn) {
+        floatingBtn.addEventListener("click", () => {
+            const activeForm = document.querySelector(
+                ".settings-panel.active form[data-key]",
+            );
+            if (activeForm) {
+                // requestSubmit correctly triggers native HTML5 validation and submit events
+                activeForm.requestSubmit();
+            }
+        });
+    }
+
     // Form submissions
     document.querySelectorAll("form[data-key]").forEach((form) => {
         form.addEventListener("submit", async (e) => {
@@ -469,19 +534,6 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
             const value = {};
 
             for (const [name, val] of fd.entries()) {
-
-    // Floating save button: submit the active panel form
-    const floating = document.getElementById('floating-save');
-    if (floating) {
-        floating.addEventListener('click', () => {
-            const activeForm = document.querySelector('.settings-panel.active form[data-key]');
-            const targetForm = activeForm || document.querySelector('form[data-key]');
-            if (targetForm) {
-                const submitBtn = targetForm.querySelector('button[type="submit"]');
-                if (submitBtn) submitBtn.click();
-            }
-        });
-    }
                 const input = form.querySelector(`[name="${name}"]`);
                 if (input?.type === "number") {
                     value[name] = parseFloat(val) || 0;
@@ -497,13 +549,16 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
                 if (!fd.has(cb.name)) value[cb.name] = false;
             });
 
-            const btn = form.querySelector('button[type="submit"]');
-            btn.disabled = true;
-            btn.textContent = "Guardando...";
+            const btn = document.getElementById("floating-save");
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Guardando...";
+            }
 
             try {
                 const res = await fetch("/api/admin/settings", {
                     method: "PATCH",
+                    credentials: "include", // Ensure cookies are sent
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ key, value }),
                 });
@@ -522,9 +577,28 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
             } catch (err) {
                 window.adminToast?.("Error de conexión", "error");
             } finally {
-                btn.disabled = false;
-                btn.textContent = "Guardar cambios";
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = "Guardar cambios";
+                }
             }
         });
     });
+
+    // Dynamic maintenance toggle
+    const mToggle = document.getElementById("maintenance-toggle");
+    if (mToggle) {
+        mToggle.addEventListener("change", (e) => {
+            const isEnabled = e.target.checked;
+            const title = document.getElementById("maintenance-title");
+            const dot = document.getElementById("maintenance-dot");
+            if (isEnabled) {
+                title.textContent = "Mantenimiento activado";
+                dot.className = "dot dot-red";
+            } else {
+                title.textContent = "Mantenimiento desactivado";
+                dot.className = "dot dot-green";
+            }
+        });
+    }
 </script>

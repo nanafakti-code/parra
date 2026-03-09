@@ -12,7 +12,6 @@ import { supabase, supabaseAdmin } from "./lib/supabase";
  */
 export const onRequest = defineMiddleware(async ({ cookies, locals, request, redirect }, next) => {
     const url = new URL(request.url);
-    const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
 
     // 1. Obtener access_token desde cookies para poder validar usuario antes de decidir redirección por mantenimiento
     const accessToken = cookies.get("sb-access-token")?.value || cookies.get("auth_token")?.value;
@@ -79,13 +78,13 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
         }
     }
 
-    // Solo redirigir si está en mantenimiento y el visitante NO es admin y no es localhost
+    // Solo redirigir si está en mantenimiento y el visitante NO es admin
     const isAdmin = locals.role === 'admin';
     if (
         isMaintenanceMode &&
-        !isLocalhost &&
         !isAdmin &&
         url.pathname !== '/maintenance' &&
+        !url.pathname.startsWith('/admin') &&
         !url.pathname.startsWith('/_astro') &&
         !url.pathname.startsWith('/api') &&
         !url.pathname.match(/\.(png|jpg|jpeg|svg|css|js|ico)$/)
@@ -93,7 +92,7 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
         return redirect('/maintenance', 302);
     }
 
-    
+
 
     return next();
 });

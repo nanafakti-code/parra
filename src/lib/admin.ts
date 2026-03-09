@@ -1,5 +1,5 @@
 import type { AstroGlobal } from 'astro';
-import { supabaseAdmin } from './supabase';
+import { supabase, supabaseAdmin } from './supabase';
 
 /**
  * Admin guard – validates the current user is an active admin.
@@ -76,17 +76,14 @@ export async function validateAdminAPI(request: Request, cookies: any): Promise<
     const accessToken = cookies.get('sb-access-token')?.value || cookies.get('auth_token')?.value;
 
     if (!accessToken) {
+        console.error('[validateAdminAPI] error: No autorizado, no accessToken provided in cookies.', cookies);
         return jsonResponse({ error: 'No autorizado' }, 401);
     }
-
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabaseUrl = import.meta.env.SUPABASE_URL || '';
-    const supabaseKey = import.meta.env.SUPABASE_ANON_KEY || '';
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { data: { user }, error } = await supabase.auth.getUser(accessToken);
 
     if (!user || error) {
+        console.error('[validateAdminAPI] error: Token inválido.', error);
         return jsonResponse({ error: 'Token inválido' }, 401);
     }
 
