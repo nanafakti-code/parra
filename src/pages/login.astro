@@ -479,21 +479,9 @@ if (user) return Astro.redirect("/");
         display: flex;
         transition: color 0.2s;
     }
-    /* Ensure the toggle is above the input and has a comfortable touch target on mobile */
-    .lpw-toggle { z-index: 5; }
-    @media (max-width: 768px) {
-        .lpw-toggle {
-            width: 44px;
-            height: 44px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 6px; /* small padding so svg keeps proportions */
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        .lpw-toggle svg { width: 20px; height: 20px; }
+    /* Ensure the toggle is above the input */
+    .lpw-toggle {
+        z-index: 5;
     }
     .lpw-toggle:hover {
         color: var(--brand);
@@ -617,8 +605,12 @@ if (user) return Astro.redirect("/");
             padding-right: 44px !important;
         }
 
-        .linput-icon { left: 12px; }
-        .lpw-toggle { right: 12px; }
+        .linput-icon {
+            left: 12px;
+        }
+        .lpw-toggle {
+            right: 12px;
+        }
 
         /* Make submit button pleasant and not oversized */
         .lsubmit {
@@ -627,7 +619,9 @@ if (user) return Astro.redirect("/");
             height: 48px !important;
             font-size: 13px !important;
             border-radius: 8px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.5), 0 0 12px rgba(57,255,20,0.06);
+            box-shadow:
+                0 6px 18px rgba(0, 0, 0, 0.5),
+                0 0 12px rgba(57, 255, 20, 0.06);
         }
 
         /* Reduce hero/branding pseudo-size to avoid overflow */
@@ -641,6 +635,10 @@ if (user) return Astro.redirect("/");
 
 <script is:inline>
     function initLoginPage() {
+        var main = document.querySelector(".login-main");
+        if (!main || main.dataset.initialized) return;
+        main.dataset.initialized = "true";
+
         var form = document.getElementById("login-form");
         var errorEl = document.getElementById("login-error");
         var errTxt = document.getElementById("login-error-text");
@@ -652,35 +650,16 @@ if (user) return Astro.redirect("/");
         var eyeIcon = document.getElementById("eye-icon");
 
         if (togglePw && pwInput) {
-            var wasToggledByTouch = false;
-            function togglePassword() {
+            togglePw.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
                 var isText = pwInput.type === "text";
                 pwInput.type = isText ? "password" : "text";
                 eyeIcon.innerHTML = isText
                     ? '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>' +
                       '<path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>'
                     : '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>';
-            }
-
-            // Click handler ignores the event if a recent touch already toggled the input
-            togglePw.addEventListener("click", function (e) {
-                if (wasToggledByTouch) return;
-                togglePassword();
             });
-
-            // Touch handler: prevent default to avoid synthetic click and mark flag
-            togglePw.addEventListener(
-                "touchstart",
-                function (e) {
-                    e.preventDefault();
-                    wasToggledByTouch = true;
-                    setTimeout(function () {
-                        wasToggledByTouch = false;
-                    }, 500);
-                    togglePassword();
-                },
-                { passive: false }
-            );
         }
 
         if (!form) return;
