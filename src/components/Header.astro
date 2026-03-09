@@ -209,7 +209,7 @@ const { user, role } = Astro.locals;
     <div class="flex flex-col h-full p-8">
         <div class="flex justify-between items-center mb-12">
             <span class="text-2xl font-display font-bold tracking-tight">
-                <span class="text-brand">PARRA</span>
+                <span class="brand-text">PARRA</span>
             </span>
             <button
                 id="mobile-menu-close"
@@ -325,17 +325,23 @@ const { user, role } = Astro.locals;
     }
 
     /* Logo tweaks: ensure high contrast, neon glow and proper vertical alignment */
-    .site-logo { z-index: 60; }
+    .site-logo {
+        z-index: 60;
+    }
     .brand-text {
         color: var(--brand);
         display: inline-block;
-        font-weight: 800;
+        font-weight: 700;
         letter-spacing: 0.02em;
-        text-shadow: 0 0 18px rgba(57,255,20,0.32), 0 0 6px rgba(57,255,20,0.12);
+        text-shadow:
+            0 0 18px rgba(57, 255, 20, 0.32),
+            0 0 6px rgba(57, 255, 20, 0.12);
         transform: translateY(-1px);
     }
     @media (min-width: 1024px) {
-        .brand-text { font-size: 1.85rem; }
+        .brand-text {
+            font-size: 1.85rem;
+        }
     }
 </style>
 

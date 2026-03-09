@@ -12,7 +12,14 @@ const { data: userProfile, error: profileError } = await supabaseAdmin
     .select("*")
     .eq("id", authUser.id)
     .single();
-if (profileError || !userProfile) return Astro.redirect("/login");
+if (profileError || !userProfile) {
+    // Si el usuario existe en Auth pero no en la tabla "users" (o hay un error de DB),
+    // borramos las cookies para no crear un bucle de redirecciones infinito con /login.
+    Astro.cookies.delete("sb-access-token", { path: "/" });
+    Astro.cookies.delete("sb-refresh-token", { path: "/" });
+    Astro.cookies.delete("auth_token", { path: "/" });
+    return Astro.redirect("/login?error=profile_missing");
+}
 
 // Cache 30s en el navegador (private = solo browser, no CDN)
 // Permite que back/forward y revisitas recientes sean instantáneas

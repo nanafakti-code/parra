@@ -11,7 +11,7 @@
  */
 
 import type { APIRoute } from 'astro';
-import { supabase } from '../../../lib/supabase';
+import { supabase, supabaseAdmin } from '../../../lib/supabase';
 
 // ── Helper ─────────────────────────────────────────────────────────────────────
 
@@ -59,7 +59,19 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             return jsonResponse({ message: 'Error inesperado al iniciar sesión.' }, 500);
         }
 
-        // 3. Configurar cookies httpOnly
+        // 3. Validar que el perfil exista en la tabla "users" (importante si se borró manualmente)
+        const { data: userProfile } = await supabaseAdmin
+            .from('users')
+            .select('id')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (!userProfile) {
+            console.warn(`[login] Perfil no encontrado en 'users' para Auth ID: ${user.id}.`);
+            return jsonResponse({ message: 'Credenciales inválidas o cuenta no registrada correctamente.' }, 401);
+        }
+
+        // 4. Configurar cookies httpOnly
         // sb-access-token: Token de acceso principal
         // sb-refresh-token: Para renovar la sesión
         const cookieOptions = {
