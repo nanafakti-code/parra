@@ -22,17 +22,32 @@ const testimonials = [
         avatar: "MT",
     },
 ];
+
+interface Props {
+    content?: Record<string, any>;
+}
+const { content = {} } = Astro.props;
 ---
 
 <section
     class="section relative"
+    style={`background-color: ${content.style_section_bg || "transparent"};`}
 >
     <div class="container relative">
         <div class="text-center mb-10 md:mb-16 reveal">
-            <h2 class="section-title">
-                Lo Que Dicen <span class="text-brand">Nuestros Porteros</span>
+            <h2
+                class="section-title"
+                style={`color: ${content.style_title_color || "#FFFFFF"};`}
+            >
+                Lo Que Dicen <span
+                    style={`color: ${content.style_stars_color || "#39FF14"};`}
+                    >Nuestros Porteros</span
+                >
             </h2>
-            <p class="section-subtitle mx-auto">
+            <p
+                class="section-subtitle mx-auto"
+                style={`color: ${content.style_subtitle_color || "#737373"};`}
+            >
                 Porteros de todos los niveles confían en PARRA.
             </p>
         </div>
@@ -40,9 +55,15 @@ const testimonials = [
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
             {
                 testimonials.map((t, i) => (
-                    <div class={`card p-6 sm:p-8 reveal stagger-${i + 1} relative`}>
+                    <div
+                        class={`card p-6 sm:p-8 reveal stagger-${i + 1} relative`}
+                        style={`background-color: ${content.style_card_bg || "#111827"}; border-color: ${content.style_card_border || "#1F2937"};`}
+                    >
                         {/* Quote mark */}
-                        <div class="text-brand/10 text-7xl font-display font-bold absolute top-4 right-6 leading-none">
+                        <div
+                            class="text-[6rem] font-display font-bold absolute top-4 right-6 leading-none"
+                            style={`color: ${content.style_stars_color || "#39FF14"}; opacity: 0.1;`}
+                        >
                             "
                         </div>
 
@@ -50,7 +71,8 @@ const testimonials = [
                         <div class="flex gap-1 mb-5">
                             {Array.from({ length: t.rating }).map(() => (
                                 <svg
-                                    class="w-4 h-4 text-brand"
+                                    class="w-4 h-4"
+                                    style={`color: ${content.style_stars_color || "#FBBF24"};`}
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                 >
@@ -62,18 +84,24 @@ const testimonials = [
                         {/* Quote */}
                         <p
                             class="text-sm leading-relaxed mb-6 relative z-10"
-                            style="color: var(--text-secondary);"
+                            style={`color: ${content.style_text_color || "var(--text-secondary)"};`}
                         >
                             "{t.quote}"
                         </p>
 
                         {/* Author */}
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-brand/10 border border-brand/20 flex items-center justify-center text-brand text-xs font-bold">
+                            <div
+                                class="w-10 h-10 border flex items-center justify-center text-xs font-bold"
+                                style={`background-color: rgba(0,0,0,0.2); border-color: ${content.style_stars_color || "#39FF14"}; color: ${content.style_stars_color || "#39FF14"};`}
+                            >
                                 {t.avatar}
                             </div>
                             <div>
-                                <div class="text-sm font-semibold">
+                                <div
+                                    class="text-sm font-semibold"
+                                    style={`color: ${content.style_name_color || "#FFFFFF"};`}
+                                >
                                     {t.name}
                                 </div>
                                 <div

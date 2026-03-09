@@ -1,0 +1,84 @@
+﻿[2m23:56:10[22m [34m[content][39m Syncing content
+[2m23:56:10[22m [34m[content][39m Synced content
+[2m23:56:10[22m [34m[types][39m Generated [2m49ms[22m
+[2m23:56:10[22m [34m[build][39m output: [34m"server"[39m
+[2m23:56:10[22m [34m[build][39m mode: [34m"server"[39m
+[2m23:56:10[22m [34m[build][39m directory: [34mC:\Users\rafae\Desktop\Proyectos\Andres\dist\[39m
+[2m23:56:10[22m [34m[build][39m adapter: [32m@astrojs/vercel[39m
+[2m23:56:10[22m [34m[build][39m Collecting build info...
+[2m23:56:10[22m [34m[build][39m [32m✓ Completed in 148ms.[39m
+[2m23:56:10[22m [34m[build][39m Building server entrypoints...
+[2m23:56:16[22m [34m[vite][39m [32m✓ built in 5.69s[39m
+[2m23:56:16[22m [34m[build][39m [32m✓ Completed in 5.72s.[39m
+
+[42m[30m building client (vite) [39m[49m
+[2m23:56:16[22m [34m[vite][39m transforming...
+[2m23:56:16[22m [34m[vite][39m [32m✓[39m 21 modules transformed.
+node.exe : 
+[31m[1m23:56:16[22m 
+[ERROR] [vite][39m 
+[31m✗[39m Build failed in 
+101ms
+En C:\Program 
+Files\nodejs\npx.ps1: 29 
+Carácter: 3
++   & $NODE_EXE $NPX_CLI_JS 
+$args
++   
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : 
+    NotSpecified: ([31m[1m  
+  23:56:...failed in 101ms:   
+ String) [], RemoteExcepti    
+on
+    + FullyQualifiedErrorId : 
+    NativeCommandError
+ 
+"await" can only be used 
+inside an "async" function
+  [1mHint:[22m
+[33m    Browser APIs are not 
+available on the server.
+    
+    If the code is in a 
+framework component, try to 
+access these objects after 
+rendering using lifecycle 
+methods or use a 
+`client:only` directive to 
+make the component 
+exclusively run on the client.
+    
+    See [4mhttps://docs.astro
+.build/en/guides/troubleshooti
+ng/#document-or-window-is-not-
+defined[24m for more 
+information.
+    		[39m
+  [1mLocation:[22m
+    [4mC:/Users/rafae/Desktop
+/Proyectos/Andres/src/pages/ch
+eckout.astro?astro&type=script
+&index=0&lang.ts:61:28[24m
+  [1mStack trace:[22m
+[2m    at 
+failureErrorWithLog (C:\Users\
+rafae\Desktop\Proyectos\Andres
+\node_modules\vite\node_module
+s\esbuild\lib\main.js:1467:15)
+    at 
+responseCallbacks.<computed> (
+C:\Users\rafae\Desktop\Proyect
+os\Andres\node_modules\vite\no
+de_modules\esbuild\lib\main.js
+:603:9)
+    at Socket.readFromStdout (
+C:\Users\rafae\Desktop\Proyect
+os\Andres\node_modules\vite\no
+de_modules\esbuild\lib\main.js
+:581:7)
+    at addChunk (node:internal
+/streams/readable:561:12)
+    at Readable.push (node:int
+ernal/streams/readable:392:5)
+[22m

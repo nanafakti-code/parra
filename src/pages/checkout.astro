@@ -17,6 +17,7 @@ if (user) {
         .order("is_default", { ascending: false });
     savedAddresses = data ?? [];
 }
+const stripePubKey = import.meta.env.STRIPE_PUBLIC_KEY || "pk_test_"; // Se espera estar en .env
 ---
 
 <Layout title="Pago Seguro">
@@ -73,36 +74,73 @@ if (user) {
                     </div>
 
                     {/* ── Selector de direcciones guardadas ── */}
-                    {savedAddresses.length > 0 && (
-                        <div class="card p-4 space-y-3">
-                            <p class="text-[10px] font-bold uppercase tracking-[0.2em]" style="color: var(--text-muted);">Mis direcciones guardadas</p>
-                            <div id="saved-addresses-list" class="grid gap-2">
-                                {savedAddresses.map((addr: any) => (
-                                    <button
-                                        type="button"
-                                        class:list={["saved-addr-card text-left w-full p-3 border transition-colors hover:border-brand/50", addr.is_default ? "border-brand/40 bg-brand/5" : ""]}
-                                        style={addr.is_default ? "" : "border-color: var(--border-color);"}
-                                        data-addr={JSON.stringify({
-                                            full_name: addr.full_name,
-                                            street: addr.street,
-                                            city: addr.city,
-                                            postal_code: addr.postal_code,
-                                            phone: addr.phone ?? "",
-                                        })}
-                                    >
-                                        <span class="flex items-center justify-between gap-2 flex-wrap">
-                                            <span class="font-semibold text-xs">{addr.full_name} — {addr.label || "Dirección"}</span>
-                                            {addr.is_default && <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 bg-brand/10 text-brand">Predeterminada</span>}
-                                        </span>
-                                        <span class="block text-[11px] mt-0.5" style="color: var(--text-muted);">{addr.street}, {addr.postal_code} {addr.city}</span>
-                                    </button>
-                                ))}
+                    {
+                        savedAddresses.length > 0 && (
+                            <div class="card p-4 space-y-3">
+                                <p
+                                    class="text-[10px] font-bold uppercase tracking-[0.2em]"
+                                    style="color: var(--text-muted);"
+                                >
+                                    Mis direcciones guardadas
+                                </p>
+                                <div
+                                    id="saved-addresses-list"
+                                    class="grid gap-2"
+                                >
+                                    {savedAddresses.map((addr: any) => (
+                                        <button
+                                            type="button"
+                                            class:list={[
+                                                "saved-addr-card text-left w-full p-3 border transition-colors hover:border-brand/50",
+                                                addr.is_default
+                                                    ? "border-brand/40 bg-brand/5"
+                                                    : "",
+                                            ]}
+                                            style={
+                                                addr.is_default
+                                                    ? ""
+                                                    : "border-color: var(--border-color);"
+                                            }
+                                            data-addr={JSON.stringify({
+                                                full_name: addr.full_name,
+                                                street: addr.street,
+                                                city: addr.city,
+                                                postal_code: addr.postal_code,
+                                                phone: addr.phone ?? "",
+                                            })}
+                                        >
+                                            <span class="flex items-center justify-between gap-2 flex-wrap">
+                                                <span class="font-semibold text-xs">
+                                                    {addr.full_name} —{" "}
+                                                    {addr.label || "Dirección"}
+                                                </span>
+                                                {addr.is_default && (
+                                                    <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 bg-brand/10 text-brand">
+                                                        Predeterminada
+                                                    </span>
+                                                )}
+                                            </span>
+                                            <span
+                                                class="block text-[11px] mt-0.5"
+                                                style="color: var(--text-muted);"
+                                            >
+                                                {addr.street},{" "}
+                                                {addr.postal_code} {addr.city}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    type="button"
+                                    id="addr-manual-btn"
+                                    class="text-[10px] uppercase tracking-widest py-1 hover:text-brand transition-colors"
+                                    style="color: var(--text-muted);"
+                                >
+                                    + Introducir dirección manualmente
+                                </button>
                             </div>
-                            <button type="button" id="addr-manual-btn" class="text-[10px] uppercase tracking-widest py-1 hover:text-brand transition-colors" style="color: var(--text-muted);">
-                                + Introducir dirección manualmente
-                            </button>
-                        </div>
-                    )}
+                        )
+                    }
 
                     <form id="checkout-form" class="space-y-4">
                         <input
@@ -127,7 +165,12 @@ if (user) {
                                 class="input"
                             />
                         </div>
-                        <input id="input-direccion" placeholder="Dirección" required class="input" />
+                        <input
+                            id="input-direccion"
+                            placeholder="Dirección"
+                            required
+                            class="input"
+                        />
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <input
                                 id="input-ciudad"
@@ -176,38 +219,19 @@ if (user) {
 
                     <div class="card p-6 space-y-4">
                         <div
-                            class="flex items-center justify-between p-4 bg-brand/5 border border-brand/20"
+                            id="payment-element"
+                            class="min-h-[150px] p-2 bg-brand/5 border border-brand/20 rounded"
                         >
                             <span
-                                class="font-semibold text-sm flex items-center gap-2"
+                                style="color: var(--text-muted);"
+                                class="text-sm"
+                                >Cargando métodos de pago... (Requiere conexión)</span
                             >
-                                <svg
-                                    class="w-4 h-4 text-brand"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                                    ></path>
-                                </svg>
-                                Tarjeta de Crédito
-                            </span>
-                            <svg
-                                class="w-4 h-4 text-brand"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M5 13l4 4L19 7"></path>
-                            </svg>
+                        </div>
+                        <div
+                            id="payment-message"
+                            class="hidden text-red-500 text-sm mt-2 font-semibold"
+                        >
                         </div>
                         <p
                             class="text-[10px] uppercase tracking-[0.2em] text-center"
@@ -277,48 +301,109 @@ if (user) {
 
 <style>
     @media (max-width: 767px) {
-        .container { padding-left: 12px; padding-right: 12px; }
-        #checkout-form-container { gap: 18px !important; }
-        .card.p-6, .card.p-4 { padding: 12px !important; }
-        .btn-glow { height: 48px; font-size: 15px; }
-        .saved-addr-card { padding: 10px; font-size: 14px; }
-        .input { padding: 10px 12px; }
+        .container {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+        #checkout-form-container {
+            gap: 18px !important;
+        }
+        .card.p-6,
+        .card.p-4 {
+            padding: 12px !important;
+        }
+        .btn-glow {
+            height: 48px;
+            font-size: 15px;
+        }
+        .saved-addr-card {
+            padding: 10px;
+            font-size: 14px;
+        }
+        .input {
+            padding: 10px 12px;
+        }
     }
 </style>
 
-<script>
-    import { getCart, getSessionId } from "../lib/cart";
+<script is:inline src="https://js.stripe.com/v3/"></script>
+<script is:inline define:vars={{ stripePubKey }}>
+    window.STRIPE_PUBLIC_KEY = stripePubKey;
+</script>
 
-    function initCheckoutPage() {
+<script>
+    import { getCart, getSessionId, clearCart } from "../lib/cart";
+
+    let stripe: any = null;
+    let elements: any = null;
+    let clientSecret: string | null = null;
+
+    async function initCheckoutPage() {
+        // Reset variables in case of View Transitions
+        stripe = null;
+        elements = null;
+        clientSecret = null;
+
         // ── Auto-relleno desde dirección guardada ──────────────────────────────
-        const addrCards = document.querySelectorAll<HTMLButtonElement>(".saved-addr-card");
+        const addrCards =
+            document.querySelectorAll<HTMLButtonElement>(".saved-addr-card");
         const manualBtn = document.getElementById("addr-manual-btn");
 
         function selectAddrCard(card: HTMLButtonElement) {
             // Quitar selección previa
-            addrCards.forEach(c => {
-                c.classList.remove("border-brand/40", "bg-brand/5", "ring-1", "ring-brand/30");
+            addrCards.forEach((c) => {
+                c.classList.remove(
+                    "border-brand/40",
+                    "bg-brand/5",
+                    "ring-1",
+                    "ring-brand/30",
+                );
                 c.style.borderColor = "var(--border-color)";
             });
             // Marcar seleccionada
-            card.classList.add("border-brand/40", "bg-brand/5", "ring-1", "ring-brand/30");
+            card.classList.add(
+                "border-brand/40",
+                "bg-brand/5",
+                "ring-1",
+                "ring-brand/30",
+            );
             card.style.borderColor = "";
 
             // Rellenar el formulario
             try {
                 const data = JSON.parse(card.dataset.addr ?? "{}");
-                const [firstName, ...lastParts] = (data.full_name ?? "").split(" ");
+                const [firstName, ...lastParts] = (data.full_name ?? "").split(
+                    " ",
+                );
                 const lastName = lastParts.join(" ");
-                (document.getElementById("input-nombre") as HTMLInputElement).value  = firstName ?? "";
-                (document.getElementById("input-apellidos") as HTMLInputElement).value  = lastName ?? "";
-                (document.getElementById("input-direccion") as HTMLInputElement).value = data.street ?? "";
-                (document.getElementById("input-ciudad") as HTMLInputElement).value   = data.city ?? "";
-                (document.getElementById("input-cp") as HTMLInputElement).value       = data.postal_code ?? "";
-                (document.getElementById("input-telefono") as HTMLInputElement).value = data.phone ?? "";
+                (
+                    document.getElementById("input-nombre") as HTMLInputElement
+                ).value = firstName ?? "";
+                (
+                    document.getElementById(
+                        "input-apellidos",
+                    ) as HTMLInputElement
+                ).value = lastName ?? "";
+                (
+                    document.getElementById(
+                        "input-direccion",
+                    ) as HTMLInputElement
+                ).value = data.street ?? "";
+                (
+                    document.getElementById("input-ciudad") as HTMLInputElement
+                ).value = data.city ?? "";
+                (
+                    document.getElementById("input-cp") as HTMLInputElement
+                ).value = data.postal_code ?? "";
+                (
+                    document.getElementById(
+                        "input-telefono",
+                    ) as HTMLInputElement
+                ).value = data.phone ?? "";
             } catch {}
         }
 
-        addrCards.forEach(card => {
+        addrCards.forEach((card) => {
             card.addEventListener("click", () => selectAddrCard(card));
         });
 
@@ -329,19 +414,113 @@ if (user) {
 
         // Botón "introducir manualmente" limpia la selección y vacía los campos
         manualBtn?.addEventListener("click", () => {
-            addrCards.forEach(c => {
-                c.classList.remove("border-brand/40", "bg-brand/5", "ring-1", "ring-brand/30");
+            addrCards.forEach((c) => {
+                c.classList.remove(
+                    "border-brand/40",
+                    "bg-brand/5",
+                    "ring-1",
+                    "ring-brand/30",
+                );
                 c.style.borderColor = "var(--border-color)";
             });
-            ["input-nombre","input-apellidos","input-direccion","input-ciudad","input-cp","input-telefono"].forEach(id => {
+            [
+                "input-nombre",
+                "input-apellidos",
+                "input-direccion",
+                "input-ciudad",
+                "input-cp",
+                "input-telefono",
+            ].forEach((id) => {
                 (document.getElementById(id) as HTMLInputElement).value = "";
             });
             document.getElementById("input-nombre")?.focus();
         });
 
         // ── Envío al checkout ──────────────────────────────────────────────────
-        var orderBtn = document.getElementById("place-order-btn") as HTMLButtonElement;
-        var checkoutForm = document.getElementById("checkout-form") as HTMLFormElement;
+        var orderBtn = document.getElementById(
+            "place-order-btn",
+        ) as HTMLButtonElement;
+        var checkoutForm = document.getElementById(
+            "checkout-form",
+        ) as HTMLFormElement;
+        var msgDiv = document.getElementById(
+            "payment-message",
+        ) as HTMLDivElement;
+
+        function showMessage(msgText: string, isError = true) {
+            msgDiv.classList.remove("hidden");
+            msgDiv.textContent = msgText;
+            if (isError) {
+                msgDiv.classList.add("text-red-500");
+                msgDiv.classList.remove("text-green-500");
+            } else {
+                msgDiv.classList.remove("text-red-500");
+                msgDiv.classList.add("text-green-500");
+            }
+        }
+
+        // ── Stripe Elements Initialization ─────────────────────────────────────
+        const items = getCart();
+        const pubKey = (window as any).STRIPE_PUBLIC_KEY;
+
+        if (items.length > 0 && pubKey) {
+            if (pubKey.includes("...")) {
+                showMessage(
+                    "STRIPE_PUBLIC_KEY está incompleta en el archivo .env o faltan credenciales en Configuraciones.",
+                );
+            } else {
+                try {
+                    const res = await fetch(
+                        "/api/stripe/create-payment-intent",
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                items,
+                                shippingInfo: {},
+                                email: "guest@example.com",
+                            }),
+                        },
+                    );
+                    const data = await res.json();
+
+                    if (data.clientSecret) {
+                        clientSecret = data.clientSecret;
+
+                        // @ts-ignore
+                        stripe = Stripe(pubKey);
+
+                        const appearance = {
+                            theme: "night",
+                            variables: {
+                                colorPrimary: "#39FF14",
+                                colorBackground: "#111827",
+                                colorText: "#ffffff",
+                                colorDanger: "#ef4444",
+                            },
+                        };
+
+                        elements = stripe.elements({
+                            appearance,
+                            clientSecret,
+                        });
+                        const paymentElement = elements.create("payment");
+
+                        const container =
+                            document.getElementById("payment-element");
+                        if (container) {
+                            container.innerHTML = "";
+                            paymentElement.mount("#payment-element");
+                        }
+                    } else if (data.error) {
+                        showMessage(data.error);
+                    }
+                } catch (err: any) {
+                    console.warn("Stripe init fail:", err);
+                    showMessage("Fallo al inicializar pagos: " + err.message);
+                }
+            }
+        }
 
         if (orderBtn && checkoutForm) {
             orderBtn.addEventListener("click", async function (e) {
@@ -353,54 +532,139 @@ if (user) {
                     return;
                 }
 
-                const items = getCart();
+                if (!stripe || !elements || !clientSecret) {
+                    showMessage(
+                        "Stripe no está listo o la clave pública es inválida.",
+                    );
+                    return;
+                }
+
                 if (items.length === 0) {
                     const { toast } = await import("../lib/toast");
                     toast.warning("Tu carrito está vacío.");
                     return;
                 }
 
-                const cartSessionId = getSessionId();
                 const shippingInfo = {
-                    firstName: (document.getElementById("input-nombre")   as HTMLInputElement)?.value,
-                    lastName:  (document.getElementById("input-apellidos") as HTMLInputElement)?.value,
-                    address:   (document.getElementById("input-direccion") as HTMLInputElement)?.value,
-                    city:      (document.getElementById("input-ciudad")    as HTMLInputElement)?.value,
-                    zip:       (document.getElementById("input-cp")        as HTMLInputElement)?.value,
-                    phone:     (document.getElementById("input-telefono")  as HTMLInputElement)?.value,
+                    firstName: (
+                        document.getElementById(
+                            "input-nombre",
+                        ) as HTMLInputElement
+                    )?.value,
+                    lastName: (
+                        document.getElementById(
+                            "input-apellidos",
+                        ) as HTMLInputElement
+                    )?.value,
+                    address: (
+                        document.getElementById(
+                            "input-direccion",
+                        ) as HTMLInputElement
+                    )?.value,
+                    city: (
+                        document.getElementById(
+                            "input-ciudad",
+                        ) as HTMLInputElement
+                    )?.value,
+                    zip: (
+                        document.getElementById("input-cp") as HTMLInputElement
+                    )?.value,
+                    phone: (
+                        document.getElementById(
+                            "input-telefono",
+                        ) as HTMLInputElement
+                    )?.value,
                 };
 
-                const email = (document.getElementById("input-email") as HTMLInputElement)?.value || "guest@example.com";
+                const email =
+                    (document.getElementById("input-email") as HTMLInputElement)
+                        ?.value || "guest@example.com";
 
                 orderBtn.innerHTML =
-                    '<span class="flex items-center gap-2"><svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Redirigiendo a Stripe...</span>';
+                    '<span class="flex items-center gap-2"><svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Procesando pago...</span>';
                 orderBtn.setAttribute("disabled", "true");
+                msgDiv.classList.add("hidden");
 
                 try {
-                    const response = await fetch("/api/stripe/create-session", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            items,
-                            shippingInfo,
-                            email,
-                            cartSessionId,
-                        }),
-                    });
+                    // Confirm Stripe Payment First
+                    const { error: stripeError, paymentIntent } =
+                        await stripe.confirmPayment({
+                            elements,
+                            confirmParams: {
+                                receipt_email: email,
+                                payment_method_data: {
+                                    billing_details: {
+                                        name: `${shippingInfo.firstName} ${shippingInfo.lastName}`,
+                                        email: email,
+                                        phone: shippingInfo.phone,
+                                        address: {
+                                            line1: shippingInfo.address,
+                                            city: shippingInfo.city,
+                                            postal_code: shippingInfo.zip,
+                                        },
+                                    },
+                                },
+                            },
+                            redirect: "if_required",
+                        });
 
-                    const data = await response.json();
-
-                    if (data.url) {
-                        window.location.href = data.url;
-                    } else {
+                    if (stripeError) {
                         throw new Error(
-                            data.error || "Error al crear sesión de pago",
+                            stripeError.message ||
+                                "Pago fallido en la tarjeta.",
                         );
                     }
-                } catch (err) {
-                    const { toast } = await import("../lib/toast");
-                    const msg = err instanceof Error ? err.message : "Error al procesar el pago. Intenta de nuevo.";
-                    toast.error(msg);
+
+                    if (
+                        paymentIntent &&
+                        paymentIntent.status === "requires_capture"
+                    ) {
+                        // Card Authorized! Call our backend to perform Stock check + Order Creation + Capture
+                        const response = await fetch(
+                            "/api/stripe/confirm-payment-intent",
+                            {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    paymentIntentId: paymentIntent.id,
+                                    items,
+                                    shippingInfo,
+                                    email,
+                                }),
+                            },
+                        );
+
+                        const data = await response.json();
+
+                        if (data.ok) {
+                            // Success! Redirect.
+                            clearCart();
+                            window.location.href = `/success`;
+                        } else {
+                            // Transaction rolled back due to stock issue, PaymentIntent Cancelled!
+                            throw new Error(
+                                data.error ||
+                                    "El producto acaba de agotarse y el pago ha sido cancelado automáticamente.",
+                            );
+                        }
+                    } else if (
+                        paymentIntent &&
+                        paymentIntent.status === "succeeded"
+                    ) {
+                        // Already succeeded? (Maybe not manual capture incorrectly configured)
+                        clearCart();
+                        window.location.href = `/success`;
+                    } else {
+                        throw new Error(
+                            "Estado de pago inesperado. Recarga y prueba de nuevo.",
+                        );
+                    }
+                } catch (err: any) {
+                    const msg =
+                        err instanceof Error
+                            ? err.message
+                            : "Error al procesar el pago.";
+                    showMessage(msg);
                     orderBtn.textContent = "Pagar y Finalizar";
                     orderBtn.removeAttribute("disabled");
                 }

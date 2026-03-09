@@ -140,17 +140,34 @@ const homeSchemaJson = JSON.stringify([
 		<!-- Featured Products -->
 		{
 			isActive("featured_products") && (
-				<section class="py-10 sm:py-14 md:py-20 lg:py-28">
+				<section
+					class="py-10 sm:py-14 md:py-20 lg:py-28"
+					style={`
+					--card-bg-color: ${fpData.style_card_bg || "#111827"};
+					--card-border-color: ${fpData.style_card_border || "#1F2937"};
+					--card-price-color: ${fpData.style_price_color || "#39FF14"};
+					--card-name-color: ${fpData.style_product_name_color || "#FFFFFF"};
+					--section-accent-color: ${fpData.style_accent_color || "#39FF14"};
+				`}
+				>
 					<div class="container">
 						<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-14 gap-4 md:gap-6">
 							<div>
-								<h2 class="section-title">
+								<h2
+									class="section-title"
+									style={`color: ${fpData.style_title_color || "#FFFFFF"};`}
+								>
 									{fpData.title || "Productos"}{" "}
-									<span class="text-brand">
+									<span
+										style={`color: ${fpData.style_accent_color || "#39FF14"};`}
+									>
 										{fpData.title_accent || "Destacados"}
 									</span>
 								</h2>
-								<p class="section-subtitle">
+								<p
+									class="section-subtitle"
+									style={`color: ${fpData.style_subtitle_color || "#737373"};`}
+								>
 									{fpData.subtitle ||
 										"Nuestra selección de los guantes más vendidos. Tecnología de vanguardia para porteros exigentes."}
 								</p>
@@ -158,10 +175,11 @@ const homeSchemaJson = JSON.stringify([
 							<a
 								href={fpData.cta_link || "/shop"}
 								class="btn-outline group shrink-0"
+								style={`color: ${fpData.style_accent_color || "#39FF14"}; border-color: ${fpData.style_accent_color || "#39FF14"};`}
 							>
 								{fpData.cta_text || "Ver toda la tienda"}
 								<svg
-									class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
+									class="w-4 h-4 mt-[1px] ml-2 group-hover:translate-x-1 transition-transform"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -187,13 +205,21 @@ const homeSchemaJson = JSON.stringify([
 		}
 
 		<!-- Benefits -->
-		{isActive("benefits") && <Benefits />}
+		{isActive("benefits") && <Benefits content={getContent("benefits")} />}
 
 		<!-- Glove Selector -->
-		{isActive("glove_selector") && <GloveSelector />}
+		{
+			isActive("glove_selector") && (
+				<GloveSelector content={getContent("glove_selector")} />
+			)
+		}
 
 		<!-- Testimonials -->
-		{isActive("testimonials") && <Testimonials />}
+		{
+			isActive("testimonials") && (
+				<Testimonials content={getContent("testimonials")} />
+			)
+		}
 
 		<!-- CTA Banner -->
 		{
@@ -209,20 +235,26 @@ const homeSchemaJson = JSON.stringify([
 						/>
 					</div>
 					<div class="container relative z-10 text-center reveal">
-						<h2 class="text-2xl sm:text-3xl md:text-5xl lg:text-8xl font-display font-bold uppercase tracking-tighter mb-4 sm:mb-6 md:mb-8">
+						<h2
+							class="text-2xl sm:text-3xl md:text-5xl lg:text-8xl font-display font-bold uppercase tracking-tighter mb-4 sm:mb-6 md:mb-8"
+							style={`color: ${ctaContent.style_title_line1_color || "#FFFFFF"};`}
+						>
 							{ctaContent.title_line1 || "¿LISTO PARA"}
 							<br />
-							<span class="text-brand">
+							<span
+								style={`color: ${ctaContent.style_title_line2_color || "#39FF14"};`}
+							>
 								{ctaContent.title_line2 || "VOLAR?"}
 							</span>
 						</h2>
 						<a
 							href={ctaContent.cta_link || "/register"}
 							class="btn-glow inline-flex"
+							style={`background: ${ctaContent.style_cta_bg || "#39FF14"}; color: ${ctaContent.style_cta_text || "#000000"}; --glow-color: ${ctaContent.style_cta_bg || "#39FF14"};`}
 						>
 							{ctaContent.cta_text || "Únete al Club PARRA"}
 							<svg
-								class="w-4 h-4 ml-2"
+								class="w-4 h-4 ml-2 mt-[1px]"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -241,16 +273,31 @@ const homeSchemaJson = JSON.stringify([
 		}
 
 		<!-- Newsletter -->
-		{isActive("newsletter") && <Newsletter />}
+		{
+			isActive("newsletter") && (
+				<Newsletter content={getContent("newsletter")} />
+			)
+		}
 	</main>
 	<Footer />
 </Layout>
 
 <style>
 	@media (max-width: 767px) {
-		section { padding-top: 1.25rem; padding-bottom: 1.25rem; }
-		.container { padding-left: 12px; padding-right: 12px; }
-		.grid { gap: 8px; }
-		.btn-glow { padding-left: 12px; padding-right: 12px; }
+		section {
+			padding-top: 1.25rem;
+			padding-bottom: 1.25rem;
+		}
+		.container {
+			padding-left: 12px;
+			padding-right: 12px;
+		}
+		.grid {
+			gap: 8px;
+		}
+		.btn-glow {
+			padding-left: 12px;
+			padding-right: 12px;
+		}
 	}
 </style>

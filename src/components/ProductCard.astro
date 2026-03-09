@@ -26,12 +26,15 @@ const discountPercent = hasDiscount
     : 0;
 ---
 
-<article class={`card-product group reveal stagger-${(index % 4) + 1}`}>
+<article
+    class={`card-product group reveal stagger-${(index % 4) + 1}`}
+    style="background-color: var(--card-bg-color, transparent); border: 1px solid var(--card-border-color, transparent); border-radius: 8px;"
+>
     <!-- Image Container -->
     <a
         href={`/product/${product.slug}`}
-        class="block aspect-square sm:aspect-[3/4] overflow-hidden relative"
-        style="background-color: var(--bg-secondary);"
+        class="block aspect-square sm:aspect-[3/4] overflow-hidden relative rounded-t-[7px]"
+        style="background-color: transparent;"
     >
         <img
             src={product.image}
@@ -42,8 +45,16 @@ const discountPercent = hasDiscount
         />
 
         <!-- Badges -->
-        <div class="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col gap-1.5 sm:gap-2 z-10">
-            {hasDiscount && <span class="badge-sale text-[8px] sm:text-[10px]">-{discountPercent}%</span>}
+        <div
+            class="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col gap-1.5 sm:gap-2 z-10"
+        >
+            {
+                hasDiscount && (
+                    <span class="badge-sale text-[8px] sm:text-[10px]">
+                        -{discountPercent}%
+                    </span>
+                )
+            }
             {
                 product.stock < 5 && product.stock > 0 && (
                     <span class="badge bg-red-600 text-white">Últimas</span>
@@ -62,7 +73,8 @@ const discountPercent = hasDiscount
     <div class="p-3 sm:p-5">
         <div class="flex justify-between items-start mb-1">
             <span
-                class="text-[8px] sm:text-[10px] font-bold text-brand uppercase tracking-[0.15em] sm:tracking-[0.2em]"
+                class="text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em]"
+                style="color: var(--section-accent-color, #39FF14);"
             >
                 {category}
             </span>
@@ -70,6 +82,7 @@ const discountPercent = hasDiscount
         <a href={`/product/${product.slug}`}>
             <h3
                 class="font-display text-xs sm:text-base font-semibold uppercase tracking-tight group-hover:text-brand transition-colors duration-300 mb-1.5 sm:mb-2 line-clamp-2"
+                style="color: var(--card-name-color, inherit);"
             >
                 {product.name}
             </h3>
@@ -78,7 +91,7 @@ const discountPercent = hasDiscount
             <div class="flex items-center gap-1.5 sm:gap-3">
                 <span
                     class="text-sm sm:text-lg font-bold"
-                    style="color: var(--text-primary);"
+                    style="color: var(--card-price-color, var(--text-primary));"
                     >€{product.price.toFixed(2)}</span
                 >
                 {
@@ -149,10 +162,20 @@ const discountPercent = hasDiscount
 <style>
     /* Make product cards more compact on small screens */
     @media (max-width: 767px) {
-        .card-product { border-radius: 8px; }
-        .card-product a { aspect-ratio: 4 / 5; }
-        .card-product .p-3 { padding: 8px; }
-        .card-product h3 { font-size: 0.95rem; }
-        .card-product .badge-sale { font-size: 9px; }
+        .card-product {
+            border-radius: 8px;
+        }
+        .card-product a {
+            aspect-ratio: 4 / 5;
+        }
+        .card-product .p-3 {
+            padding: 8px;
+        }
+        .card-product h3 {
+            font-size: 0.95rem;
+        }
+        .card-product .badge-sale {
+            font-size: 9px;
+        }
     }
 </style>
