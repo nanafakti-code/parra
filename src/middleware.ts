@@ -11,16 +11,80 @@ import { supabase, supabaseAdmin } from "./lib/supabase";
  * 4. Busca el rol del usuario en la tabla 'users' y lo adjunta a locals.role.
  */
 export const onRequest = defineMiddleware(async ({ cookies, locals, request, redirect }, next) => {
-    // 1. Comprobar modo mantenimiento (soporte para Vercel process.env y mayúsculas/minúsculas)
-    const rawMaintenanceMode = import.meta.env.MAINTENANCE_MODE || (typeof process !== 'undefined' ? process.env.MAINTENANCE_MODE : false);
-    const isMaintenanceMode = String(rawMaintenanceMode).trim().toLowerCase() === 'true';
     const url = new URL(request.url);
-
     const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
 
+    // 1. Obtener access_token desde cookies para poder validar usuario antes de decidir redirección por mantenimiento
+    const accessToken = cookies.get("sb-access-token")?.value || cookies.get("auth_token")?.value;
+
+    locals.user = null;
+    locals.role = null;
+
+    if (accessToken) {
+        // Validar usuario con Supabase Auth (sin usar admin para este paso)
+        try {
+            const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+            if (user && !error) {
+                locals.user = user;
+
+                // Obtener rol desde la tabla users (busca por id primero, con fallback a email)
+                let profile: { role: string } | null = null;
+
+                const { data: byId } = await supabaseAdmin
+                    .from("users")
+                    .select("id, role")
+                    .eq("id", user.id)
+                    .maybeSingle();
+
+                if (byId) {
+                    profile = byId;
+                } else {
+                    const { data: byEmail } = await supabaseAdmin
+                        .from("users")
+                        .select("id, role")
+                        .eq("email", user.email)
+                        .maybeSingle();
+                    profile = byEmail;
+                }
+
+                locals.role = profile?.role || "customer";
+            }
+        } catch (e) {
+            console.error('[middleware] auth.getUser error', e);
+        }
+    }
+
+    // 2. Comprobar modo mantenimiento: primero revisar variable de entorno, si no está, consultar site_settings
+    let isMaintenanceMode = false;
+    // Env override (fast)
+    const rawEnv = import.meta.env.MAINTENANCE_MODE || (typeof process !== 'undefined' ? process.env.MAINTENANCE_MODE : false);
+    if (rawEnv && String(rawEnv).trim().length > 0) {
+        isMaintenanceMode = String(rawEnv).trim().toLowerCase() === 'true';
+    } else {
+        // Fallback: read from DB (site_settings key: 'maintenance')
+        try {
+            const { data } = await supabaseAdmin.from('site_settings').select('value').eq('key', 'maintenance').maybeSingle();
+            if (data && data.value) {
+                const v = typeof data.value === 'string' ? data.value : JSON.stringify(data.value);
+                try {
+                    const parsed = JSON.parse(v);
+                    isMaintenanceMode = !!parsed.enabled;
+                } catch {
+                    isMaintenanceMode = String(v).trim().toLowerCase() === 'true';
+                }
+            }
+        } catch (e) {
+            console.error('[middleware] error reading maintenance setting', e);
+            isMaintenanceMode = false;
+        }
+    }
+
+    // Solo redirigir si está en mantenimiento y el visitante NO es admin y no es localhost
+    const isAdmin = locals.role === 'admin';
     if (
         isMaintenanceMode &&
         !isLocalhost &&
+        !isAdmin &&
         url.pathname !== '/maintenance' &&
         !url.pathname.startsWith('/_astro') &&
         !url.pathname.startsWith('/api') &&
@@ -29,44 +93,7 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
         return redirect('/maintenance', 302);
     }
 
-    // 2. Obtener access_token desde cookies
-    // Usamos 'sb-access-token' como nombre predeterminado de Supabase
-    const accessToken = cookies.get("sb-access-token")?.value || cookies.get("auth_token")?.value;
-
-    locals.user = null;
-    locals.role = null;
-
-    if (accessToken) {
-        // 3. Validar usuario con Supabase Auth (sin usar admin para este paso)
-        const { data: { user }, error } = await supabase.auth.getUser(accessToken);
-
-        if (user && !error) {
-            locals.user = user;
-
-            // 4. Obtener rol desde la tabla users (busca por id primero, con fallback a email)
-            let profile: { role: string } | null = null;
-
-            const { data: byId } = await supabaseAdmin
-                .from("users")
-                .select("id, role")
-                .eq("id", user.id)
-                .maybeSingle();
-
-            if (byId) {
-                profile = byId;
-            } else {
-                // Fallback: el UUID de Auth puede no coincidir con public.users (usuario creado manualmente)
-                const { data: byEmail } = await supabaseAdmin
-                    .from("users")
-                    .select("id, role")
-                    .eq("email", user.email)
-                    .maybeSingle();
-                profile = byEmail;
-            }
-
-            locals.role = profile?.role || "customer";
-        }
-    }
+    
 
     return next();
 });

@@ -15,6 +15,7 @@ const shipping = settings.shipping || { free_threshold: 50, standard_cost: 4.99,
 const taxes = settings.taxes || { iva_rate: 21, included_in_price: true };
 const returns_policy = settings.returns_policy || { days_limit: 30, description: '' };
 const stripe = settings.stripe || { public_key: '', webhook_secret: '' };
+const maintenance = settings.maintenance || { enabled: false, message: '' };
 ---
 
 <AdminLayout title="Ajustes" activeSection="settings" admin={admin}>
@@ -32,6 +33,7 @@ const stripe = settings.stripe || { public_key: '', webhook_secret: '' };
         <button class="filter-chip" data-tab="shipping">Envío</button>
         <button class="filter-chip" data-tab="taxes">Impuestos</button>
         <button class="filter-chip" data-tab="returns">Devoluciones</button>
+        <button class="filter-chip" data-tab="maintenance">Mantenimiento</button>
         <button class="filter-chip" data-tab="stripe">Stripe</button>
     </div>
 
@@ -161,6 +163,31 @@ const stripe = settings.stripe || { public_key: '', webhook_secret: '' };
                 <div class="form-group sm:col-span-2">
                     <label class="form-label">Descripción</label>
                     <textarea name="description" class="form-input" rows="3">{returns_policy.description}</textarea>
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="submit" class="btn-primary">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Maintenance -->
+    <div class="settings-panel" id="panel-maintenance">
+        <form class="card p-6" data-key="maintenance">
+            <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <i data-feather="tool" class="w-5 h-5 text-[var(--brand)]"></i> Mantenimiento
+            </h2>
+            <p class="text-sm text-gray-300 mb-4">Activa el modo mantenimiento para mostrar una página de mantenimiento a los visitantes no autorizados. Los administradores seguirán teniendo acceso.</p>
+            <div class="grid grid-cols-1 gap-4">
+                <div class="form-group">
+                    <label class="form-label flex items-center gap-3">
+                        <input type="checkbox" name="enabled" class="w-5 h-5" checked={maintenance.enabled} />
+                        <span>Activar modo mantenimiento</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mensaje público</label>
+                    <input type="text" name="message" class="form-input" value={maintenance.message} placeholder="Volvemos en breve..." />
                 </div>
             </div>
             <div class="flex justify-end mt-6">
