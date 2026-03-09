@@ -58,7 +58,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             return jsonResponse({ error: 'Error al crear cupón' }, 500);
         }
 
-        await logAdminAction(admin.id, 'create_coupon', 'coupon', data.id, { code: insertData.code }, request.headers.get('x-forwarded-for'));
+        await logAdminAction(admin.id, 'create_coupon', 'coupon', data.id, { code: insertData.code }, request.headers.get('x-forwarded-for') || undefined);
         return jsonResponse({ coupon: data, message: 'Cupón creado' }, 201);
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);
@@ -88,7 +88,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         const { data, error } = await supabaseAdmin.from('coupons').update(updateData).eq('id', couponId).select().single();
         if (error) return jsonResponse({ error: 'Error al actualizar cupón' }, 500);
 
-        await logAdminAction(admin.id, 'update_coupon', 'coupon', couponId, updateData, request.headers.get('x-forwarded-for'));
+        await logAdminAction(admin.id, 'update_coupon', 'coupon', couponId, updateData, request.headers.get('x-forwarded-for') || undefined);
         return jsonResponse({ coupon: data, message: 'Cupón actualizado' });
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);
@@ -109,7 +109,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
         const { error } = await supabaseAdmin.from('coupons').delete().eq('id', couponId);
         if (error) return jsonResponse({ error: 'Error al eliminar cupón' }, 500);
 
-        await logAdminAction(admin.id, 'delete_coupon', 'coupon', couponId, {}, request.headers.get('x-forwarded-for'));
+        await logAdminAction(admin.id, 'delete_coupon', 'coupon', couponId, {}, request.headers.get('x-forwarded-for') || undefined);
         return jsonResponse({ message: 'Cupón eliminado' });
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);

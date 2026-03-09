@@ -85,7 +85,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         await logAdminAction(admin.id, 'update_order_status', 'order', orderId, {
             newStatus: status,
             trackingNumber: trackingNumber || null,
-        }, request.headers.get('x-forwarded-for'));
+        }, request.headers.get('x-forwarded-for') || undefined);
 
         // ── Disparar emails transaccionales según el nuevo estado ──────────────
         const customerEmail = data.email;

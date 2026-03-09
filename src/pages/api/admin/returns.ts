@@ -57,7 +57,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
         if (error) return jsonResponse({ error: 'Error al actualizar devolución' }, 500);
 
-        await logAdminAction(admin.id, 'update_return', 'return', returnId, { newStatus: status, refundAmount }, request.headers.get('x-forwarded-for'));
+        await logAdminAction(admin.id, 'update_return', 'return', returnId, { newStatus: status, refundAmount }, request.headers.get('x-forwarded-for') || undefined);
 
         return jsonResponse({ return: data, message: 'Devolución actualizada' });
     } catch (err) {

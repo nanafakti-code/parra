@@ -1,0 +1,214 @@
+﻿[2m12:47:28[22m [34m[content][39m Syncing content
+[2m12:47:28[22m [34m[content][39m Synced content
+[2m12:47:28[22m [34m[types][39m Generated [2m45ms[22m
+[2m12:47:28[22m [34m[check][39m Getting diagnostics for Astro files in C:\Users\rafae\Desktop\Proyectos\Andres...
+[96msrc/components/Hero.astro[0m:[93m65[0m:[93m7[0m - [93mwarning[0m[90m ts(6133): [0m'styleSecondaryBorder' is declared but its value is never read.
+
+[7m65[0m const styleSecondaryBorder = content.style_secondary_border || "transparent";
+[7m  [0m [93m      ~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/components/Hero.astro[0m:[93m54[0m:[93m7[0m - [93mwarning[0m[90m ts(6133): [0m'styleBadgeBg' is declared but its value is never read.
+
+[7m54[0m const styleBadgeBg = content.style_badge_bg || "#39FF14";
+[7m  [0m [93m      ~~~~~~~~~~~~[0m
+[96msrc/components/Hero.astro[0m:[93m39[0m:[93m7[0m - [93mwarning[0m[90m ts(6133): [0m'subtitleMobile' is declared but its value is never read.
+
+[7m39[0m const subtitleMobile =
+[7m  [0m [93m      ~~~~~~~~~~~~~~[0m
+
+[96msrc/components/ProductCard.astro[0m:[93m41[0m:[93m45[0m - [93mwarning[0m[90m ts(6133): [0m'src' is declared but its value is never read.
+
+[7m41[0m             onerror="this.onerror=null;this.src='/images/placeholder-product.svg';this.classList.add('opacity-30')"
+[7m  [0m [93m                                            ~~~[0m
+[96msrc/components/ProductCard.astro[0m:[93m41[0m:[93m27[0m - [93mwarning[0m[90m ts(6133): [0m'onerror' is declared but its value is never read.
+
+[7m41[0m             onerror="this.onerror=null;this.src='/images/placeholder-product.svg';this.classList.add('opacity-30')"
+[7m  [0m [93m                          ~~~~~~~[0m
+[96msrc/components/ProductCard.astro[0m:[93m127[0m:[93m31[0m - [93mwarning[0m[90m ts(6133): [0m'ok' is declared but its value is never read.
+
+[7m127[0m                         const ok = await addItem({
+[7m   [0m [93m                              ~~[0m
+
+[96msrc/layouts/AdminLayout.astro[0m:[93m1334[0m:[93m56[0m - [93mwarning[0m[90m ts(6133): [0m'e' is declared but its value is never read.
+
+[7m1334[0m             window.handleAdminLogout = async function (e) {
+[7m    [0m [93m                                                       ~[0m
+
+[96msrc/layouts/Layout.astro[0m:[93m133[0m:[93m34[0m - [93mwarning[0m[90m ts(6133): [0m'rel' is declared but its value is never read.
+
+[7m133[0m    onload="this.onload=null;this.rel='stylesheet'"
+[7m   [0m [93m                                 ~~~[0m
+[96msrc/layouts/Layout.astro[0m:[93m133[0m:[93m17[0m - [93mwarning[0m[90m ts(6133): [0m'onload' is declared but its value is never read.
+
+[7m133[0m    onload="this.onload=null;this.rel='stylesheet'"
+[7m   [0m [93m                ~~~~~~[0m
+[96msrc/layouts/Layout.astro[0m:[93m163[0m:[93m13[0m - [93mwarning[0m[90m astro(4000): [0mThis script will be treated as if it has the `is:inline` directive because it contains an attribute. Therefore, features that require processing (e.g. using TypeScript or npm packages in the script) are unavailable.
+
+See docs for more details: https://docs.astro.build/en/guides/client-side-scripts/#script-processing.
+
+Add the `is:inline` directive explicitly to silence this hint.
+
+[7m163[0m     <script type="application/ld+json" set:html={schemaJson} />
+[7m   [0m [93m            ~~~~[0m
+[96msrc/layouts/Layout.astro[0m:[93m158[0m:[93m11[0m - [93mwarning[0m[90m astro(4000): [0mThis script will be treated as if it has the `is:inline` directive because it contains an attribute. Therefore, features that require processing (e.g. using TypeScript or npm packages in the script) are unavailable.
+
+See docs for more details: https://docs.astro.build/en/guides/client-side-scripts/#script-processing.
+
+Add the `is:inline` directive explicitly to silence this hint.
+
+[7m158[0m   <script type="application/ld+json" set:html={websiteSchema} />
+[7m   [0m [93m          ~~~~[0m
+[96msrc/layouts/Layout.astro[0m:[93m155[0m:[93m11[0m - [93mwarning[0m[90m astro(4000): [0mThis script will be treated as if it has the `is:inline` directive because it contains an attribute. Therefore, features that require processing (e.g. using TypeScript or npm packages in the script) are unavailable.
+
+See docs for more details: https://docs.astro.build/en/guides/client-side-scripts/#script-processing.
+
+Add the `is:inline` directive explicitly to silence this hint.
+
+[7m155[0m   <script type="application/ld+json" set:html={orgSchema} />
+[7m   [0m [93m          ~~~~[0m
+
+[96msrc/lib/admin.ts[0m:[93m75[0m:[93m40[0m - [93mwarning[0m[90m ts(6133): [0m'request' is declared but its value is never read.
+
+[7m75[0m export async function validateAdminAPI(request: Request, cookies: any): Promise<{ admin: any } | Response> {
+[7m  [0m [93m                                       ~~~~~~~[0m
+
+[96msrc/lib/email/index.ts[0m:[93m474[0m:[93m9[0m - [91merror[0m[90m ts(2561): [0mObject literal may only specify known properties, but 'reply_to' does not exist in type '(Required<Pick<EmailRenderOptions$1, "text">> & Partial<Pick<EmailRenderOptions$1, "html" | "react">> & CreateEmailBaseOptions & { ...; }) | (Required<...> & ... 2 more ... & { ...; }) | (Required<...> & ... 2 more ... & { ...; })'. Did you mean to write 'replyTo'?
+
+[7m474[0m         reply_to: REPLY_TO,
+[7m   [0m [91m        ~~~~~~~~[0m
+[96msrc/lib/email/index.ts[0m:[93m408[0m:[93m9[0m - [91merror[0m[90m ts(2561): [0mObject literal may only specify known properties, but 'reply_to' does not exist in type '(Required<Pick<EmailRenderOptions$1, "text">> & Partial<Pick<EmailRenderOptions$1, "html" | "react">> & CreateEmailBaseOptions & { ...; }) | (Required<...> & ... 2 more ... & { ...; }) | (Required<...> & ... 2 more ... & { ...; })'. Did you mean to write 'replyTo'?
+
+[7m408[0m         reply_to: REPLY_TO,
+[7m   [0m [91m        ~~~~~~~~[0m
+[96msrc/lib/email/index.ts[0m:[93m348[0m:[93m9[0m - [91merror[0m[90m ts(2561): [0mObject literal may only specify known properties, but 'reply_to' does not exist in type '(Required<Pick<EmailRenderOptions$1, "text">> & Partial<Pick<EmailRenderOptions$1, "html" | "react">> & CreateEmailBaseOptions & { ...; }) | (Required<...> & ... 2 more ... & { ...; }) | (Required<...> & ... 2 more ... & { ...; })'. Did you mean to write 'replyTo'?
+
+[7m348[0m         reply_to: REPLY_TO,
+[7m   [0m [91m        ~~~~~~~~[0m
+[96msrc/lib/email/index.ts[0m:[93m252[0m:[93m9[0m - [91merror[0m[90m ts(2561): [0mObject literal may only specify known properties, but 'reply_to' does not exist in type '(Required<Pick<EmailRenderOptions$1, "text">> & Partial<Pick<EmailRenderOptions$1, "html" | "react">> & CreateEmailBaseOptions & { ...; }) | (Required<...> & ... 2 more ... & { ...; }) | (Required<...> & ... 2 more ... & { ...; })'. Did you mean to write 'replyTo'?
+
+[7m252[0m         reply_to: REPLY_TO,
+[7m   [0m [91m        ~~~~~~~~[0m
+
+[96msrc/pages/index.astro[0m:[93m85[0m:[93m7[0m - [93mwarning[0m[90m ts(6133): [0m'orderedSections' is declared but its value is never read.
+
+[7m85[0m const orderedSections = Object.values(homeSections)
+[7m  [0m [93m      ~~~~~~~~~~~~~~~[0m
+[96msrc/pages/index.astro[0m:[93m66[0m:[93m36[0m - [93mwarning[0m[90m ts(6133): [0m'recentError' is declared but its value is never read.
+
+[7m66[0m   const { data: recentData, error: recentError } = await supabase
+[7m  [0m [93m                                   ~~~~~~~~~~~[0m
+
+[96msrc/pages/register.astro[0m:[93m1367[0m:[93m18[0m - [93mwarning[0m[90m ts(6133): [0m'showFlex' is declared but its value is never read.
+
+[7m1367[0m         function showFlex(id) {
+[7m    [0m [93m                 ~~~~~~~~[0m
+[96msrc/pages/register.astro[0m:[93m1359[0m:[93m18[0m - [93mwarning[0m[90m ts(6133): [0m'show' is declared but its value is never read.
+
+[7m1359[0m         function show(id) {
+[7m    [0m [93m                 ~~~~[0m
+
+[96msrc/pages/admin/categories.astro[0m:[93m335[0m:[93m29[0m - [93mwarning[0m[90m ts(6133): [0m'name' is declared but its value is never read.
+
+[7m335[0m                         var name = this.getAttribute("data-name");
+[7m   [0m [93m                            ~~~~[0m
+
+[96msrc/pages/admin/editor.astro[0m:[93m2199[0m:[93m29[0m - [93mwarning[0m[90m ts(6133): [0m'sbPanel' is declared but its value is never read.
+
+[7m2199[0m                         var sbPanel = $("#vbSidebar");
+[7m    [0m [93m                            ~~~~~~~[0m
+
+[96msrc/pages/admin/products.astro[0m:[93m864[0m:[93m59[0m - [93mwarning[0m[90m ts(6133): [0m'e' is declared but its value is never read.
+
+[7m864[0m                 div.addEventListener("dragend", function (e) {
+[7m   [0m [93m                                                          ~[0m
+[96msrc/pages/admin/products.astro[0m:[93m837[0m:[93m61[0m - [93mwarning[0m[90m ts(6133): [0m'e' is declared but its value is never read.
+
+[7m837[0m                 div.addEventListener("dragleave", function (e) {
+[7m   [0m [93m                                                            ~[0m
+[96msrc/pages/admin/products.astro[0m:[93m85[0m:[93m9[0m - [93mwarning[0m[90m astro(4000): [0mThis script will be treated as if it has the `is:inline` directive because it contains an attribute. Therefore, features that require processing (e.g. using TypeScript or npm packages in the script) are unavailable.
+
+See docs for more details: https://docs.astro.build/en/guides/client-side-scripts/#script-processing.
+
+Add the `is:inline` directive explicitly to silence this hint.
+
+[7m85[0m         src="https://upload-widget.cloudinary.com/global/all.js"
+[7m  [0m [93m        ~~~[0m
+
+[96msrc/pages/admin/reviews.astro[0m:[93m174[0m:[93m20[0m - [93mwarning[0m[90m ts(6133): [0m'deleteReview' is declared but its value is never read.
+
+[7m174[0m     async function deleteReview(id) {
+[7m   [0m [93m                   ~~~~~~~~~~~~[0m
+[96msrc/pages/admin/reviews.astro[0m:[93m157[0m:[93m20[0m - [93mwarning[0m[90m ts(6133): [0m'rejectReview' is declared but its value is never read.
+
+[7m157[0m     async function rejectReview(id) {
+[7m   [0m [93m                   ~~~~~~~~~~~~[0m
+[96msrc/pages/admin/reviews.astro[0m:[93m142[0m:[93m20[0m - [93mwarning[0m[90m ts(6133): [0m'approveReview' is declared but its value is never read.
+
+[7m142[0m     async function approveReview(id) {
+[7m   [0m [93m                   ~~~~~~~~~~~~~[0m
+
+[96msrc/pages/api/admin/coupons.ts[0m:[93m112[0m:[93m81[0m - [91merror[0m[90m ts(2345): [0mArgument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+
+[7m112[0m         await logAdminAction(admin.id, 'delete_coupon', 'coupon', couponId, {}, request.headers.get('x-forwarded-for'));
+[7m   [0m [91m                                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/pages/api/admin/coupons.ts[0m:[93m91[0m:[93m89[0m - [91merror[0m[90m ts(2345): [0mArgument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+
+[7m91[0m         await logAdminAction(admin.id, 'update_coupon', 'coupon', couponId, updateData, request.headers.get('x-forwarded-for'));
+[7m  [0m [91m                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/pages/api/admin/coupons.ts[0m:[93m61[0m:[93m103[0m - [91merror[0m[90m ts(2345): [0mArgument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+
+[7m61[0m         await logAdminAction(admin.id, 'create_coupon', 'coupon', data.id, { code: insertData.code }, request.headers.get('x-forwarded-for'));
+[7m  [0m [91m                                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/api/admin/editor.ts[0m:[93m54[0m:[93m95[0m - [91merror[0m[90m ts(2345): [0mArgument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+
+[7m54[0m         await logAdminAction(admin.id, 'update_page', 'page_settings', pageKey, { settings }, request.headers.get('x-forwarded-for'));
+[7m  [0m [91m                                                                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/api/admin/orders.ts[0m:[93m88[0m:[93m12[0m - [91merror[0m[90m ts(2345): [0mArgument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+
+[7m88[0m         }, request.headers.get('x-forwarded-for'));
+[7m  [0m [91m           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/api/admin/returns.ts[0m:[93m60[0m:[93m114[0m - [91merror[0m[90m ts(2345): [0mArgument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+
+[7m60[0m         await logAdminAction(admin.id, 'update_return', 'return', returnId, { newStatus: status, refundAmount }, request.headers.get('x-forwarded-for'));
+[7m  [0m [91m                                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/api/admin/reviews.ts[0m:[93m74[0m:[93m77[0m - [91merror[0m[90m ts(2345): [0mArgument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+
+[7m74[0m     await logAdminAction(admin.id, 'delete_review', 'review', reviewId, {}, request.headers.get('x-forwarded-for'));
+[7m  [0m [91m                                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/pages/api/admin/reviews.ts[0m:[93m54[0m:[93m113[0m - [91merror[0m[90m ts(2345): [0mArgument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+
+[7m54[0m         await logAdminAction(admin.id, isApproved ? 'approve_review' : 'reject_review', 'review', reviewId, {}, request.headers.get('x-forwarded-for'));
+[7m  [0m [91m                                                                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/api/admin/settings.ts[0m:[93m46[0m:[93m90[0m - [91merror[0m[90m ts(2345): [0mArgument of type 'string | null' is not assignable to parameter of type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+
+[7m46[0m         await logAdminAction(admin.id, 'update_setting', 'site_setting', key, { value }, request.headers.get('x-forwarded-for'));
+[7m  [0m [91m                                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/api/auth/logout.ts[0m:[93m33[0m:[93m68[0m - [91merror[0m[90m ts(2339): [0mProperty 'invalidateUserRefreshTokens' does not exist on type 'GoTrueAdminApi'.
+
+[7m33[0m                 if (user && user.id && supabaseAdmin?.auth?.admin?.invalidateUserRefreshTokens) {
+[7m  [0m [91m                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/api/stripe/confirm-order.ts[0m:[93m17[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'Stripe' is declared but its value is never read.
+
+[7m17[0m import type Stripe from 'stripe';
+[7m  [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+Result (83 files): 
+- 14 errors
+- 0 warnings
+- 26 hints
+

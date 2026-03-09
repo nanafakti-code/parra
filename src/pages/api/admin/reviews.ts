@@ -51,7 +51,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
         if (error) return jsonResponse({ error: 'Error al actualizar reseña' }, 500);
 
-        await logAdminAction(admin.id, isApproved ? 'approve_review' : 'reject_review', 'review', reviewId, {}, request.headers.get('x-forwarded-for'));
+        await logAdminAction(admin.id, isApproved ? 'approve_review' : 'reject_review', 'review', reviewId, {}, request.headers.get('x-forwarded-for') || undefined);
         return jsonResponse({ review: data, message: isApproved ? 'Reseña aprobada' : 'Reseña rechazada' });
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);
@@ -71,6 +71,6 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     const { error } = await supabaseAdmin.from('reviews').delete().eq('id', reviewId);
     if (error) return jsonResponse({ error: 'Error al eliminar reseña' }, 500);
 
-    await logAdminAction(admin.id, 'delete_review', 'review', reviewId, {}, request.headers.get('x-forwarded-for'));
+    await logAdminAction(admin.id, 'delete_review', 'review', reviewId, {}, request.headers.get('x-forwarded-for') || undefined);
     return jsonResponse({ message: 'Reseña eliminada' });
 };

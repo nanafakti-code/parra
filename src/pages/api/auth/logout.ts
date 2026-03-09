@@ -30,7 +30,7 @@ export const POST: APIRoute = async ({ cookies, request, redirect }) => {
             try {
                 const { data: userResult } = await supabase.auth.getUser(accessToken);
                 const user = (userResult as any)?.user;
-                if (user && user.id && supabaseAdmin?.auth?.admin?.invalidateUserRefreshTokens) {
+                if (user && user.id && (supabaseAdmin?.auth?.admin as any)?.invalidateUserRefreshTokens) {
                     // Invalida los refresh tokens del usuario (si la SDK lo soporta)
                     // Esto evita reuso de refresh tokens si existieran en otros clientes
                     try {

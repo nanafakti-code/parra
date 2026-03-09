@@ -11,26 +11,26 @@ import { Resend } from 'resend';
 // ── Resend client ─────────────────────────────────────────────────────────────
 
 function getResend(): Resend {
-    const key = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
-    if (!key) console.warn('[email] RESEND_API_KEY no configurada.');
-    return new Resend(key || '');
+  const key = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
+  if (!key) console.warn('[email] RESEND_API_KEY no configurada.');
+  return new Resend(key || '');
 }
 
-const FROM     = 'Parra GK Gloves <info@parragkgloves.es>';
+const FROM = 'Parra GK Gloves <info@parragkgloves.es>';
 const REPLY_TO = 'soporte@parragkgloves.es';
 
 // ── Brand tokens ──────────────────────────────────────────────────────────────
 
 const c = {
-    bg:         '#0a0a0a',
-    card:       '#0d0d0d',
-    cardBorder: '#1a1a1a',
-    gold:       '#39FF14',   // neon green — color acento web
-    goldLight:  '#57FF2A',   // neon green claro (hover / subtexto)
-    white:      '#ffffff',
-    muted:      '#9ca3af',
-    subtle:     '#6b7280',
-    divider:    '#1a1a1a',
+  bg: '#0a0a0a',
+  card: '#0d0d0d',
+  cardBorder: '#1a1a1a',
+  gold: '#39FF14',   // neon green — color acento web
+  goldLight: '#57FF2A',   // neon green claro (hover / subtexto)
+  white: '#ffffff',
+  muted: '#9ca3af',
+  subtle: '#6b7280',
+  divider: '#1a1a1a',
 };
 
 const fontStack = "Arial, 'Helvetica Neue', Helvetica, sans-serif";
@@ -38,21 +38,21 @@ const fontStack = "Arial, 'Helvetica Neue', Helvetica, sans-serif";
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function fmt(n: number): string {
-    return n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' \u20ac';
+  return n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' \u20ac';
 }
 
 function esc(s: unknown): string {
-    return String(s ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // ── Base layout ───────────────────────────────────────────────────────────────
 
 function layout(previewText: string, body: string): string {
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="es" dir="ltr">
 <head>
   <meta charset="UTF-8" />
@@ -97,55 +97,55 @@ function layout(previewText: string, body: string): string {
 // ── 1. Order Confirmation ─────────────────────────────────────────────────────
 
 export interface OrderItem {
-    product_name: string;
-    product_image?: string;
-    size?: string;
-    quantity: number;
-    unit_price: number;
+  product_name: string;
+  product_image?: string;
+  size?: string;
+  quantity: number;
+  unit_price: number;
 }
 
 export interface SendOrderConfirmationOptions {
-    order: {
-        id: string;
-        order_number?: string;
-        email: string;
-        total?: number;
-        subtotal?: number;
-        shipping_cost?: number;
-        shipping_name?: string;
-        shipping_street?: string;
-        shipping_city?: string;
-        shipping_postal_code?: string;
-        shipping_country?: string;
-        shipping_phone?: string;
-    };
-    items: Array<OrderItem>;
-    pdfBuffer?: Buffer;
+  order: {
+    id: string;
+    order_number?: string;
+    email: string;
+    total?: number;
+    subtotal?: number;
+    shipping_cost?: number;
+    shipping_name?: string;
+    shipping_street?: string;
+    shipping_city?: string;
+    shipping_postal_code?: string;
+    shipping_country?: string;
+    shipping_phone?: string;
+  };
+  items: Array<OrderItem>;
+  pdfBuffer?: Buffer;
 }
 
 function buildOrderConfirmationHtml(
-    order: SendOrderConfirmationOptions['order'],
-    items: OrderItem[],
+  order: SendOrderConfirmationOptions['order'],
+  items: OrderItem[],
 ): string {
-    const firstName = (order.shipping_name || 'Cliente').split(' ')[0];
-    const orderNumber = order.order_number || `PG-${String(order.id).slice(-8).toUpperCase()}`;
-    const orderDate = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-    const subtotal = order.subtotal ?? order.total ?? 0;
-    const shipping = order.shipping_cost ?? 0;
-    const total = order.total ?? subtotal + shipping;
-    const address = [
-        order.shipping_street,
-        order.shipping_city,
-        order.shipping_postal_code,
-        order.shipping_country || 'Espa\u00f1a',
-    ].filter(Boolean).join(', ');
+  const firstName = (order.shipping_name || 'Cliente').split(' ')[0];
+  const orderNumber = order.order_number || `PG-${String(order.id).slice(-8).toUpperCase()}`;
+  const orderDate = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+  const subtotal = order.subtotal ?? order.total ?? 0;
+  const shipping = order.shipping_cost ?? 0;
+  const total = order.total ?? subtotal + shipping;
+  const address = [
+    order.shipping_street,
+    order.shipping_city,
+    order.shipping_postal_code,
+    order.shipping_country || 'Espa\u00f1a',
+  ].filter(Boolean).join(', ');
 
-    const itemsRows = items.map(item => `
+  const itemsRows = items.map(item => `
       <tr>
         <td style="padding:12px 0;border-bottom:1px solid ${c.divider};vertical-align:top;width:56px;">
           ${item.product_image
-            ? `<img src="${esc(item.product_image)}" width="56" height="56" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:4px;display:block;" />`
-            : `<div style="width:56px;height:56px;background-color:#1a1a1a;border-radius:4px;"></div>`}
+      ? `<img src="${esc(item.product_image)}" width="56" height="56" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:4px;display:block;" />`
+      : `<div style="width:56px;height:56px;background-color:#1a1a1a;border-radius:4px;"></div>`}
         </td>
         <td style="padding:12px 16px;border-bottom:1px solid ${c.divider};vertical-align:top;">
           <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:${c.white};font-family:${fontStack};">${esc(item.product_name)}</p>
@@ -158,7 +158,7 @@ function buildOrderConfirmationHtml(
         </td>
       </tr>`).join('');
 
-    const body = `
+  const body = `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${c.card};">
       <tr>
         <td style="padding:40px 40px 0;text-align:center;">
@@ -233,54 +233,54 @@ function buildOrderConfirmationHtml(
       </tr>
     </table>`;
 
-    return layout(`Pedido ${orderNumber} confirmado \u00b7 Gracias por confiar en Parra GK Gloves.`, body);
+  return layout(`Pedido ${orderNumber} confirmado \u00b7 Gracias por confiar en Parra GK Gloves.`, body);
 }
 
 export async function sendOrderConfirmation({ order, items, pdfBuffer }: SendOrderConfirmationOptions) {
-    const resend = getResend();
-    const orderNumber = order.order_number || `PG-${String(order.id).slice(-8).toUpperCase()}`;
-    const html = buildOrderConfirmationHtml(order, items);
+  const resend = getResend();
+  const orderNumber = order.order_number || `PG-${String(order.id).slice(-8).toUpperCase()}`;
+  const html = buildOrderConfirmationHtml(order, items);
 
-    const attachments: { filename: string; content: Buffer }[] = [];
-    if (pdfBuffer) {
-        attachments.push({ filename: `factura-${orderNumber}.pdf`, content: pdfBuffer });
-    }
+  const attachments: { filename: string; content: Buffer }[] = [];
+  if (pdfBuffer) {
+    attachments.push({ filename: `factura-${orderNumber}.pdf`, content: pdfBuffer });
+  }
 
-    const { data, error } = await resend.emails.send({
-        from: FROM,
-        to: [order.email],
-        reply_to: REPLY_TO,
-        subject: `Pedido ${orderNumber} confirmado \u2713 \u2014 Parra GK Gloves`,
-        html,
-        ...(attachments.length > 0 ? { attachments } : {}),
-    });
+  const { data, error } = await resend.emails.send({
+    from: FROM,
+    to: [order.email],
+    replyTo: REPLY_TO,
+    subject: `Pedido ${orderNumber} confirmado \u2713 \u2014 Parra GK Gloves`,
+    html,
+    ...(attachments.length > 0 ? { attachments } : {}),
+  });
 
-    if (error) throw new Error(`[email] Resend error: ${(error as any).message}`);
-    console.log(`[email] Confirmaci\u00f3n enviada a ${order.email} (id: ${(data as any)?.id})`);
-    return data;
+  if (error) throw new Error(`[email] Resend error: ${(error as any).message}`);
+  console.log(`[email] Confirmaci\u00f3n enviada a ${order.email} (id: ${(data as any)?.id})`);
+  return data;
 }
 
 // ── 2. Shipping Update ────────────────────────────────────────────────────────
 
 export interface SendShippingUpdateOptions {
-    customerEmail: string;
-    customerName: string;
-    orderNumber: string;
-    trackingNumber?: string;
-    shippingCompany?: string;
-    trackingUrl?: string;
+  customerEmail: string;
+  customerName: string;
+  orderNumber: string;
+  trackingNumber?: string;
+  shippingCompany?: string;
+  trackingUrl?: string;
 }
 
 function buildShippingHtml(opts: SendShippingUpdateOptions): string {
-    const firstName = opts.customerName.split(' ')[0];
-    const steps = [
-        { label: 'Recibido',   done: true,  active: false },
-        { label: 'Procesando', done: true,  active: false },
-        { label: 'Enviado',    done: false, active: true  },
-        { label: 'Entregado',  done: false, active: false },
-    ];
+  const firstName = opts.customerName.split(' ')[0];
+  const steps = [
+    { label: 'Recibido', done: true, active: false },
+    { label: 'Procesando', done: true, active: false },
+    { label: 'Enviado', done: false, active: true },
+    { label: 'Entregado', done: false, active: false },
+  ];
 
-    const stepsHtml = steps.map(s => `
+  const stepsHtml = steps.map(s => `
       <td style="text-align:center;width:25%;padding:0 4px;">
         <div style="width:32px;height:32px;border-radius:50%;background-color:${s.done || s.active ? c.gold : '#1a1a1a'};display:inline-block;line-height:32px;text-align:center;margin-bottom:6px;">
           <span style="font-size:14px;color:#000;font-weight:900;">${s.done || s.active ? '&#10003;' : ''}</span>
@@ -288,7 +288,7 @@ function buildShippingHtml(opts: SendShippingUpdateOptions): string {
         <p style="margin:0;font-size:11px;color:${s.active ? c.gold : (s.done ? c.muted : c.subtle)};font-weight:${s.active ? '700' : '400'};font-family:${fontStack};">${s.label}</p>
       </td>`).join('');
 
-    const body = `
+  const body = `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${c.card};">
       <tr>
         <td style="padding:40px 40px 0;text-align:center;">
@@ -337,36 +337,36 @@ function buildShippingHtml(opts: SendShippingUpdateOptions): string {
       </tr>
     </table>`;
 
-    return layout(`Tu pedido ${opts.orderNumber} est\u00e1 en camino \u2014 Parra GK Gloves`, body);
+  return layout(`Tu pedido ${opts.orderNumber} est\u00e1 en camino \u2014 Parra GK Gloves`, body);
 }
 
 export async function sendShippingUpdate(opts: SendShippingUpdateOptions) {
-    const resend = getResend();
-    const { data, error } = await resend.emails.send({
-        from: FROM,
-        to: [opts.customerEmail],
-        reply_to: REPLY_TO,
-        subject: `\u00a1Tu pedido ${opts.orderNumber} est\u00e1 en camino! \u2014 Parra GK Gloves`,
-        html: buildShippingHtml(opts),
-    });
-    if (error) throw new Error(`[email] Resend error: ${(error as any).message}`);
-    console.log(`[email] Env\u00edo notificado a ${opts.customerEmail}`);
-    return data;
+  const resend = getResend();
+  const { data, error } = await resend.emails.send({
+    from: FROM,
+    to: [opts.customerEmail],
+    replyTo: REPLY_TO,
+    subject: `\u00a1Tu pedido ${opts.orderNumber} est\u00e1 en camino! \u2014 Parra GK Gloves`,
+    html: buildShippingHtml(opts),
+  });
+  if (error) throw new Error(`[email] Resend error: ${(error as any).message}`);
+  console.log(`[email] Env\u00edo notificado a ${opts.customerEmail}`);
+  return data;
 }
 
 // ── 3. Order Delivered ────────────────────────────────────────────────────────
 
 export interface SendOrderDeliveredOptions {
-    customerEmail: string;
-    customerName: string;
-    orderNumber: string;
-    reviewUrl?: string;
+  customerEmail: string;
+  customerName: string;
+  orderNumber: string;
+  reviewUrl?: string;
 }
 
 function buildDeliveredHtml(opts: SendOrderDeliveredOptions): string {
-    const firstName = opts.customerName.split(' ')[0];
+  const firstName = opts.customerName.split(' ')[0];
 
-    const body = `
+  const body = `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${c.card};">
       <tr>
         <td style="padding:40px 40px 0;text-align:center;">
@@ -397,37 +397,37 @@ function buildDeliveredHtml(opts: SendOrderDeliveredOptions): string {
       </tr>
     </table>`;
 
-    return layout(`\u00a1Tu pedido ${opts.orderNumber} ha llegado! \u2014 Parra GK Gloves`, body);
+  return layout(`\u00a1Tu pedido ${opts.orderNumber} ha llegado! \u2014 Parra GK Gloves`, body);
 }
 
 export async function sendOrderDelivered(opts: SendOrderDeliveredOptions) {
-    const resend = getResend();
-    const { data, error } = await resend.emails.send({
-        from: FROM,
-        to: [opts.customerEmail],
-        reply_to: REPLY_TO,
-        subject: `\u00a1Tu pedido ${opts.orderNumber} ha llegado! \u2014 Parra GK Gloves`,
-        html: buildDeliveredHtml(opts),
-    });
-    if (error) throw new Error(`[email] Resend error: ${(error as any).message}`);
-    console.log(`[email] Entrega notificada a ${opts.customerEmail}`);
-    return data;
+  const resend = getResend();
+  const { data, error } = await resend.emails.send({
+    from: FROM,
+    to: [opts.customerEmail],
+    replyTo: REPLY_TO,
+    subject: `\u00a1Tu pedido ${opts.orderNumber} ha llegado! \u2014 Parra GK Gloves`,
+    html: buildDeliveredHtml(opts),
+  });
+  if (error) throw new Error(`[email] Resend error: ${(error as any).message}`);
+  console.log(`[email] Entrega notificada a ${opts.customerEmail}`);
+  return data;
 }
 
 // ── 4. Password Reset ─────────────────────────────────────────────────────────
 
 export interface SendPasswordResetOptions {
-    customerEmail: string;
-    customerName: string;
-    resetUrl: string;
-    expiresInMinutes?: number;
+  customerEmail: string;
+  customerName: string;
+  resetUrl: string;
+  expiresInMinutes?: number;
 }
 
 function buildPasswordResetHtml(opts: SendPasswordResetOptions): string {
-    const firstName = opts.customerName.split(' ')[0];
-    const expires = opts.expiresInMinutes ?? 60;
+  const firstName = opts.customerName.split(' ')[0];
+  const expires = opts.expiresInMinutes ?? 60;
 
-    const body = `
+  const body = `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${c.card};">
       <tr>
         <td style="padding:40px 40px 0;text-align:center;">
@@ -463,29 +463,29 @@ function buildPasswordResetHtml(opts: SendPasswordResetOptions): string {
       </tr>
     </table>`;
 
-    return layout('Restablece tu contrase\u00f1a en Parra GK Gloves', body);
+  return layout('Restablece tu contrase\u00f1a en Parra GK Gloves', body);
 }
 
 export async function sendPasswordReset(opts: SendPasswordResetOptions) {
-    const resend = getResend();
-    const { data, error } = await resend.emails.send({
-        from: FROM,
-        to: [opts.customerEmail],
-        reply_to: REPLY_TO,
-        subject: 'Restablecer contrase\u00f1a \u2014 Parra GK Gloves',
-        html: buildPasswordResetHtml(opts),
-    });
-    if (error) throw new Error(`[email] Resend error: ${(error as any).message}`);
-    console.log(`[email] Password reset enviado a ${opts.customerEmail}`);
-    return data;
+  const resend = getResend();
+  const { data, error } = await resend.emails.send({
+    from: FROM,
+    to: [opts.customerEmail],
+    replyTo: REPLY_TO,
+    subject: 'Restablecer contrase\u00f1a \u2014 Parra GK Gloves',
+    html: buildPasswordResetHtml(opts),
+  });
+  if (error) throw new Error(`[email] Resend error: ${(error as any).message}`);
+  console.log(`[email] Password reset enviado a ${opts.customerEmail}`);
+  return data;
 }
 
 // ── Legacy shim ───────────────────────────────────────────────────────────────
 
 export async function sendOrderConfirmationEmail(
-    order: SendOrderConfirmationOptions['order'],
-    items: SendOrderConfirmationOptions['items'],
-    pdfBuffer?: Buffer,
+  order: SendOrderConfirmationOptions['order'],
+  items: SendOrderConfirmationOptions['items'],
+  pdfBuffer?: Buffer,
 ) {
-    return sendOrderConfirmation({ order, items, pdfBuffer });
+  return sendOrderConfirmation({ order, items, pdfBuffer });
 }
