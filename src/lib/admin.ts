@@ -80,11 +80,22 @@ export async function validateAdminAPI(request: Request, cookies: any): Promise<
         return jsonResponse({ error: 'No autorizado' }, 401);
     }
 
-    const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabaseUrl = import.meta.env.SUPABASE_URL || '';
+    const supabaseKey = import.meta.env.SUPABASE_ANON_KEY || '';
+    const authClient = createClient(supabaseUrl, supabaseKey, {
+        auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+        }
+    });
+
+    const { data: { user }, error } = await authClient.auth.getUser(accessToken);
 
     if (!user || error) {
         console.error('[validateAdminAPI] error: Token inválido.', error);
-        return jsonResponse({ error: 'Token inválido' }, 401);
+        return jsonResponse({ error: `Token inválido: ${error?.message || 'Desconocido'}` }, 401);
     }
 
     let dbUser: any = null;
