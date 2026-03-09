@@ -240,68 +240,6 @@
         display: inline-block;
     }
 
-    /* Glitch effect on hover for title */
-    .title::before,
-    .title::after {
-        content: attr(data-text);
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0.8;
-    }
-
-    .title::before {
-        left: 2px;
-        text-shadow: -2px 0 var(--color-green);
-        clip: rect(24px, 550px, 90px, 0);
-        animation: glitch-anim 3s infinite linear alternate-reverse;
-    }
-
-    .title::after {
-        left: -2px;
-        text-shadow: -2px 0 rgba(255, 255, 255, 0.5);
-        clip: rect(85px, 550px, 140px, 0);
-        animation: glitch-anim 2.5s infinite linear alternate-reverse;
-    }
-
-    @keyframes glitch-anim {
-        0% {
-            clip: rect(31px, 9999px, 94px, 0);
-        }
-        10% {
-            clip: rect(112px, 9999px, 76px, 0);
-        }
-        20% {
-            clip: rect(85px, 9999px, 77px, 0);
-        }
-        30% {
-            clip: rect(27px, 9999px, 97px, 0);
-        }
-        40% {
-            clip: rect(64px, 9999px, 98px, 0);
-        }
-        50% {
-            clip: rect(61px, 9999px, 85px, 0);
-        }
-        60% {
-            clip: rect(99px, 9999px, 114px, 0);
-        }
-        70% {
-            clip: rect(34px, 9999px, 115px, 0);
-        }
-        80% {
-            clip: rect(98px, 9999px, 104px, 0);
-        }
-        90% {
-            clip: rect(43px, 9999px, 96px, 0);
-        }
-        100% {
-            clip: rect(82px, 9999px, 64px, 0);
-        }
-    }
-
     .message {
         font-size: clamp(1rem, 2.5vw, 1.15rem);
         line-height: 1.6;

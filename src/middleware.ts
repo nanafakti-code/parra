@@ -53,29 +53,23 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
         }
     }
 
-    // 2. Comprobar modo mantenimiento: primero revisar variable de entorno, si no está, consultar site_settings
+    // 2. Comprobar modo mantenimiento: consultar site_settings en la DB
     let isMaintenanceMode = false;
-    // Env override (fast)
-    const rawEnv = import.meta.env.MAINTENANCE_MODE || (typeof process !== 'undefined' ? process.env.MAINTENANCE_MODE : false);
-    if (rawEnv && String(rawEnv).trim().length > 0) {
-        isMaintenanceMode = String(rawEnv).trim().toLowerCase() === 'true';
-    } else {
-        // Fallback: read from DB (site_settings key: 'maintenance')
-        try {
-            const { data } = await supabaseAdmin.from('site_settings').select('value').eq('key', 'maintenance').maybeSingle();
-            if (data && data.value) {
-                const v = typeof data.value === 'string' ? data.value : JSON.stringify(data.value);
-                try {
-                    const parsed = JSON.parse(v);
-                    isMaintenanceMode = !!parsed.enabled;
-                } catch {
-                    isMaintenanceMode = String(v).trim().toLowerCase() === 'true';
-                }
+
+    try {
+        const { data } = await supabaseAdmin.from('site_settings').select('value').eq('key', 'maintenance').maybeSingle();
+        if (data && data.value) {
+            const v = typeof data.value === 'string' ? data.value : JSON.stringify(data.value);
+            try {
+                const parsed = JSON.parse(v);
+                isMaintenanceMode = !!parsed.enabled;
+            } catch {
+                isMaintenanceMode = String(v).trim().toLowerCase() === 'true';
             }
-        } catch (e) {
-            console.error('[middleware] error reading maintenance setting', e);
-            isMaintenanceMode = false;
         }
+    } catch (e) {
+        console.error('[middleware] error reading maintenance setting', e);
+        isMaintenanceMode = false;
     }
 
     // Solo redirigir si está en mantenimiento y el visitante NO es admin
