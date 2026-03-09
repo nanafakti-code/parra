@@ -103,8 +103,14 @@ export const POST: APIRoute = async ({ request }) => {
                 console.error('[confirm-payment-intent] Stripe Cancel failed:', stripeErr);
             }
 
+            let errorMessage = rpcResult?.error || 'Lo sentimos, este producto acaba de agotarse y ya no está disponible.';
+            if (errorMessage === 'Sorry, this product just went out of stock.') {
+                errorMessage = 'Lo sentimos, este producto acaba de agotarse y ya no está disponible.';
+            }
+
             return jsonResponse({
-                error: rpcResult?.error || 'Lo sentimos, este producto acaba de agotarse y ya no está disponible.'
+                error: errorMessage,
+                failed_product_id: rpcResult?.failed_product_id
             }, 400);
         }
 

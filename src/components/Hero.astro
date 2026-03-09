@@ -97,17 +97,17 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
 
         <!-- Content -->
         <div class="hero-content-wrapper relative z-10 w-full mb-12 sm:mb-0">
-            <div class="max-w-3xl text-center md:text-left">
+            <div class="max-w-3xl hero-text-container">
                 <span
-                    class="inline-block px-3 py-1 md:px-3 md:py-1 rounded-sm text-[9px] md:text-[10px] font-bold uppercase tracking-[0.4em] mb-4 md:mb-6 opacity-0 animate-fade-up"
-                    style={`background: rgba(13, 31, 13, 0.8); color: ${styleBadgeText}; border: none;`}
+                    class="inline-block px-5 py-2 hero-badge rounded-sm text-[11px] sm:text-[13px] font-bold uppercase tracking-[0.4em] mb-6 opacity-0 animate-fade-up"
+                    style={`background: rgba(13, 31, 13, 0.8); color: ${styleBadgeText}; border: none; font-size: clamp(10px, 1.2vw, 14px);`}
                 >
                     {badge}
                 </span>
 
                 <h1
-                    class="hero-title text-[3rem] sm:text-5xl md:text-6xl lg:text-[5.5rem] xl:text-[6rem] font-display font-bold uppercase leading-[0.85] tracking-tighter mb-4 md:mb-5 opacity-0 animate-fade-up anim-delay-100"
-                    style={`color: ${styleTitleLine1Color};`}
+                    class="hero-title font-display font-bold uppercase leading-[0.82] tracking-tighter mb-8 opacity-0 animate-fade-up anim-delay-100"
+                    style={`color: ${styleTitleLine1Color}; font-size: clamp(4.5rem, 16vw, 11rem);`}
                 >
                     {titleLine1}
                     <br />
@@ -117,30 +117,30 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
                 </h1>
 
                 <p
-                    class="hero-subtitle hidden md:block text-xs sm:text-sm md:text-base lg:text-lg max-w-[260px] sm:max-w-[340px] md:max-w-[480px] lg:max-w-[560px] mb-6 md:mb-8 opacity-0 animate-fade-up anim-delay-200"
+                    class="hero-subtitle-desktop hidden text-xs sm:text-sm max-w-[260px] sm:max-w-[340px] mb-6 opacity-0 animate-fade-up anim-delay-200"
                     style={`color: ${styleSubtitleColor}; text-shadow: 0 1px 12px rgba(0,0,0,0.4);`}
                 >
                     {subtitle}
                 </p>
 
                 <p
-                    class="hero-sub-mobile md:hidden text-xs sm:text-sm max-w-[320px] mb-6 opacity-0 animate-fade-up anim-delay-200"
-                    style={`color: ${styleSubtitleColor}; text-shadow: 0 1px 12px rgba(0,0,0,0.4);`}
+                    class="hero-subtitle-mobile opacity-0 animate-fade-up anim-delay-200 mx-auto"
+                    style={`color: ${styleSubtitleColor}; text-shadow: 0 1px 12px rgba(0,0,0,0.4); font-size: clamp(1rem, 2.2vw, 1.6rem); max-width: clamp(320px, 65vw, 900px); margin-bottom: 3.5rem; line-height: 1.4;`}
                 >
                     {subtitleMobile}
                 </p>
 
                 <div
-                    class="flex flex-wrap items-center gap-3 opacity-0 animate-fade-up anim-delay-300 justify-center md:justify-start"
+                    class="flex flex-wrap items-center gap-3 opacity-0 animate-fade-up anim-delay-300 hero-btns-container"
                 >
                     <a
                         href={ctaLink}
-                        class="btn-primary !px-4 !py-2 sm:!px-5 sm:!py-2 !text-[9px] sm:!text-[11px]"
-                        style={`background: linear-gradient(135deg, ${styleCtaBg} 0%, ${styleCtaHoverBg} 100%); color: ${styleCtaText}; box-shadow: 0 0 20px rgba(57, 255, 20, 0.2); border-radius: 4px;`}
+                        class="btn-primary !border-none opacity-0 animate-fade-up anim-delay-300"
+                        style={`background: linear-gradient(135deg, ${styleCtaBg} 0%, ${styleCtaHoverBg} 100%); color: ${styleCtaText}; box-shadow: 0 0 25px rgba(57, 255, 20, 0.25); border-radius: 4px; padding: clamp(12px, 1.5vw, 18px) clamp(24px, 3vw, 42px) !important; font-size: clamp(12px, 1.5vw, 18px) !important;`}
                     >
                         <span>{ctaText}</span>
                         <svg
-                            class="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1.5"
+                            class="w-5 h-5 ml-2"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -154,8 +154,8 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
                     </a>
                     <a
                         href={secondaryLink}
-                        class="btn-outline border-none !px-4 !py-2 sm:!px-5 sm:!py-2 !text-[9px] sm:!text-[11px]"
-                        style={`background: ${styleSecondaryBg}; color: ${styleSecondaryText}; border: none; border-radius: 4px;`}
+                        class="btn-outline !border-none opacity-0 animate-fade-up anim-delay-300"
+                        style={`background: ${styleSecondaryBg}; color: ${styleSecondaryText}; border: none; border-radius: 4px; padding: clamp(12px, 1.5vw, 18px) clamp(24px, 3vw, 42px) !important; font-size: clamp(12px, 1.5vw, 18px) !important;`}
                     >
                         {secondaryText}
                     </a>
@@ -169,32 +169,64 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
            True-centered editorial. Nike/Off-White.
         ═══════════════════════════════════════════ */
 
-            /* ── Section: Unified Left-aligned ── */
+            /* ── Section: Unified Centered (Mobile default) ── */
             .hero-section {
                 display: flex;
-                align-items: flex-end;
-                justify-content: flex-start;
-                padding-bottom: 7rem;
+                align-items: center;
+                justify-content: center;
+                padding-bottom: 2.5rem;
+                min-height: 85vh;
             }
 
-            @media (min-width: 768px) {
+            .hero-text-container {
+                text-align: center;
+                width: 100%;
+                padding: 0 1.5rem;
+            }
+
+            .hero-btns-container {
+                justify-content: center;
+                margin-top: 2rem;
+            }
+
+            @media (min-width: 1910px) {
                 .hero-section {
-                    align-items: flex-start;
-                    justify-content: flex-start;
-                    padding-top: 6rem;
-                    padding-bottom: 0;
+                    align-items: flex-start !important;
+                    justify-content: flex-start !important;
+                    padding-top: 6rem !important;
+                    padding-bottom: 0 !important;
+                }
+                .hero-text-container {
+                    text-align: left !important;
+                }
+                .hero-title {
+                    font-size: 6.5rem !important;
+                }
+                .hero-subtitle-desktop {
+                    display: block !important;
+                    font-size: 1.15rem !important;
+                    max-width: 560px !important;
+                }
+                .hero-subtitle-mobile {
+                    display: none !important;
+                }
+                .hero-btns-container {
+                    justify-content: flex-start !important;
+                    margin-top: 1.5rem !important;
                 }
             }
 
-            @media (max-width: 767px) {
-                .hero-section {
-                    align-items: center;
-                    justify-content: center;
-                    padding-bottom: 2.5rem;
-                }
+            .hero-content-wrapper {
+                padding: 0 16px;
+                display: flex;
+                justify-content: center;
+                width: 100%;
+            }
 
+            @media (min-width: 1910px) {
                 .hero-content-wrapper {
-                    padding: 0 16px;
+                    justify-content: flex-start;
+                    padding-left: 10%;
                 }
             }
 
@@ -205,9 +237,10 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
                 }
 
                 .hero-title {
-                    font-size: clamp(3.5rem, 18vw, 6rem);
-                    line-height: 0.92;
+                    font-size: clamp(4.5rem, 20vw, 8rem) !important;
+                    line-height: 0.8 !important;
                     text-wrap: balance;
+                    margin-bottom: 2rem !important;
                 }
 
                 .hero-sub-mobile {
@@ -233,8 +266,14 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
                     letter-spacing: 0.12em !important;
                     border-radius: 10px !important;
                     text-align: center;
-                    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), 0 0 18px rgba(57, 255, 20, 0.12);
-                    background: linear-gradient(180deg, #39ff14 0%, #28c90d 100%) !important;
+                    box-shadow:
+                        0 6px 18px rgba(0, 0, 0, 0.45),
+                        0 0 18px rgba(57, 255, 20, 0.12);
+                    background: linear-gradient(
+                        180deg,
+                        #39ff14 0%,
+                        #28c90d 100%
+                    ) !important;
                     color: #07110a !important;
                     text-transform: uppercase;
                 }
@@ -245,7 +284,9 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
                         min-width: 140px;
                         padding: 9px 14px !important;
                         font-size: 12px !important;
-                        box-shadow: 0 5px 14px rgba(0, 0, 0, 0.5), 0 0 12px rgba(57, 255, 20, 0.08);
+                        box-shadow:
+                            0 5px 14px rgba(0, 0, 0, 0.5),
+                            0 0 12px rgba(57, 255, 20, 0.08);
                     }
                 }
 
@@ -257,8 +298,8 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
                     padding: 6px 10px !important;
                     font-size: 11px !important;
                     color: #ffffff !important;
-                    background: rgba(0,0,0,0.6) !important;
-                    border: 1px solid rgba(255,255,255,0.06) !important;
+                    background: rgba(0, 0, 0, 0.6) !important;
+                    border: 1px solid rgba(255, 255, 255, 0.06) !important;
                     border-radius: 999px !important;
                     margin-top: 8px;
                     box-shadow: none !important;

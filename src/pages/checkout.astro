@@ -332,7 +332,7 @@ const stripePubKey = import.meta.env.STRIPE_PUBLIC_KEY || "pk_test_"; // Se espe
 </script>
 
 <script>
-    import { getCart, getSessionId, clearCart } from "../lib/cart";
+    import { getCart, getSessionId, clearCart, removeItem } from "../lib/cart";
 
     let stripe: any = null;
     let elements: any = null;
@@ -642,6 +642,17 @@ const stripePubKey = import.meta.env.STRIPE_PUBLIC_KEY || "pk_test_"; // Se espe
                             window.location.href = `/success`;
                         } else {
                             // Transaction rolled back due to stock issue, PaymentIntent Cancelled!
+                            if (data.failed_product_id) {
+                                const failedItem = items.find(
+                                    (i: any) => i.id === data.failed_product_id,
+                                );
+                                if (failedItem) {
+                                    removeItem(
+                                        failedItem.id,
+                                        failedItem.variantId,
+                                    );
+                                }
+                            }
                             throw new Error(
                                 data.error ||
                                     "El producto acaba de agotarse y el pago ha sido cancelado automáticamente.",

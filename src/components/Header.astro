@@ -26,7 +26,7 @@ const { user, role } = Astro.locals;
 
         <!-- Center Nav -->
         <nav
-            class="hidden lg:flex items-center gap-8 text-xs font-semibold uppercase tracking-[0.2em]"
+            class="hidden desktop-nav items-center gap-8 text-xs font-semibold uppercase tracking-[0.2em]"
         >
             <a href="/" data-astro-prefetch="hover" class="nav-link">Inicio</a>
             <a href="/shop" data-astro-prefetch="hover" class="nav-link"
@@ -180,7 +180,7 @@ const { user, role } = Astro.locals;
             <!-- Mobile Menu Button -->
             <button
                 id="mobile-menu-btn"
-                class="lg:hidden icon-btn p-2.5 rounded-full transition-colors duration-200 group"
+                class="mobile-menu-trigger icon-btn p-2.5 rounded-full transition-colors duration-200 group"
                 aria-label="Menú"
             >
                 <svg
@@ -203,7 +203,7 @@ const { user, role } = Astro.locals;
 <!-- Mobile Menu Overlay -->
 <div
     id="mobile-menu"
-    class="fixed inset-0 z-[60] backdrop-blur-xl transform translate-x-full transition-transform duration-300 lg:hidden"
+    class="fixed inset-0 z-[60] backdrop-blur-xl transform translate-x-full transition-transform duration-300 mobile-menu-overlay"
     style="background-color: var(--bg-mobile-menu);"
 >
     <div class="flex flex-col h-full p-8">
@@ -313,6 +313,18 @@ const { user, role } = Astro.locals;
         @apply w-full;
     }
 
+    @media (min-width: 1910px) {
+        .desktop-nav {
+            display: flex !important;
+        }
+        .mobile-menu-trigger {
+            display: none !important;
+        }
+        .mobile-menu-overlay {
+            display: none !important;
+        }
+    }
+
     .icon-btn {
         @apply hover:bg-black/5;
     }
@@ -343,7 +355,7 @@ const { user, role } = Astro.locals;
             font-size: 1.85rem;
         }
     }
-    
+
     /* Mobile tweaks: reduce header height, logo glow and paddings */
     @media (max-width: 767px) {
         header#main-header .container {
@@ -358,8 +370,14 @@ const { user, role } = Astro.locals;
             text-shadow: none;
             font-size: 1.05rem;
         }
-        .icon-btn { padding: 6px; }
-        #cart-count { min-width: 18px; height: 18px; font-size: 9px; }
+        .icon-btn {
+            padding: 6px;
+        }
+        #cart-count {
+            min-width: 18px;
+            height: 18px;
+            font-size: 9px;
+        }
     }
 </style>
 
