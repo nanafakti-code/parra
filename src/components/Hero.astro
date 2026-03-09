@@ -399,6 +399,38 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
                     forwards;
             }
 
+            /* ── Desktop scaling: make hero headline much larger on wide screens ── */
+            @media (min-width: 1280px) {
+                .hero-title {
+                    /* Use clamp to scale smoothly with viewport, but cap at a large size */
+                    font-size: clamp(4.5rem, 6.8vw, 9rem) !important;
+                    line-height: 0.82;
+                }
+
+                .hero-subtitle {
+                    font-size: 1.125rem; /* slightly larger subtitle */
+                    max-width: 720px; /* allow subtitle to occupy more horizontal space */
+                }
+
+                .hero-wrapper {
+                    /* give a little more vertical space on very wide screens */
+                    height: calc(100svh - 92px);
+                }
+            }
+
+            /* Extra-large / ultra-wide screens: emphasize title more */
+            @media (min-width: 1600px) {
+                .hero-title {
+                    font-size: clamp(5rem, 6.5vw, 10rem) !important;
+                    line-height: 0.8;
+                }
+
+                .hero-subtitle {
+                    font-size: 1.25rem;
+                    max-width: 880px;
+                }
+            }
+
             /* ── Subtitle ── */
             .hero-sub-mobile {
                 color: rgba(255, 255, 255, 0.8);

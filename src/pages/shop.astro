@@ -98,7 +98,7 @@ const shopSchemaJson = JSON.stringify({
     <Header />
     <main class="min-h-screen" style="background-color: var(--bg-primary);">
         <!-- Page Header -->
-        <section class="pt-24 pb-8">
+        <section class="page-header pt-24 pb-8">
             <div class="container">
                 <div
                     class="flex items-center gap-2 text-xs uppercase tracking-[0.2em] mb-6"
@@ -269,5 +269,12 @@ const shopSchemaJson = JSON.stringify({
         .flex.flex-col.sm\:flex-row { gap: 8px; }
         .card-product { margin-bottom: 6px; }
         .btn-outline { padding: 8px 12px; }
+        /* Reduce top spacing for mobile so breadcrumb/title sit closer under header */
+        .page-header {
+            padding-top: 0.6rem; /* ~9.6px */
+            padding-bottom: 0.8rem; /* slightly smaller bottom gap */
+        }
+        /* Slightly tighten title spacing on very small screens */
+        .section-title { margin-top: 0.15rem; margin-bottom: 0.3rem; }
     }
 </style>

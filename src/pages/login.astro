@@ -115,7 +115,7 @@ if (user) return Astro.redirect("/");
                                 type="button"
                                 id="toggle-pw"
                                 class="lpw-toggle"
-                                tabindex="-1"
+                                tabindex="0"
                                 aria-label="Ver contraseña"
                             >
                                 <svg
@@ -478,6 +478,22 @@ if (user) return Astro.redirect("/");
         padding: 0;
         display: flex;
         transition: color 0.2s;
+    }
+    /* Ensure the toggle is above the input and has a comfortable touch target on mobile */
+    .lpw-toggle { z-index: 5; }
+    @media (max-width: 768px) {
+        .lpw-toggle {
+            width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px; /* small padding so svg keeps proportions */
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .lpw-toggle svg { width: 20px; height: 20px; }
     }
     .lpw-toggle:hover {
         color: var(--brand);
