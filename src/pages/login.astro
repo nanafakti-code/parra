@@ -132,6 +132,18 @@ if (user) return Astro.redirect("/profile");
         min-height: calc(100vh - 140px);
         display: grid;
         grid-template-columns: 1fr 1fr;
+        background-color: #0a0a0a;
+        position: relative;
+    }
+    .login-main::before {
+        content: "";
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 600px; height: 600px;
+        background: radial-gradient(circle, rgba(57,255,20,0.05) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
     }
     @media (max-width: 768px) {
         .login-main { grid-template-columns: 1fr; }
@@ -140,12 +152,13 @@ if (user) return Astro.redirect("/profile");
 
     /* ── Columna branding ─────────────────────────────────────── */
     .brand-col {
-        background-color: var(--bg-secondary);
+        background-color: #0a0a0a;
         border-right: 1px solid var(--border-color);
         display: flex; align-items: center; justify-content: center;
         padding: 60px 48px;
         position: relative;
         overflow: hidden;
+        z-index: 1;
     }
     /* Acento verde vertical izquierdo */
     .brand-col::before {
@@ -224,7 +237,8 @@ if (user) return Astro.redirect("/profile");
     .form-col {
         display: flex; align-items: center; justify-content: center;
         padding: 60px 48px;
-        background-color: var(--bg-secondary);
+        background-color: #0a0a0a;
+        z-index: 1;
     }
 
     .form-inner {

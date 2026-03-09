@@ -159,6 +159,24 @@
     box-shadow: 0 0 50px rgba(57, 255, 20, 0.5);
   }
 
+  /* Glow pulse animation used by .btn-glow and other accents */
+  @keyframes glow-pulse {
+    0% {
+      box-shadow: 0 0 8px rgba(57, 255, 20, 0.08);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(57, 255, 20, 0.28);
+      transform: translateY(-1px);
+    }
+    100% {
+      box-shadow: 0 0 8px rgba(57, 255, 20, 0.08);
+    }
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 2.6s ease-in-out infinite;
+  }
+
   /* ── Cards ── */
   .card {
     background-color: var(--bg-card);
