@@ -97,7 +97,7 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
 
         <!-- Content -->
         <div class="hero-content-wrapper relative z-10 w-full mb-12 sm:mb-0">
-            <div class="max-w-3xl text-left">
+            <div class="max-w-3xl text-center md:text-left">
                 <span
                     class="inline-block px-3 py-1 md:px-3 md:py-1 rounded-sm text-[9px] md:text-[10px] font-bold uppercase tracking-[0.4em] mb-4 md:mb-6 opacity-0 animate-fade-up"
                     style={`background: rgba(13, 31, 13, 0.8); color: ${styleBadgeText}; border: none;`}
@@ -117,14 +117,21 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
                 </h1>
 
                 <p
-                    class="hero-subtitle text-xs sm:text-sm md:text-base lg:text-lg max-w-[260px] sm:max-w-[340px] md:max-w-[480px] lg:max-w-[560px] mb-6 md:mb-8 opacity-0 animate-fade-up anim-delay-200"
+                    class="hero-subtitle hidden md:block text-xs sm:text-sm md:text-base lg:text-lg max-w-[260px] sm:max-w-[340px] md:max-w-[480px] lg:max-w-[560px] mb-6 md:mb-8 opacity-0 animate-fade-up anim-delay-200"
                     style={`color: ${styleSubtitleColor}; text-shadow: 0 1px 12px rgba(0,0,0,0.4);`}
                 >
                     {subtitle}
                 </p>
 
+                <p
+                    class="hero-sub-mobile md:hidden text-xs sm:text-sm max-w-[320px] mb-6 opacity-0 animate-fade-up anim-delay-200"
+                    style={`color: ${styleSubtitleColor}; text-shadow: 0 1px 12px rgba(0,0,0,0.4);`}
+                >
+                    {subtitleMobile}
+                </p>
+
                 <div
-                    class="flex flex-wrap items-center gap-3 opacity-0 animate-fade-up anim-delay-300"
+                    class="flex flex-wrap items-center gap-3 opacity-0 animate-fade-up anim-delay-300 justify-center md:justify-start"
                 >
                     <a
                         href={ctaLink}
@@ -176,6 +183,97 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
                     justify-content: flex-start;
                     padding-top: 6rem;
                     padding-bottom: 0;
+                }
+            }
+
+            @media (max-width: 767px) {
+                .hero-section {
+                    align-items: center;
+                    justify-content: center;
+                    padding-bottom: 2.5rem;
+                }
+
+                .hero-content-wrapper {
+                    padding: 0 16px;
+                }
+            }
+
+            @media (max-width: 767px) {
+                .hero-wrapper {
+                    height: 80vh;
+                    height: 80svh;
+                }
+
+                .hero-title {
+                    font-size: clamp(3.5rem, 18vw, 6rem);
+                    line-height: 0.92;
+                    text-wrap: balance;
+                }
+
+                .hero-sub-mobile {
+                    font-size: 0.9rem;
+                    max-width: 360px;
+                    text-align: center;
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+
+                /* Make primary CTA more balanced on mobile */
+                .btn-primary {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                    width: auto;
+                    min-width: 150px;
+                    max-width: 300px;
+                    margin: 0 auto;
+                    padding: 10px 18px !important;
+                    font-size: 13px !important;
+                    letter-spacing: 0.12em !important;
+                    border-radius: 10px !important;
+                    text-align: center;
+                    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45), 0 0 18px rgba(57, 255, 20, 0.12);
+                    background: linear-gradient(180deg, #39ff14 0%, #28c90d 100%) !important;
+                    color: #07110a !important;
+                    text-transform: uppercase;
+                }
+
+                /* Slightly reduce the glow for very small screens */
+                @media (max-width: 420px) {
+                    .btn-primary {
+                        min-width: 140px;
+                        padding: 9px 14px !important;
+                        font-size: 12px !important;
+                        box-shadow: 0 5px 14px rgba(0, 0, 0, 0.5), 0 0 12px rgba(57, 255, 20, 0.08);
+                    }
+                }
+
+                /* Secondary button: small pill under primary */
+                .btn-outline {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 6px 10px !important;
+                    font-size: 11px !important;
+                    color: #ffffff !important;
+                    background: rgba(0,0,0,0.6) !important;
+                    border: 1px solid rgba(255,255,255,0.06) !important;
+                    border-radius: 999px !important;
+                    margin-top: 8px;
+                    box-shadow: none !important;
+                }
+
+                /* Arrange CTA group vertically on small screens */
+                .flex.flex-wrap.items-center.gap-3 {
+                    flex-direction: column;
+                    gap: 10px;
+                    align-items: center;
+                }
+
+                .hero-bg {
+                    background-position: 50% 40%;
+                    background-size: cover;
                 }
             }
 

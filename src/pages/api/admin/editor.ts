@@ -51,7 +51,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
         if (error) return jsonResponse({ error: 'Error al guardar página' }, 500);
 
-        await logAdminAction(admin.id, 'update_page', 'page_settings', pageKey, { settings }, request.headers.get('x-forwarded-for') || undefined);
+        await logAdminAction(admin.id, 'update_page', 'page_settings', pageKey, { settings }, request.headers.get('x-forwarded-for'));
         return jsonResponse({ page: data, message: 'Página actualizada' });
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);

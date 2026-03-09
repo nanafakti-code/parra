@@ -494,6 +494,46 @@ h1{ font-family: var(--font-heading); font-size: clamp(3rem,7vw,5.5rem); line-he
 
 @media (max-width:640px){ .actions{ flex-direction:column; width:100%; max-width:340px;} .btn{ width:100%; } .logo-container{ margin-bottom:1.25rem; } .glass-card{ padding:1.2rem; } .logo-text{ font-size: clamp(2.2rem,12vw,4rem); } .btn-shop{ right:0.75rem; top:0.75rem; padding:0.45rem 0.7rem; font-size:0.75rem } .progress-section{ padding:0; } }
 
+/* Mobile improvements: buttons, inputs and container padding */
+@media (max-width:640px) {
+  /* Make primary buttons less heavy on small screens */
+  .btn-primary {
+    padding: 10px 16px !important;
+    font-size: 12px !important;
+    border-radius: 8px !important;
+    min-width: 140px;
+    max-width: 100%;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.48), 0 0 12px rgba(57,255,20,0.08);
+  }
+
+  .btn-outline {
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+    border-radius: 999px !important;
+    background: rgba(255,255,255,0.02);
+  }
+
+  /* Inputs: increase tap targets and prevent overflow */
+  .input {
+    padding: 12px 12px !important;
+    font-size: 14px !important;
+  }
+
+  /* Reduce large fixed spacings and ensure consistent container padding */
+  .container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Header adjustments for mobile visual stability */
+  #main-header .container { padding-left: 12px; padding-right: 12px; }
+  #main-header { height: 64px; }
+  .h-16 { height: 64px; }
+
+  /* Ensure long hero titles wrap and don't overflow */
+  .hero-title, .hero-title * { word-break: break-word; overflow-wrap: break-word; }
+}
+
 /* Admin settings - maintenance panel tweaks */
 .admin-maintenance { background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.007)); border: 1px solid rgba(255,255,255,0.03); }
 .admin-maintenance .switch { display:inline-block; position:relative; }
