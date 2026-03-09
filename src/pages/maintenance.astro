@@ -127,20 +127,22 @@
 
     html {
         width: 100%;
-        overflow-x: hidden;
+        height: 100%;
+        overflow: hidden;
     }
 
     body {
         background-color: var(--color-bg);
         color: var(--color-text);
         font-family: var(--font-body);
-        min-height: 100vh;
+        height: 100%;
         width: 100%;
+        margin: 0;
         display: flex;
         justify-content: center;
         align-items: center;
-        overflow-x: hidden;
-        position: relative;
+        overflow: hidden;
+        position: fixed;
     }
 
     /* Background effects */
@@ -440,7 +442,7 @@
             const totalFrames = (duration / 1000) * fps;
             let currentFrame = 0;
 
-            const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
+            const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
 
             setTimeout(() => {
                 const interval = setInterval(() => {
