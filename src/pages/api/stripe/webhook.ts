@@ -17,7 +17,7 @@ import type Stripe from 'stripe';
 import { getStripe } from '../../../lib/stripe';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { generateInvoicePdf } from '../../../lib/pdf';
-import { sendOrderConfirmationEmail } from '../../../lib/email';
+import { sendOrderConfirmationEmail } from '../../../lib/email/index';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -264,9 +264,18 @@ export const POST: APIRoute = async ({ request }) => {
             const pdfBuffer = await generateInvoicePdf(orderForPdf);
 
             // Enviar email de confirmación con la factura adjunta
-            await sendOrderConfirmationEmail(orderForPdf, insertedItems, pdfBuffer);
+            const emailSent = await sendOrderConfirmationEmail(orderForPdf, insertedItems, pdfBuffer);
 
-            console.log(`[webhook] Orden ${order.id} procesada con éxito y email enviado.`);
+            if (emailSent) {
+                // Marcar email como enviado para evitar duplicados desde el endpoint de respaldo
+                await supabaseAdmin
+                    .from('orders')
+                    .update({ email_sent: true })
+                    .eq('id', order.id);
+                console.log(`[webhook] Orden ${order.id} procesada con éxito y email enviado.`);
+            } else {
+                console.warn(`[webhook] Orden ${order.id} creada pero el email no se pudo enviar (se reintentará desde /success).`);
+            }
         } catch (emailErr: any) {
             console.error(`[webhook] Orden creada pero falló el envío del email:`, emailErr.message);
             // No detenemos el flujo, la orden ya fue creada y el pago completado.

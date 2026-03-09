@@ -80,10 +80,10 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         const BLACK = "#0d0f14";   // negro panel
         const CARD = "#111520";   // tarjetas
         const CARD2 = "#0e1119";   // filas alternas
-        const GREEN = "#22c55e";   // verde neon principal
-        const GREEND = "#16a34a";   // verde oscuro
-        const GREENG = "#15803d";   // verde glow layer
-        const GREENX = "#052e16";   // verde muy oscuro (glow bg)
+        const GREEN = "#39FF14";   // verde neon principal (color acento web)
+        const GREEND = "#27CC00";   // verde oscuro
+        const GREENG = "#1A9900";   // verde glow layer
+        const GREENX = "#0A2B00";   // verde muy oscuro (glow bg)
         const WHITE = "#f0f4f8";
         const GRAY = "#6b7280";
         const LGRAY = "#9ca3af";

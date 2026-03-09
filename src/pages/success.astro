@@ -61,10 +61,38 @@ import Footer from "../components/Footer.astro";
 <script>
     import { clearCart } from "../lib/cart";
 
-    // Clear cart on successful checkout
-    document.addEventListener("astro:page-load", () => {
-        if (window.location.pathname === "/success") {
-            clearCart();
+    document.addEventListener("astro:page-load", async () => {
+        if (window.location.pathname !== "/success") return;
+
+        // Limpiar carrito local
+        clearCart();
+
+        // Llamar al endpoint de respaldo para garantizar que el email se envíe
+        // aunque el webhook de Stripe no haya llegado (localhost, webhook tardío, etc.)
+        const params = new URLSearchParams(window.location.search);
+        const sessionId = params.get("session_id");
+
+        if (sessionId) {
+            // Esperamos 3 segundos para dar tiempo al webhook de llegar primero
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+
+            try {
+                const res = await fetch("/api/stripe/confirm-order", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ session_id: sessionId }),
+                });
+                const data = await res.json();
+                if (data.already_sent) {
+                    console.log("[success] Email ya fue enviado por el webhook.");
+                } else if (data.ok) {
+                    console.log("[success] Orden confirmada y email enviado por endpoint de respaldo.");
+                } else {
+                    console.warn("[success] confirm-order respondió:", data);
+                }
+            } catch (err) {
+                console.warn("[success] Error al llamar confirm-order:", err);
+            }
         }
     });
 </script>

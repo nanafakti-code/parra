@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { validateAdminAPI, jsonResponse, logAdminAction } from '../../../lib/admin';
+import { sendShippingUpdate, sendOrderDelivered } from '../../../lib/email/index';
 
 /** GET /api/admin/orders?status=...&page=1&limit=20&search=... */
 export const GET: APIRoute = async ({ request, cookies }) => {
@@ -85,6 +86,34 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             newStatus: status,
             trackingNumber: trackingNumber || null,
         }, request.headers.get('x-forwarded-for'));
+
+        // ── Disparar emails transaccionales según el nuevo estado ──────────────
+        const customerEmail = data.email;
+        const customerName = data.shipping_name || 'Cliente';
+        const orderNum = data.order_number || `PG-${String(data.id).slice(-8).toUpperCase()}`;
+
+        if (customerEmail) {
+            try {
+                if (status === 'shipped') {
+                    await sendShippingUpdate({
+                        customerEmail,
+                        customerName,
+                        orderNumber: orderNum,
+                        trackingNumber: trackingNumber || data.tracking_number || undefined,
+                        shippingCompany: 'Correos / MRW',
+                    });
+                } else if (status === 'delivered') {
+                    await sendOrderDelivered({
+                        customerEmail,
+                        customerName,
+                        orderNumber: orderNum,
+                    });
+                }
+            } catch (emailErr: any) {
+                // No bloqueamos la respuesta si el email falla
+                console.warn('[admin-orders] Email no enviado:', emailErr.message);
+            }
+        }
 
         return jsonResponse({ order: data, message: 'Pedido actualizado' });
     } catch (err) {
