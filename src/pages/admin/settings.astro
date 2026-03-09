@@ -173,25 +173,47 @@ const maintenance = settings.maintenance || { enabled: false, message: '' };
 
     <!-- Maintenance -->
     <div class="settings-panel" id="panel-maintenance">
-        <form class="card p-6" data-key="maintenance">
-            <h2 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <i data-feather="tool" class="w-5 h-5 text-[var(--brand)]"></i> Mantenimiento
-            </h2>
-            <p class="text-sm text-gray-300 mb-4">Activa el modo mantenimiento para mostrar una página de mantenimiento a los visitantes no autorizados. Los administradores seguirán teniendo acceso.</p>
-            <div class="grid grid-cols-1 gap-4">
-                <div class="form-group">
-                    <label class="form-label flex items-center gap-3">
-                        <input type="checkbox" name="enabled" class="w-5 h-5" checked={maintenance.enabled} />
-                        <span>Activar modo mantenimiento</span>
-                    </label>
+        <form class="card p-6 admin-maintenance" data-key="maintenance">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                <div class="md:col-span-1">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i data-feather="tool" class="w-6 h-6 text-[var(--brand)]"></i>
+                        <h2 class="text-lg font-semibold text-white">Mantenimiento</h2>
+                    </div>
+                    <p class="text-sm text-gray-300 mb-4">Activa el modo mantenimiento para mostrar la página pública a visitantes no autorizados. Los administradores seguirán teniendo acceso.</p>
+
+                    <div class="flex gap-3">
+                        <a href="/maintenance" target="_blank" class="btn-outline">Vista previa</a>
+                        <a href="/admin" class="btn-ghost">Ir al panel</a>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Mensaje público</label>
-                    <input type="text" name="message" class="form-input" value={maintenance.message} placeholder="Volvemos en breve..." />
+
+                <div class="md:col-span-2">
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Estado</label>
+                            <div class="flex items-center gap-4">
+                                <label class="switch">
+                                    <input type="checkbox" name="enabled" class="sr-only toggle-input" checked={maintenance.enabled} />
+                                    <span class="switch-track"></span>
+                                </label>
+                                <div>
+                                    <div class="font-semibold text-white">{maintenance.enabled ? 'Activado' : 'Desactivado'}</div>
+                                    <div class="text-xs text-gray-400">Sólo los administradores podrán acceder mientras esté activado.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Mensaje público</label>
+                            <textarea name="message" class="form-input h-28" placeholder="Volvemos en breve...">{maintenance.message}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mt-6">
+                        <button type="submit" class="btn-primary">Guardar cambios</button>
+                    </div>
                 </div>
-            </div>
-            <div class="flex justify-end mt-6">
-                <button type="submit" class="btn-primary">Guardar cambios</button>
             </div>
         </form>
     </div>
