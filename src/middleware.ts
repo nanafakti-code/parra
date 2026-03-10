@@ -100,6 +100,21 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
     response.headers.set('X-Content-Type-Options', 'nosniff');
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
+    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self)');
+    response.headers.set(
+        'Content-Security-Policy',
+        [
+            "default-src 'self'",
+            "script-src 'self' https://js.stripe.com https://challenges.cloudflare.com",
+            "frame-src https://js.stripe.com https://challenges.cloudflare.com",
+            "connect-src 'self' https://api.stripe.com https://jboxsbtfhkanvnhxuxdd.supabase.co",
+            "img-src 'self' data: https:",
+            "style-src 'self' 'unsafe-inline'",
+            "font-src 'self'",
+            "object-src 'none'",
+            "base-uri 'self'",
+        ].join('; ')
+    );
 
     return response;
 });
