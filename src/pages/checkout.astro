@@ -464,7 +464,7 @@ const stripePubKey =
 
         // ── Stripe Elements Initialization ─────────────────────────────────────
         const items = getCart();
-        const pubKey = (window as any).STRIPE_PUBLIC_KEY;
+        const pubKey = window.STRIPE_PUBLIC_KEY;
 
         if (items.length > 0 && pubKey) {
             if (pubKey.includes("...")) {
@@ -490,8 +490,7 @@ const stripePubKey =
                     if (data.clientSecret) {
                         clientSecret = data.clientSecret;
 
-                        // @ts-ignore
-                        stripe = Stripe(pubKey);
+                        stripe = window.Stripe(pubKey);
 
                         const appearance = {
                             theme: "night",
@@ -510,7 +509,7 @@ const stripePubKey =
                         const paymentElement = elements.create("payment");
 
                         // Guardar referencia para validación posterior si es necesario
-                        (window as any).stripePaymentElement = paymentElement;
+                        window.stripePaymentElement = paymentElement;
 
                         const container =
                             document.getElementById("payment-element");

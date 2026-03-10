@@ -17,7 +17,6 @@ if (profileError || !userProfile) {
     // borramos las cookies para no crear un bucle de redirecciones infinito con /login.
     Astro.cookies.delete("sb-access-token", { path: "/" });
     Astro.cookies.delete("sb-refresh-token", { path: "/" });
-    Astro.cookies.delete("auth_token", { path: "/" });
     return Astro.redirect("/login?error=profile_missing");
 }
 
@@ -42,7 +41,8 @@ const [
         .from("orders")
         .select("*, order_items(*, products(name, image))")
         .or(`user_id.eq.${authUser.id},email.ilike.${userProfile.email}`)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(50),
     supabaseAdmin
         .from("reviews")
         .select("*, products(name, slug, image)")

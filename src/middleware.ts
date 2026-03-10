@@ -14,7 +14,7 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
     const url = new URL(request.url);
 
     // 1. Obtener access_token desde cookies para poder validar usuario antes de decidir redirección por mantenimiento
-    const accessToken = cookies.get("sb-access-token")?.value || cookies.get("auth_token")?.value;
+    const accessToken = cookies.get("sb-access-token")?.value;
 
     locals.user = null;
     locals.role = null;
@@ -53,23 +53,29 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
         }
     }
 
-    // 2. Comprobar modo mantenimiento: consultar site_settings en la DB
+    // 2. Comprobar modo mantenimiento: primero revisar variable de entorno, si no está, consultar site_settings
     let isMaintenanceMode = false;
-
-    try {
-        const { data } = await supabaseAdmin.from('site_settings').select('value').eq('key', 'maintenance').maybeSingle();
-        if (data && data.value) {
-            const v = typeof data.value === 'string' ? data.value : JSON.stringify(data.value);
-            try {
-                const parsed = JSON.parse(v);
-                isMaintenanceMode = !!parsed.enabled;
-            } catch {
-                isMaintenanceMode = String(v).trim().toLowerCase() === 'true';
+    // Env override (fast)
+    const rawEnv = import.meta.env.MAINTENANCE_MODE || (typeof process !== 'undefined' ? process.env.MAINTENANCE_MODE : false);
+    if (rawEnv && String(rawEnv).trim().length > 0) {
+        isMaintenanceMode = String(rawEnv).trim().toLowerCase() === 'true';
+    } else {
+        // Fallback: read from DB (site_settings key: 'maintenance')
+        try {
+            const { data } = await supabaseAdmin.from('site_settings').select('value').eq('key', 'maintenance').maybeSingle();
+            if (data && data.value) {
+                const v = typeof data.value === 'string' ? data.value : JSON.stringify(data.value);
+                try {
+                    const parsed = JSON.parse(v);
+                    isMaintenanceMode = !!parsed.enabled;
+                } catch {
+                    isMaintenanceMode = String(v).trim().toLowerCase() === 'true';
+                }
             }
+        } catch (e) {
+            console.error('[middleware] error reading maintenance setting', e);
+            isMaintenanceMode = false;
         }
-    } catch (e) {
-        console.error('[middleware] error reading maintenance setting', e);
-        isMaintenanceMode = false;
     }
 
     // Solo redirigir si está en mantenimiento y el visitante NO es admin

@@ -31,7 +31,7 @@ function createTransporter() {
         auth: { user, pass },
         tls: {
             rejectUnauthorized: false,
-            minVersion: 'TLSv1' as any,
+            minVersion: 'TLSv1' as import('tls').SecureVersion,
             ciphers: 'DEFAULT@SECLEVEL=0',
             secureOptions:
                 (cryptoConstants.SSL_OP_LEGACY_SERVER_CONNECT ?? 0) |

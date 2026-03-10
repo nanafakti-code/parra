@@ -433,8 +433,8 @@
             }
         });
 
-        (window as any).openCart = openCart;
-        (window as any).closeCart = closeCart;
+        window.openCart = openCart;
+        window.closeCart = closeCart;
 
         window.addEventListener("cart:updated", () => {
             // Always re-render so content is fresh when drawer opens

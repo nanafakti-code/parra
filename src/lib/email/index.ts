@@ -255,8 +255,8 @@ export async function sendOrderConfirmation({ order, items, pdfBuffer }: SendOrd
     ...(attachments.length > 0 ? { attachments } : {}),
   });
 
-  if (error) throw new Error(`[email] Resend error: ${(error as any).message}`);
-  console.log(`[email] Confirmaci\u00f3n enviada a ${order.email} (id: ${(data as any)?.id})`);
+  if (error) throw new Error(`[email] Resend error: ${error.message}`);
+  console.log(`[email] Confirmación enviada a ${order.email} (id: ${data?.id})`);
   return data;
 }
 
@@ -349,7 +349,7 @@ export async function sendShippingUpdate(opts: SendShippingUpdateOptions) {
     subject: `\u00a1Tu pedido ${opts.orderNumber} est\u00e1 en camino! \u2014 Parra GK Gloves`,
     html: buildShippingHtml(opts),
   });
-  if (error) throw new Error(`[email] Resend error: ${(error as any).message}`);
+  if (error) throw new Error(`[email] Resend error: ${error.message}`);
   console.log(`[email] Env\u00edo notificado a ${opts.customerEmail}`);
   return data;
 }
@@ -409,7 +409,7 @@ export async function sendOrderDelivered(opts: SendOrderDeliveredOptions) {
     subject: `\u00a1Tu pedido ${opts.orderNumber} ha llegado! \u2014 Parra GK Gloves`,
     html: buildDeliveredHtml(opts),
   });
-  if (error) throw new Error(`[email] Resend error: ${(error as any).message}`);
+  if (error) throw new Error(`[email] Resend error: ${error.message}`);
   console.log(`[email] Entrega notificada a ${opts.customerEmail}`);
   return data;
 }
@@ -475,7 +475,7 @@ export async function sendPasswordReset(opts: SendPasswordResetOptions) {
     subject: 'Restablecer contrase\u00f1a \u2014 Parra GK Gloves',
     html: buildPasswordResetHtml(opts),
   });
-  if (error) throw new Error(`[email] Resend error: ${(error as any).message}`);
+  if (error) throw new Error(`[email] Resend error: ${error.message}`);
   console.log(`[email] Password reset enviado a ${opts.customerEmail}`);
   return data;
 }

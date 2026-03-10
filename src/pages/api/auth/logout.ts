@@ -24,32 +24,23 @@ function jsonResponse(data: Record<string, unknown>, status = 200) {
 
 export const POST: APIRoute = async ({ cookies, request, redirect }) => {
     try {
-        // Intentar invalidar tokens server-side si podemos identificar al usuario
-        const accessToken = cookies.get('sb-access-token')?.value || cookies.get('auth_token')?.value;
+        // Invalidar sesión server-side para que el refresh token no pueda reutilizarse
+        const accessToken = cookies.get('sb-access-token')?.value;
         if (accessToken) {
             try {
-                const { data: userResult } = await supabase.auth.getUser(accessToken);
-                const user = (userResult as any)?.user;
-                if (user && user.id && (supabaseAdmin?.auth?.admin as any)?.invalidateUserRefreshTokens) {
-                    // Invalida los refresh tokens del usuario (si la SDK lo soporta)
-                    // Esto evita reuso de refresh tokens si existieran en otros clientes
-                    try {
-                        // @ts-ignore - método admin puede variar según versión
-                        await supabaseAdmin.auth.admin.invalidateUserRefreshTokens(user.id);
-                    } catch (err) {
-                        // No crítico si falla; seguimos con la limpieza de cookies
-                        console.warn('[logout] No se pudo invalidar refresh tokens:', err);
-                    }
+                const { data: { user } } = await supabase.auth.getUser(accessToken);
+                if (user?.id) {
+                    await supabaseAdmin.auth.admin.signOut(user.id);
                 }
             } catch (err) {
-                // No crítico
+                // No crítico — la limpieza de cookies es suficiente
+                console.warn('[logout] No se pudo invalidar sesión server-side:', err);
             }
         }
 
         // Borrar cookies con las mismas opciones de path/sameSite/secure
         cookies.delete('sb-access-token', cookieOptions);
         cookies.delete('sb-refresh-token', cookieOptions);
-        cookies.delete('auth_token', cookieOptions);
 
         // Si la petición proviene de un navegador (Accept incluye text/html), redirigimos al inicio
         const accept = request.headers.get('accept') || '';
@@ -67,6 +58,5 @@ export const POST: APIRoute = async ({ cookies, request, redirect }) => {
 export const GET: APIRoute = async ({ cookies, redirect }) => {
     cookies.delete('sb-access-token', cookieOptions);
     cookies.delete('sb-refresh-token', cookieOptions);
-    cookies.delete('auth_token', cookieOptions);
     return redirect('/', 302);
 };

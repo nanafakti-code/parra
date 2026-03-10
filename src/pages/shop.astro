@@ -32,7 +32,8 @@ const sortBy = Astro.url.searchParams.get("sort") || "newest";
 let query = supabase
     .from("products")
     .select("*, categories(name, slug)")
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .limit(120);
 
 if (currentSlug !== "todos") {
     const cat = (dbCategories || []).find((c: any) => c.slug === currentSlug);
