@@ -21,6 +21,7 @@ const stripePubKey =
     import.meta.env.STRIPE_PUBLIC_KEY ||
     process.env.STRIPE_PUBLIC_KEY ||
     "pk_test_"; // Se espera estar en .env
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 ---
 
 <Layout title="Pago Seguro">
@@ -244,6 +245,13 @@ const stripePubKey =
                         </p>
                     </div>
 
+                    <!-- Cloudflare Turnstile — verificación anti-bot -->
+                    <div
+                        class="cf-turnstile"
+                        data-sitekey={turnstileSiteKey}
+                        data-callback="onTurnstileVerified"
+                    ></div>
+
                     <button
                         id="place-order-btn"
                         class="btn-glow w-full h-14 flex items-center justify-center gap-3 text-base"
@@ -333,6 +341,7 @@ const stripePubKey =
 <script is:inline define:vars={{ stripePubKey }}>
     window.STRIPE_PUBLIC_KEY = stripePubKey;
 </script>
+<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
 <script>
     import { getCart, getSessionId, clearCart, removeItem } from "../lib/cart";
@@ -341,11 +350,105 @@ const stripePubKey =
     let elements: any = null;
     let clientSecret: string | null = null;
 
+    // ── initStripeElements ─────────────────────────────────────────────────
+    // Called automatically by the Cloudflare Turnstile widget once bot-
+    // verification completes (data-callback="onTurnstileVerified").
+    // Receives the one-time token and exchanges it with create-payment-intent.
+    async function initStripeElements(token: string) {
+        const _items = getCart();
+        const pubKey = (window as any).STRIPE_PUBLIC_KEY;
+
+        if (!_items.length || !pubKey) return;
+
+        const _msgDiv = document.getElementById(
+            "payment-message",
+        ) as HTMLDivElement;
+        function _showMsg(msg: string) {
+            if (!_msgDiv) return;
+            _msgDiv.classList.remove("hidden");
+            _msgDiv.textContent = msg;
+            _msgDiv.classList.add("text-red-500");
+            _msgDiv.classList.remove("text-green-500");
+        }
+
+        if (pubKey.includes("...")) {
+            _showMsg(
+                "STRIPE_PUBLIC_KEY está incompleta en el archivo .env o faltan credenciales en Configuraciones.",
+            );
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/stripe/create-payment-intent", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    items: _items,
+                    shippingInfo: {},
+                    email: "guest@example.com",
+                    turnstileToken: token,
+                }),
+            });
+            const data = await res.json();
+
+            if (data.clientSecret) {
+                clientSecret = data.clientSecret;
+                stripe = (window as any).Stripe(pubKey);
+                const appearance = {
+                    theme: "night",
+                    variables: {
+                        colorPrimary: "#39FF14",
+                        colorBackground: "#111827",
+                        colorText: "#ffffff",
+                        colorDanger: "#ef4444",
+                    },
+                };
+
+                elements = stripe.elements({ appearance, clientSecret });
+                const paymentElement = elements.create("payment");
+
+                // Guardar referencia para validación posterior si es necesario
+                (window as any).stripePaymentElement = paymentElement;
+
+                const container = document.getElementById("payment-element");
+                if (container) {
+                    container.innerHTML = "";
+                    paymentElement.mount("#payment-element");
+
+                    paymentElement.on("ready", () => {
+                        console.log(
+                            "[stripe] Payment Element mounted and ready.",
+                        );
+                    });
+
+                    paymentElement.on("change", (event: any) => {
+                        if (event.error) {
+                            _showMsg(event.error.message);
+                        } else {
+                            _msgDiv?.classList.add("hidden");
+                        }
+                    });
+                }
+            } else if (data.error) {
+                _showMsg(data.error);
+            }
+        } catch (err: any) {
+            console.warn("Stripe init fail:", err);
+            _showMsg("Fallo al inicializar pagos: " + err.message);
+        }
+    }
+
+    // Expose as global so Cloudflare Turnstile can invoke it via data-callback
+    (window as any).onTurnstileVerified = initStripeElements;
+
     async function initCheckoutPage() {
         // Reset variables in case of View Transitions
         stripe = null;
         elements = null;
         clientSecret = null;
+
+        // Re-register the global callback after each View Transitions navigation
+        (window as any).onTurnstileVerified = initStripeElements;
 
         // ── Auto-relleno desde dirección guardada ──────────────────────────────
         const addrCards =
@@ -462,88 +565,23 @@ const stripePubKey =
             }
         }
 
-        // ── Stripe Elements Initialization ─────────────────────────────────────
-        const items = getCart();
-        const pubKey = window.STRIPE_PUBLIC_KEY;
-
-        if (items.length > 0 && pubKey) {
-            if (pubKey.includes("...")) {
-                showMessage(
-                    "STRIPE_PUBLIC_KEY está incompleta en el archivo .env o faltan credenciales en Configuraciones.",
-                );
-            } else {
-                try {
-                    const res = await fetch(
-                        "/api/stripe/create-payment-intent",
-                        {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                items,
-                                shippingInfo: {},
-                                email: "guest@example.com",
-                            }),
-                        },
-                    );
-                    const data = await res.json();
-
-                    if (data.clientSecret) {
-                        clientSecret = data.clientSecret;
-
-                        stripe = window.Stripe(pubKey);
-
-                        const appearance = {
-                            theme: "night",
-                            variables: {
-                                colorPrimary: "#39FF14",
-                                colorBackground: "#111827",
-                                colorText: "#ffffff",
-                                colorDanger: "#ef4444",
-                            },
-                        };
-
-                        elements = stripe.elements({
-                            appearance,
-                            clientSecret,
-                        });
-                        const paymentElement = elements.create("payment");
-
-                        // Guardar referencia para validación posterior si es necesario
-                        window.stripePaymentElement = paymentElement;
-
-                        const container =
-                            document.getElementById("payment-element");
-                        if (container) {
-                            container.innerHTML = "";
-                            paymentElement.mount("#payment-element");
-
-                            paymentElement.on("ready", () => {
-                                console.log(
-                                    "[stripe] Payment Element mounted and ready.",
-                                );
-                            });
-
-                            paymentElement.on("change", (event: any) => {
-                                if (event.error) {
-                                    showMessage(event.error.message);
-                                } else {
-                                    msgDiv.classList.add("hidden");
-                                }
-                            });
-                        }
-                    } else if (data.error) {
-                        showMessage(data.error);
-                    }
-                } catch (err: any) {
-                    console.warn("Stripe init fail:", err);
-                    showMessage("Fallo al inicializar pagos: " + err.message);
-                }
-            }
-        }
+        // Stripe Elements se inicializa en onTurnstileVerified una vez que
+        // el widget de Cloudflare Turnstile completa la verificación anti-bot.
 
         if (orderBtn && checkoutForm) {
             orderBtn.addEventListener("click", async function (e) {
                 e.preventDefault();
+
+                // STEP 5 — Safety: bloquear si el widget de Turnstile no ha verificado
+                const turnstileToken = document.querySelector<HTMLInputElement>(
+                    '[name="cf-turnstile-response"]',
+                )?.value;
+                if (!turnstileToken) {
+                    showMessage(
+                        "Por favor, completa la verificación de seguridad antes de continuar.",
+                    );
+                    return;
+                }
 
                 // Validate form
                 if (!checkoutForm.checkValidity()) {
@@ -566,6 +604,7 @@ const stripePubKey =
                     return;
                 }
 
+                const items = getCart();
                 if (items.length === 0) {
                     const { toast } = await import("../lib/toast");
                     toast.warning("Tu carrito está vacío.");
