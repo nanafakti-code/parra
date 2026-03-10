@@ -76,7 +76,7 @@ export const POST: APIRoute = async ({ request }) => {
             console.error('[register] Supabase Auth admin error:', authError.message);
 
             if (authError.message.includes('already registered') || authError.message.includes('already been registered') || authError.code === '422') {
-                return jsonResponse({ message: 'Este email ya está registrado.' }, 400);
+                return jsonResponse({ message: 'Error al completar el registro.' }, 400);
             }
 
             return jsonResponse({
@@ -110,7 +110,7 @@ export const POST: APIRoute = async ({ request }) => {
             });
 
             if (profileError.code === '23505') {
-                return jsonResponse({ message: 'Este email ya está registrado.' }, 400);
+                return jsonResponse({ message: 'Error al completar el registro.' }, 400);
             }
 
             return jsonResponse({

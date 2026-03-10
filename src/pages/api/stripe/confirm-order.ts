@@ -191,9 +191,12 @@ export const POST: APIRoute = async ({ request }) => {
                 .from('order_items')
                 .insert(newItem);
 
-            if (!itemError) {
-                insertedItems.push(newItem);
+            if (itemError) {
+                console.error(`[confirm-order] Error al insertar order_item para producto ${productId}:`, itemError.message);
+                // No decrementar stock si el item no se registró correctamente
+                continue;
             }
+            insertedItems.push(newItem);
 
             // Decrementar stock
             if (productId) {

@@ -157,7 +157,16 @@ export const POST: APIRoute = async ({ request }) => {
 
         // 7. Extraer datos
         const metadata = session.metadata ?? {};
-        const email = session.customer_details?.email ?? metadata.email ?? '';
+        const email =
+            session.customer_details?.email ??
+            session.customer_email ??
+            metadata.email ??
+            '';
+
+        if (!email) {
+            console.error(`[webhook] No se encontró email para session ${stripeSessionId}. La orden no puede procesarse.`);
+            return jsonResponse({ error: 'Email is required to create order' }, 400);
+        }
         const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
 
         // 8. Buscar usuario por email (puede no existir si es invitado)
@@ -200,6 +209,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         // Array para guardar los items insertados y pasarlos al generador de PDF
         const insertedItems: any[] = [];
+        let stockIssue = false;
 
         // 10. Crear order_items y decrementar stock atómicamente
         for (const item of lineItems) {
@@ -247,12 +257,24 @@ export const POST: APIRoute = async ({ request }) => {
                 }
 
                 if (!decremented) {
-                    console.warn(
-                        `[webhook] Stock insuficiente para ${variantId ? `variante ${variantId}` : `producto ${productId}`}` +
-                        ` (cantidad solicitada: ${quantity})`,
+                    stockIssue = true;
+                    console.error(
+                        `[webhook] STOCK INSUFICIENTE para ${variantId ? `variante ${variantId}` : `producto ${productId}`}` +
+                        ` (cantidad solicitada: ${quantity}) — pago ya capturado, requiere revisión manual.`,
                     );
                 }
             }
+        }
+
+        // Si hubo problemas de stock, marcar la orden en notas para revisión del admin
+        if (stockIssue) {
+            await supabaseAdmin
+                .from('orders')
+                .update({
+                    notes: 'STOCK_ISSUE: Uno o más productos no tenían stock suficiente al procesar el pago. Revisar y reponer inventario.',
+                })
+                .eq('id', order.id);
+            console.error(`[webhook] Orden ${order.id} marcada con STOCK_ISSUE — revisar inventario urgente.`);
         }
 
         console.log(`[webhook] Items ordenados, generando factura en PDF...`);

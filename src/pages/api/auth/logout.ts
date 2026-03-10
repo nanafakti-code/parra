@@ -12,7 +12,7 @@ const cookieOptions = {
     path: '/',
     httpOnly: true,
     secure: import.meta.env.PROD,
-    sameSite: 'lax' as const,
+    sameSite: 'strict' as const,
 };
 
 function jsonResponse(data: Record<string, unknown>, status = 200) {

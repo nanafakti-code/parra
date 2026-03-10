@@ -40,7 +40,9 @@ const [
     supabaseAdmin
         .from("orders")
         .select("*, order_items(*, products(name, image))")
-        .or(`user_id.eq.${authUser.id},email.ilike.${userProfile.email}`)
+        .or(userProfile.email
+            ? `user_id.eq.${authUser.id},email.eq.${userProfile.email}`
+            : `user_id.eq.${authUser.id}`)
         .order("created_at", { ascending: false })
         .limit(50),
     supabaseAdmin

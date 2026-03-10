@@ -26,7 +26,11 @@ export const GET: APIRoute = async ({ request, cookies }) => {
     }
 
     if (search) {
-        query = query.or(`id.ilike.%${search}%,users.name.ilike.%${search}%,users.email.ilike.%${search}%`);
+        // Sanitizar el término: solo alfanuméricos, espacios, @, ., - y _ para evitar inyección de filtros PostgREST
+        const sanitized = search.replace(/[^a-zA-Z0-9\s@.\-_+]/g, '');
+        if (sanitized) {
+            query = query.or(`id.ilike.%${sanitized}%,users.name.ilike.%${sanitized}%,users.email.ilike.%${sanitized}%`);
+        }
     }
 
     const { data, count, error } = await query;
