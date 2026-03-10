@@ -50,46 +50,43 @@ let products: any[] = [];
 <AdminLayout title="Editor Visual" activeSection="editor" admin={admin}>
     <!-- ═══════ MOBILE BLOCKER ═══════ -->
     <div class="vb-mobile-block" id="vbMobileBlock">
+        <div class="vb-mobile-block-glass"></div>
         <div class="vb-mobile-block-content">
+            <div class="vb-mobile-block-glow"></div>
             <div class="vb-mobile-block-icon">
                 <svg
-                    width="40"
-                    height="40"
+                    width="48"
+                    height="48"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    stroke-width="1.5"
-                    ><rect x="2" y="3" width="20" height="14" rx="2"
-                    ></rect><line x1="8" y1="21" x2="16" y2="21"></line><line
-                        x1="12"
-                        y1="17"
-                        x2="12"
-                        y2="21"></line></svg
+                    stroke-width="1"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
                 >
+                    <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                    <path d="M7 8l2 2 2-2" opacity="0.5"></path>
+                    <path d="M13 8l2 2 2-2" opacity="0.5"></path>
+                </svg>
             </div>
-            <h2 class="vb-mobile-block-title">Editor solo para PC</h2>
+            <h2 class="vb-mobile-block-title">Pantalla no Optimizada</h2>
+            <div class="vb-mobile-block-divider"></div>
             <p class="vb-mobile-block-msg">
-                El Editor Visual está diseñado exclusivamente para pantallas de
-                escritorio. Accede desde un ordenador para editar tu sitio.
+                El Editor Visual es una herramienta de alta precisión diseñada
+                <b>exclusivamente para monitores 1920x1080</b>.
             </p>
-            <a
-                href="/admin"
-                class="ve2-btn ve2-btn-primary"
-                style="margin-top:0.5rem;"
-            >
-                <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    ><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-                    ></path><polyline points="9 22 9 12 15 12 15 22"
-                    ></polyline></svg
-                >
-                Ir al Dashboard
-            </a>
+            <p class="vb-mobile-block-hint">
+                Para garantizar la fidelidad del diseño, accede desde un monitor
+                1080p a pantalla completa.
+            </p>
+            <div class="vb-mobile-block-actions">
+                <a href="/admin" class="vb-premium-btn">
+                    <i data-feather="arrow-left"></i>
+                    <span>Volver al Dashboard</span>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -635,58 +632,197 @@ let products: any[] = [];
     </div>
 
     <style>
-        /* ── Mobile Blocker ── */
+        /* ── Modern Premium Blocker ── */
         .vb-mobile-block {
-            display: none;
+            display: flex;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow: hidden;
         }
-        @media (max-width: 1024px) {
+
+        .vb-mobile-block-glass {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(
+                    circle at 20% 20%,
+                    rgba(57, 255, 20, 0.03) 0%,
+                    transparent 40%
+                ),
+                radial-gradient(
+                    circle at 80% 80%,
+                    rgba(57, 255, 20, 0.02) 0%,
+                    transparent 40%
+                );
+            pointer-events: none;
+        }
+
+        .vb-mobile-block-content {
+            position: relative;
+            text-align: center;
+            max-width: 440px;
+            width: 100%;
+            padding: 3rem 2rem;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 24px;
+            box-shadow:
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(57, 255, 20, 0.03);
+            animation: vbAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes vbAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .vb-mobile-block-glow {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 100px;
+            background: rgba(57, 255, 20, 0.1);
+            filter: blur(60px);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .vb-mobile-block-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.05),
+                rgba(255, 255, 255, 0.01)
+            );
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            color: #39ff14;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .vb-mobile-block-icon::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: 20px;
+            padding: 1px;
+            background: linear-gradient(
+                135deg,
+                rgba(57, 255, 20, 0.3),
+                transparent
+            );
+            -webkit-mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .vb-mobile-block-title {
+            font-family: "Oswald", system-ui, sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 0 1rem;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+        }
+
+        .vb-mobile-block-divider {
+            width: 40px;
+            height: 2px;
+            background: #39ff14;
+            margin: 0 auto 1.5rem;
+            border-radius: 1px;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+        }
+
+        .vb-mobile-block-msg {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin: 0 0 1rem;
+        }
+
+        .vb-mobile-block-hint {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.4);
+            line-height: 1.5;
+            margin: 0 0 2rem;
+        }
+
+        .vb-premium-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 1.75rem;
+            background: #fff;
+            color: #000;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .vb-premium-btn:hover {
+            transform: translateY(-3px);
+            background: #39ff14;
+            box-shadow: 0 15px 30px rgba(57, 255, 20, 0.2);
+        }
+
+        .vb-premium-btn i {
+            width: 18px;
+            height: 18px;
+        }
+
+        @media (min-width: 1910px) {
             .vb-mobile-block {
-                display: flex;
-                position: fixed;
-                inset: 0;
-                z-index: 9999;
-                background: #0a0a0a;
-                align-items: center;
-                justify-content: center;
-                padding: 2rem;
-            }
-            .vb-mobile-block-content {
-                text-align: center;
-                max-width: 320px;
-            }
-            .vb-mobile-block-icon {
-                width: 72px;
-                height: 72px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto 1.25rem;
-                background: rgba(57, 255, 20, 0.06);
-                border-radius: 50%;
-                color: var(--ve2-neon, #39ff14);
-            }
-            .vb-mobile-block-title {
-                font-family: "Oswald", system-ui, sans-serif;
-                font-size: 1.3rem;
-                font-weight: 700;
-                color: #fff;
-                margin: 0 0 0.6rem;
-                letter-spacing: -0.01em;
-            }
-            .vb-mobile-block-msg {
-                font-size: 0.82rem;
-                color: rgba(255, 255, 255, 0.4);
-                line-height: 1.5;
-                margin: 0 0 1.5rem;
-            }
-            /* Hide all editor content behind the blocker */
-            .vb-toolbar,
-            .vb-editor-grid,
-            .vb-footer-bar,
-            #vbAddBlockModal,
-            #vbHistoryModal,
-            #vbConfirmModal {
                 display: none !important;
+            }
+        }
+
+        /* Hide all editor content behind the blocker by default */
+        .vb-toolbar,
+        .vb-main,
+        .vb-footer-bar,
+        #vbAddBlockModal,
+        #vbHistoryModal,
+        #vbConfirmModal {
+            display: none !important;
+        }
+
+        @media (min-width: 1910px) {
+            .vb-toolbar,
+            .vb-main {
+                display: flex !important;
             }
         }
 

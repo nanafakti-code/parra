@@ -364,12 +364,18 @@ const navItems = [
                 max-width: 100%;
             }
 
-            @media (max-width: 1024px) {
-                /* Hide editor link on mobile */
-                .desktop-only {
-                    display: none !important;
-                }
+            /* Strict restriction: only for 1920x1080 class screens */
+            .desktop-only {
+                display: none !important;
+            }
 
+            @media (min-width: 1910px) {
+                .desktop-only {
+                    display: flex !important;
+                }
+            }
+
+            @media (max-width: 1024px) {
                 /* ── Sidebar: off-canvas drawer ───── */
                 .admin-sidebar {
                     width: min(82vw, 300px);
