@@ -14,6 +14,8 @@ import { validateStripeConfig } from '../../../lib/stripe-config-check';
 import { supabase } from '../../../lib/supabase';
 import { paymentLimiter } from '../../../lib/security/rateLimiter';
 import { getClientIp } from '../../../lib/security/getClientIp';
+import { validateCoupon } from '../../../lib/security/validateCoupon';
+import { verifyTurnstile } from '../../../lib/security/verifyTurnstile';
 
 // ── Tipos internos ─────────────────────────────────────────────────────────────
 
@@ -40,6 +42,8 @@ interface SessionRequestBody {
     shippingInfo: ShippingInfo;
     email: string;
     cartSessionId?: string;
+    couponCode?: string;  // Server validates — never a discount value from the client
+    turnstileToken?: string;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -76,7 +80,14 @@ export const POST: APIRoute = async ({ request }) => {
 
         // 1. Parsear body UNA sola vez
         const body: SessionRequestBody = await request.json();
-        const { items, shippingInfo, email, cartSessionId } = body;
+        const { items, shippingInfo, email, cartSessionId, couponCode, turnstileToken } = body;
+
+        // ── Turnstile bot protection (verify before any business logic) ──────────
+        const turnstileValid = await verifyTurnstile(turnstileToken, ip);
+        if (!turnstileValid) {
+            console.warn('[create-session] Turnstile verification failed. IP:', ip);
+            return jsonResponse({ error: 'Bot verification failed.' }, 403);
+        }
 
         // 2. Validaciones de entrada
         if (!Array.isArray(items) || items.length === 0) {
@@ -91,7 +102,15 @@ export const POST: APIRoute = async ({ request }) => {
             return jsonResponse({ error: 'El email es obligatorio.' }, 400);
         }
 
-        // 3. Validar productos y precios contra la BD
+        // 2b. Validate item quantities (never trust the client)
+        for (const item of items) {
+            const qty = Number(item.quantity);
+            if (!Number.isInteger(qty) || qty < 1 || qty > 100) {
+                return jsonResponse({ error: 'Cantidad de producto inválida.' }, 400);
+            }
+        }
+
+        // 3. Fetch prices and stock from DB (NEVER trust client prices)
         const productIds = items.map((item) => item.id);
         const { data: products, error: productsError } = await supabase
             .from('products')
@@ -103,17 +122,20 @@ export const POST: APIRoute = async ({ request }) => {
             return jsonResponse({ error: 'Error al validar productos.' }, 500);
         }
 
-        // 4. Construir line_items para Stripe
+        // 4. Build line_items using DB prices
+        let subtotalEuros = 0;
         const line_items = items.map((item) => {
             const dbProduct = products.find((p) => p.id === item.id);
 
             if (!dbProduct) {
-                throw new Error(`Producto no encontrado: ${item.id}`);
+                throw new Error('Producto no encontrado.');
             }
 
             if (dbProduct.stock < item.quantity) {
-                throw new Error(`Stock insuficiente para "${dbProduct.name}".`);
+                throw new Error('Stock insuficiente para uno de los productos.');
             }
+
+            subtotalEuros += dbProduct.price * item.quantity;
 
             return {
                 price_data: {
@@ -124,43 +146,72 @@ export const POST: APIRoute = async ({ request }) => {
                         metadata: {
                             productId: item.id,
                             variantId: item.variantId ?? '',
-                            size: item.size ?? '',
+                            size:      item.size      ?? '',
                         },
                     },
-                    unit_amount: Math.round(dbProduct.price * 100), // Stripe usa céntimos
+                    unit_amount: Math.round(dbProduct.price * 100),
                 },
                 quantity: item.quantity,
             };
         });
 
-        // 5. Determinar origin para URLs de retorno
+        // 5. Validate coupon server-side (code only — NEVER a discount value from client)
+        let stripeCouponId: string | undefined;
+        let couponDbId:     string | undefined;
+        let discountEuros:  number = 0;
+
+        if (couponCode && typeof couponCode === 'string') {
+            const couponResult = await validateCoupon(couponCode, subtotalEuros);
+
+            if (!couponResult.valid) {
+                return jsonResponse({ error: couponResult.error }, 400);
+            }
+
+            discountEuros = couponResult.discountAmount;
+            couponDbId    = couponResult.coupon.id;
+
+            // Create a single-use Stripe coupon so the session total is set by the server
+            const stripeCouponParams =
+                couponResult.coupon.type === 'percentage'
+                    ? { percent_off: couponResult.coupon.value }
+                    : { amount_off: Math.round(discountEuros * 100), currency: 'eur' as const };
+
+            const createdCoupon = await getStripe().coupons.create({
+                ...stripeCouponParams,
+                duration:         'once',
+                max_redemptions:  1,
+                name:             `Desc. ${couponResult.coupon.code}`,
+                metadata:         { db_coupon_id: couponDbId },
+            });
+            stripeCouponId = createdCoupon.id;
+        }
+
+        // 6. Determine origin for return URLs
         const origin = getOrigin(request);
 
-        // 6. Log pre-creación
-        console.log('[create-session] Creating Stripe session with:', {
-            itemsCount: items.length,
-            email,
-            origin,
-        });
-
-        // 7. Validar configuración de Stripe
+        // 7. Validate Stripe config
         validateStripeConfig();
 
-        // 8. Crear sesión de Stripe Checkout
+        // 8. Create Stripe Checkout Session
         const session = await getStripe().checkout.sessions.create({
             payment_method_types: ['card'],
             line_items,
             mode: 'payment',
             customer_email: email,
             success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${origin}/cancel`,
+            cancel_url:  `${origin}/cancel`,
+            // Apply server-validated coupon as a Stripe discount (1-use only)
+            ...(stripeCouponId ? { discounts: [{ coupon: stripeCouponId }] } : {}),
             metadata: {
-                shipping_name: `${shippingInfo.firstName} ${shippingInfo.lastName}`,
+                shipping_name:    `${shippingInfo.firstName} ${shippingInfo.lastName}`,
                 shipping_address: shippingInfo.address,
-                shipping_city: shippingInfo.city,
-                shipping_zip: shippingInfo.zip,
-                shipping_phone: shippingInfo.phone,
-                cartSessionId: cartSessionId ?? '',
+                shipping_city:    shippingInfo.city,
+                shipping_zip:     shippingInfo.zip,
+                shipping_phone:   shippingInfo.phone,
+                cartSessionId:    cartSessionId ?? '',
+                // Coupon data for order creation in webhook/confirm-order
+                coupon_id:        couponDbId    ?? '',
+                discount_amount:  discountEuros.toFixed(2),
             },
         });
 

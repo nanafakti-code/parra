@@ -1,5 +1,15 @@
 /// <reference types="astro/client" />
 
+interface ImportMetaEnv {
+    // Cloudflare Turnstile
+    readonly TURNSTILE_SECRET_KEY: string;
+    readonly PUBLIC_TURNSTILE_SITE_KEY: string;
+}
+
+interface ImportMeta {
+    readonly env: ImportMetaEnv;
+}
+
 declare namespace App {
     interface Locals {
         user: {
