@@ -12,6 +12,8 @@ import type { APIRoute } from 'astro';
 import { getStripe } from '../../../lib/stripe';
 import { validateStripeConfig } from '../../../lib/stripe-config-check';
 import { supabase } from '../../../lib/supabase';
+import { paymentLimiter } from '../../../lib/security/rateLimiter';
+import { getClientIp } from '../../../lib/security/getClientIp';
 
 // ── Tipos internos ─────────────────────────────────────────────────────────────
 
@@ -66,6 +68,12 @@ function getOrigin(request: Request): string {
 
 export const POST: APIRoute = async ({ request }) => {
     try {
+        const ip = getClientIp(request);
+        const { success } = await paymentLimiter.limit(ip);
+        if (!success) {
+            return jsonResponse({ error: 'Demasiadas solicitudes. Por favor, espera unos segundos.' }, 429);
+        }
+
         // 1. Parsear body UNA sola vez
         const body: SessionRequestBody = await request.json();
         const { items, shippingInfo, email, cartSessionId } = body;

@@ -42,9 +42,7 @@ export const POST: APIRoute = async ({ request }) => {
     } catch (err: any) {
         console.error('[cart/merge] unexpected error:', err);
         return new Response(JSON.stringify({
-            error: 'Error interno del servidor',
-            message: err.message,
-            stack: err.stack
+            error: 'Error interno del servidor'
         }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }

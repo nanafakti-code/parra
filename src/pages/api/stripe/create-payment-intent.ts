@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getStripe } from '../../../lib/stripe';
 import { supabase } from '../../../lib/supabase';
+import { paymentLimiter } from '../../../lib/security/rateLimiter';
+import { getClientIp } from '../../../lib/security/getClientIp';
 
 function jsonResponse(data: Record<string, unknown>, status: number): Response {
     return new Response(JSON.stringify(data), {
@@ -11,6 +13,12 @@ function jsonResponse(data: Record<string, unknown>, status: number): Response {
 
 export const POST: APIRoute = async ({ request }) => {
     try {
+        const ip = getClientIp(request);
+        const { success } = await paymentLimiter.limit(ip);
+        if (!success) {
+            return jsonResponse({ error: 'Demasiadas solicitudes. Por favor, espera unos segundos.' }, 429);
+        }
+
         const body = await request.json();
         const { items, shippingInfo, email } = body;
 

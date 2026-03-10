@@ -21,6 +21,8 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/nodemailer": "^7.0.11",
     "@types/pdfkit": "^0.17.5",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.4",
     "astro": "^5.17.1",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",

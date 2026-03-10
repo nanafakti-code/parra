@@ -12,6 +12,8 @@
 
 import type { APIRoute } from 'astro';
 import { supabase, supabaseAdmin } from '../../../lib/supabase';
+import { loginLimiter } from '../../../lib/security/rateLimiter';
+import { getClientIp } from '../../../lib/security/getClientIp';
 
 // ── Helper ─────────────────────────────────────────────────────────────────────
 
@@ -26,6 +28,12 @@ function jsonResponse(data: Record<string, unknown>, status: number): Response {
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
+        const ip = getClientIp(request);
+        const { success } = await loginLimiter.limit(ip);
+        if (!success) {
+            return jsonResponse({ message: 'Demasiados intentos. Por favor, espera unos segundos.' }, 429);
+        }
+
         const body = await request.json();
         const { email, password } = body as {
             email?: string;

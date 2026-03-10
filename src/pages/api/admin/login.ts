@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '../../../lib/supabase';
-import { supabaseAdmin } from '../../../lib/supabase';
+import { supabase, supabaseAdmin } from '../../../lib/supabase';
+import { loginLimiter } from '../../../lib/security/rateLimiter';
+import { getClientIp } from '../../../lib/security/getClientIp';
 
 function json(data: Record<string, unknown>, status = 200): Response {
     return new Response(JSON.stringify(data), {
@@ -11,6 +12,12 @@ function json(data: Record<string, unknown>, status = 200): Response {
 
 export const POST: APIRoute = async ({ request, cookies }) => {
     try {
+        const ip = getClientIp(request);
+        const { success } = await loginLimiter.limit(ip);
+        if (!success) {
+            return json({ message: 'Demasiados intentos. Por favor, espera unos segundos.' }, 429);
+        }
+
         const body = await request.json();
         const { email, password } = body as { email?: string; password?: string };
 
@@ -45,7 +52,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             httpOnly: true,
             secure: import.meta.env.PROD,
             sameSite: 'lax' as const,
-            maxAge: 60 * 60 * 24 * 7,
+            maxAge: 60 * 60 * 4, // 4 horas para sesiones de administrador
         };
 
         cookies.set('sb-access-token', authData.session.access_token, cookieOptions);

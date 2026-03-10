@@ -54,9 +54,4 @@ export const POST: APIRoute = async ({ cookies, request, redirect }) => {
     }
 };
 
-// Compatibilidad GET: borrar cookies y redirigir al inicio
-export const GET: APIRoute = async ({ cookies, redirect }) => {
-    cookies.delete('sb-access-token', cookieOptions);
-    cookies.delete('sb-refresh-token', cookieOptions);
-    return redirect('/', 302);
-};
+
