@@ -23,6 +23,9 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
+# VS Code local settings (pueden contener tokens/secretos)
+.vscode/mcp.json
+
 /src/generated/prisma
 
 # vercel
