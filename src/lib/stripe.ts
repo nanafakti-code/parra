@@ -42,6 +42,7 @@ export function getStripe(): Stripe {
         );
     }
 
-    _instance = new Stripe(key, { apiVersion: '2026-01-28.clover' });
+    // @ts-ignore - Usar la versión por defecto de la librería para evitar errores de tipado o versión inválida
+    _instance = new Stripe(key);
     return _instance;
 }

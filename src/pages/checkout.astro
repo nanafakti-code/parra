@@ -17,7 +17,10 @@ if (user) {
         .order("is_default", { ascending: false });
     savedAddresses = data ?? [];
 }
-const stripePubKey = import.meta.env.STRIPE_PUBLIC_KEY || "pk_test_"; // Se espera estar en .env
+const stripePubKey =
+    import.meta.env.STRIPE_PUBLIC_KEY ||
+    process.env.STRIPE_PUBLIC_KEY ||
+    "pk_test_"; // Se espera estar en .env
 ---
 
 <Layout title="Pago Seguro">
@@ -506,11 +509,28 @@ const stripePubKey = import.meta.env.STRIPE_PUBLIC_KEY || "pk_test_"; // Se espe
                         });
                         const paymentElement = elements.create("payment");
 
+                        // Guardar referencia para validación posterior si es necesario
+                        (window as any).stripePaymentElement = paymentElement;
+
                         const container =
                             document.getElementById("payment-element");
                         if (container) {
                             container.innerHTML = "";
                             paymentElement.mount("#payment-element");
+
+                            paymentElement.on("ready", () => {
+                                console.log(
+                                    "[stripe] Payment Element mounted and ready.",
+                                );
+                            });
+
+                            paymentElement.on("change", (event: any) => {
+                                if (event.error) {
+                                    showMessage(event.error.message);
+                                } else {
+                                    msgDiv.classList.add("hidden");
+                                }
+                            });
                         }
                     } else if (data.error) {
                         showMessage(data.error);
@@ -533,8 +553,16 @@ const stripePubKey = import.meta.env.STRIPE_PUBLIC_KEY || "pk_test_"; // Se espe
                 }
 
                 if (!stripe || !elements || !clientSecret) {
+                    console.error(
+                        "[stripe] Click handled but stripe/elements/secret missing:",
+                        {
+                            stripe: !!stripe,
+                            elements: !!elements,
+                            secret: !!clientSecret,
+                        },
+                    );
                     showMessage(
-                        "Stripe no está listo o la clave pública es inválida.",
+                        "El sistema de pago no se ha cargado correctamente. Por favor, refresca la página.",
                     );
                     return;
                 }
