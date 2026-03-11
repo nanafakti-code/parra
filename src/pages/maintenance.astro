@@ -11,9 +11,16 @@ function hexToRgb(hex: string): string {
     const b = parseInt(c.substring(4, 6), 16);
     return `${r}, ${g}, ${b}`;
 }
+function deriveSecondaryColor(hex: string): string {
+    const c = hex.replace("#", "");
+    const factor = 0.8;
+    const r = Math.round(parseInt(c.substring(0, 2), 16) * factor);
+    const g = Math.round(parseInt(c.substring(2, 4), 16) * factor);
+    const b = Math.round(parseInt(c.substring(4, 6), 16) * factor);
+    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+}
 
 let primaryColor = "#39FF14";
-let secondaryColor = "#2DD60E";
 try {
     const { data } = await supabaseAdmin
         .from("site_settings")
@@ -22,10 +29,10 @@ try {
         .single();
     if (data?.value) {
         primaryColor = sanitizeColor((data.value as any).primary_color || primaryColor);
-        secondaryColor = sanitizeColor((data.value as any).secondary_color || secondaryColor);
     }
 } catch {}
 
+const secondaryColor = deriveSecondaryColor(primaryColor);
 const brandRgb = hexToRgb(primaryColor);
 ---
 

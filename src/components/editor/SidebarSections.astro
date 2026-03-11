@@ -134,7 +134,7 @@
     }
     .vb-sidebar-search:focus-within {
         border-color: var(--ve2-neon, #39ff14);
-        box-shadow: 0 0 0 3px var(--ve2-neon-dim, rgba(57, 255, 20, 0.08));
+        box-shadow: 0 0 0 3px var(--ve2-neon-dim, rgba(var(--brand-rgb), 0.08));
     }
     .vb-sidebar-search:focus-within svg {
         color: var(--ve2-neon, #39ff14);
@@ -182,7 +182,7 @@
     }
     :global(.vb-block.active) {
         background: var(--ve2-bg-raised, #131313);
-        border-color: rgba(57, 255, 20, 0.08);
+        border-color: rgba(var(--brand-rgb), 0.08);
         border-left-color: var(--ve2-neon, #39ff14);
     }
     :global(.vb-block.active::before) {
@@ -192,15 +192,15 @@
         border-radius: var(--ve2-radius-md, 8px);
         background: linear-gradient(
             90deg,
-            rgba(57, 255, 20, 0.03) 0%,
+            rgba(var(--brand-rgb), 0.03) 0%,
             transparent 50%
         );
         pointer-events: none;
     }
     :global(.vb-block.drag-over) {
-        background: var(--ve2-neon-ghost, rgba(57, 255, 20, 0.04));
-        border-color: rgba(57, 255, 20, 0.15);
-        border-left-color: rgba(57, 255, 20, 0.15);
+        background: var(--ve2-neon-ghost, rgba(var(--brand-rgb), 0.04));
+        border-color: rgba(var(--brand-rgb), 0.15);
+        border-left-color: rgba(var(--brand-rgb), 0.15);
     }
     :global(.vb-block.dragging) {
         opacity: 0.25;
@@ -224,7 +224,7 @@
     }
     :global(.vb-block-grip-locked) {
         cursor: not-allowed !important;
-        color: rgba(57, 255, 20, 0.35) !important;
+        color: rgba(var(--brand-rgb), 0.35) !important;
     }
     :global(.vb-block-locked) {
         opacity: 0.9;
@@ -252,7 +252,7 @@
         background: rgba(255, 255, 255, 0.06);
     }
     :global(.vb-block.active .vb-block-icon) {
-        background: var(--ve2-neon-dim, rgba(57, 255, 20, 0.08));
+        background: var(--ve2-neon-dim, rgba(var(--brand-rgb), 0.08));
     }
     :global(.vb-block.active .vb-block-icon svg) {
         color: var(--ve2-neon, #39ff14);
@@ -332,9 +332,9 @@
         transition: all 200ms;
     }
     .vb-add-block-btn:hover {
-        border-color: rgba(57, 255, 20, 0.3);
+        border-color: rgba(var(--brand-rgb), 0.3);
         color: var(--ve2-neon, #39ff14);
-        background: var(--ve2-neon-ghost, rgba(57, 255, 20, 0.04));
+        background: var(--ve2-neon-ghost, rgba(var(--brand-rgb), 0.04));
     }
 
     /* ── Empty state ───────────────────────────────── */

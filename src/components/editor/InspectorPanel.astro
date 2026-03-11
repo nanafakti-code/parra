@@ -278,7 +278,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: var(--ve2-neon-dim, rgba(57, 255, 20, 0.08));
+        background: var(--ve2-neon-dim, rgba(var(--brand-rgb), 0.08));
         border-radius: var(--ve2-radius-md, 8px);
         flex-shrink: 0;
     }
@@ -499,7 +499,7 @@
         transition: all 150ms;
     }
     :global(.vb-tag-add button:hover) {
-        border-color: rgba(57, 255, 20, 0.3);
+        border-color: rgba(var(--brand-rgb), 0.3);
         color: var(--ve2-neon, #39ff14);
     }
 

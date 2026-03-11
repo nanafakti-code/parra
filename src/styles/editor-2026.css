@@ -23,10 +23,10 @@
     /* Neon accent */
     --ve2-neon: #39FF14;
     --ve2-neon-soft: #2DD60E;
-    --ve2-neon-dim: rgba(57, 255, 20, 0.08);
-    --ve2-neon-glow: rgba(57, 255, 20, 0.15);
-    --ve2-neon-glow-lg: rgba(57, 255, 20, 0.25);
-    --ve2-neon-ghost: rgba(57, 255, 20, 0.04);
+    --ve2-neon-dim: rgba(var(--brand-rgb), 0.08);
+    --ve2-neon-glow: rgba(var(--brand-rgb), 0.15);
+    --ve2-neon-glow-lg: rgba(var(--brand-rgb), 0.25);
+    --ve2-neon-ghost: rgba(var(--brand-rgb), 0.04);
 
     /* Text */
     --ve2-text-primary: #ffffff;
@@ -66,8 +66,8 @@
     --ve2-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
     --ve2-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
     --ve2-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-    --ve2-shadow-neon: 0 0 20px rgba(57, 255, 20, 0.15);
-    --ve2-shadow-neon-lg: 0 0 40px rgba(57, 255, 20, 0.2);
+    --ve2-shadow-neon: 0 0 20px rgba(var(--brand-rgb), 0.15);
+    --ve2-shadow-neon-lg: 0 0 40px rgba(var(--brand-rgb), 0.2);
 
     /* Transitions */
     --ve2-ease: cubic-bezier(0.4, 0, 0.2, 1);
@@ -112,7 +112,7 @@
 .ve2-input:focus {
     border-color: var(--ve2-neon);
     box-shadow: 0 0 0 3px var(--ve2-neon-dim),
-        0 0 16px rgba(57, 255, 20, 0.06);
+        0 0 16px rgba(var(--brand-rgb), 0.06);
     background: var(--ve2-bg-elevated);
 }
 
@@ -201,7 +201,7 @@ select.ve2-input {
 
 .ve2-btn-primary:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: var(--ve2-shadow-neon-lg), 0 4px 20px rgba(57, 255, 20, 0.2);
+    box-shadow: var(--ve2-shadow-neon-lg), 0 4px 20px rgba(var(--brand-rgb), 0.2);
 }
 
 .ve2-btn-primary:active:not(:disabled) {
@@ -267,7 +267,7 @@ select.ve2-input {
 .ve2-btn-icon.active {
     background: var(--ve2-neon-dim);
     color: var(--ve2-neon);
-    border-color: rgba(57, 255, 20, 0.15);
+    border-color: rgba(var(--brand-rgb), 0.15);
 }
 
 /* ── Publish Button (Compact) ─────────────────────────── */
@@ -287,15 +287,15 @@ select.ve2-input {
     text-transform: uppercase;
     letter-spacing: 0.06em;
     white-space: nowrap;
-    box-shadow: 0 0 12px rgba(57, 255, 20, 0.12);
+    box-shadow: 0 0 12px rgba(var(--brand-rgb), 0.12);
     position: relative;
     transition: all var(--ve2-duration) var(--ve2-ease);
 }
 
 .ve2-btn-publish:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 0 20px rgba(57, 255, 20, 0.2),
-        0 0 40px rgba(57, 255, 20, 0.08);
+    box-shadow: 0 0 20px rgba(var(--brand-rgb), 0.2),
+        0 0 40px rgba(var(--brand-rgb), 0.08);
 }
 
 .ve2-btn-publish:active:not(:disabled) {
@@ -330,8 +330,8 @@ select.ve2-input {
 }
 
 .ve2-toggle.on {
-    background: rgba(57, 255, 20, 0.2);
-    box-shadow: 0 0 12px rgba(57, 255, 20, 0.1);
+    background: rgba(var(--brand-rgb), 0.2);
+    box-shadow: 0 0 12px rgba(var(--brand-rgb), 0.1);
 }
 
 .ve2-toggle.off {
@@ -353,7 +353,7 @@ select.ve2-input {
 .ve2-toggle.on::after {
     left: 19px;
     background: var(--ve2-neon);
-    box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+    box-shadow: 0 0 8px rgba(var(--brand-rgb), 0.4);
 }
 
 .ve2-toggle.off::after {
@@ -387,7 +387,7 @@ select.ve2-input {
 .ve2-badge-neon {
     color: var(--ve2-neon);
     background: var(--ve2-neon-dim);
-    border: 1px solid rgba(57, 255, 20, 0.12);
+    border: 1px solid rgba(var(--brand-rgb), 0.12);
 }
 
 .ve2-badge-muted {
@@ -467,13 +467,13 @@ select.ve2-input {
     cursor: pointer;
     border: 2px solid var(--ve2-bg-base);
     box-shadow: 0 0 0 2px var(--ve2-neon-glow),
-        0 0 12px rgba(57, 255, 20, 0.2);
+        0 0 12px rgba(var(--brand-rgb), 0.2);
     transition: box-shadow var(--ve2-duration) var(--ve2-ease);
 }
 
 .ve2-range::-webkit-slider-thumb:hover {
     box-shadow: 0 0 0 3px var(--ve2-neon-glow),
-        0 0 20px rgba(57, 255, 20, 0.3);
+        0 0 20px rgba(var(--brand-rgb), 0.3);
 }
 
 .ve2-range::-moz-range-thumb {
@@ -531,7 +531,7 @@ select.ve2-input {
 
 /* ── Inline Edit Highlight ────────────────────────────── */
 .ve2-editable-highlight {
-    outline: 1px dashed rgba(57, 255, 20, 0.3);
+    outline: 1px dashed rgba(var(--brand-rgb), 0.3);
     outline-offset: 4px;
     border-radius: 4px;
     cursor: pointer;
@@ -542,7 +542,7 @@ select.ve2-input {
 
 .ve2-editable-highlight:hover {
     outline-color: var(--ve2-neon);
-    box-shadow: 0 0 16px rgba(57, 255, 20, 0.08);
+    box-shadow: 0 0 16px rgba(var(--brand-rgb), 0.08);
 }
 
 .ve2-editable-highlight::after {
@@ -621,11 +621,11 @@ select.ve2-input {
 
     0%,
     100% {
-        box-shadow: 0 0 20px rgba(57, 255, 20, 0.15);
+        box-shadow: 0 0 20px rgba(var(--brand-rgb), 0.15);
     }
 
     50% {
-        box-shadow: 0 0 32px rgba(57, 255, 20, 0.25);
+        box-shadow: 0 0 32px rgba(var(--brand-rgb), 0.25);
     }
 }
 
