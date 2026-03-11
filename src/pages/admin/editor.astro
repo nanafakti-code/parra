@@ -2028,17 +2028,28 @@ let products: any[] = [];
                     var styleSchema = STYLE_SCHEMAS[schemaKey] || [];
                     window.VBInspector.show(section, schema, styleSchema);
                 }
+                highlightSim(id);
             }
 
             function deselectSection() {
                 selectedId = null;
                 render();
                 if (window.VBInspector) window.VBInspector.hide();
+                highlightSim(null);
             }
 
             // ═══════ EVENTS FROM COMPONENTS ═══════
             document.addEventListener("vb:select", function (e) {
                 selectSection(e.detail.id);
+            });
+
+            // Click on simulated preview to select section
+            document.addEventListener("click", function(e) {
+                var wrap = e.target.closest('#vbSimContent .sim-sec-wrap');
+                if (wrap) {
+                    var secId = wrap.getAttribute('data-sec-id');
+                    if (secId) selectSection(Number(secId));
+                }
             });
             document.addEventListener("vb:toggle", function (e) {
                 toggleSectionActive(e.detail.id);
@@ -2516,7 +2527,11 @@ let products: any[] = [];
                     var c = sec.content || {};
                     var key = sec.section_key || '';
                     var baseKey = key.replace(/_\d+$/, '');
-                    html += renderSection(baseKey, c, sec);
+                    var label = sec.label || key;
+                    html += '<div class="sim-sec-wrap" data-sec-id="' + sec.id + '">'
+                        + '<div class="sim-sec-label">&#9998; ' + label + '</div>'
+                        + renderSection(baseKey, c, sec)
+                        + '</div>';
                 });
 
                 // For shop page: always render the product grid simulation
@@ -2531,6 +2546,16 @@ let products: any[] = [];
 
                 html += '</div>';
                 container.innerHTML = html;
+                highlightSim(selectedId);
+            }
+
+            function highlightSim(id) {
+                var wraps = document.querySelectorAll('#vbSimContent .sim-sec-wrap');
+                wraps.forEach(function(el) { el.classList.remove('sim-sec-selected'); });
+                if (id) {
+                    var el = document.querySelector('#vbSimContent [data-sec-id="' + id + '"]');
+                    if (el) el.classList.add('sim-sec-selected');
+                }
             }
 
             function renderNavbar(isShop) {
@@ -2622,6 +2647,11 @@ let products: any[] = [];
                     + '.sim-card:hover{border-color:rgba(57,255,20,0.3);}'
                     + '.sim-section-title{font-family:"Oswald",sans-serif;font-size:clamp(2rem,4vw,3.5rem);font-weight:700;text-transform:uppercase;letter-spacing:-0.02em;line-height:1;}'
                     + '.sim-section-sub{font-size:0.95rem;color:rgba(255,255,255,0.45);max-width:480px;margin:0.75rem auto 0;line-height:1.6;}'
+                    + '.sim-sec-wrap{position:relative;cursor:pointer;outline:2px solid transparent;transition:outline 0.1s;}'
+                    + '.sim-sec-wrap:hover{outline:2px solid rgba(57,255,20,0.4);}'
+                    + '.sim-sec-wrap.sim-sec-selected{outline:2px solid #39FF14;}'
+                    + '.sim-sec-label{position:absolute;top:0;right:0;z-index:200;background:#39FF14;color:#000;font-family:"Inter",sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;padding:3px 10px;opacity:0;transition:opacity 0.15s;pointer-events:none;}'
+                    + '.sim-sec-wrap:hover .sim-sec-label,.sim-sec-wrap.sim-sec-selected .sim-sec-label{opacity:1;}'
                     + '</style>';
             }
 
