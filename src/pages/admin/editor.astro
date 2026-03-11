@@ -2821,37 +2821,51 @@ let products: any[] = [];
             function renderGloveSelector(c) {
                 var sectionBg = c.style_section_bg || 'transparent';
                 var titleColor = c.style_title_color || '#FFFFFF';
-                var subColor = c.style_subtitle_color || 'rgba(255,255,255,0.45)';
                 var cardBg = c.style_card_bg || '#111827';
                 var cardBorder = c.style_card_border || '#1F2937';
-                var accentColor = c.style_accent_color || '#39FF14';
-                var btnBg = c.style_btn_bg || '#39FF14';
+                var accentColor = c.style_btn_bg || '#39FF14';
                 var btnText = c.style_btn_text || '#000';
                 var title = c.title || 'Encuentra Tu Guante Perfecto';
-                var subtitle = c.subtitle || 'Descubre qué modelo se adapta mejor a tu estilo de juego.';
+                var subtitle = c.subtitle || 'Responde 3 preguntas y te recomendaremos el guante ideal para ti.';
 
-                var cats = [
-                    { label: 'Competición', desc: 'Máximo rendimiento' },
-                    { label: 'Entrenamiento', desc: 'Durabilidad extra' },
-                    { label: 'Condiciones Extremas', desc: 'Lluvia y frío' },
-                    { label: 'Junior', desc: 'Para los más jóvenes' }
+                var steps = [
+                    {
+                        num: '01',
+                        title: '¿Cuál es tu nivel?',
+                        options: ['Profesional / Semi-pro', 'Entrenamiento regular', 'Iniciación / Juvenil']
+                    },
+                    {
+                        num: '02',
+                        title: 'Corte preferido',
+                        options: ['Negativo (ajustado)', 'Rollfinger (más agarre)', 'Híbrido (equilibrado)']
+                    },
+                    {
+                        num: '03',
+                        title: 'Presupuesto',
+                        options: ['Premium (+70€)', 'Gama media (40-70€)', 'Entrada (-40€)']
+                    }
                 ];
-                var handSvg = '<svg width="20" height="20" fill="none" stroke="' + esc(accentColor) + '" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/></svg>';
-                var catCards = cats.map(function(cat) {
-                    return '<div style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;padding:1.75rem 1.5rem;cursor:pointer;transition:border-color .3s;">'
-                        + '<div style="width:44px;height:44px;background:rgba(57,255,20,0.07);border:1px solid rgba(57,255,20,0.2);margin-bottom:1rem;display:flex;align-items:center;justify-content:center;">' + handSvg + '</div>'
-                        + '<h4 style="font-family:\'Oswald\',sans-serif;font-size:0.9rem;font-weight:600;text-transform:uppercase;letter-spacing:0.02em;color:#fff;margin:0 0 4px;">' + esc(cat.label) + '</h4>'
-                        + '<p style="font-size:0.72rem;color:rgba(255,255,255,0.35);margin:0;">' + esc(cat.desc) + '</p>'
+
+                var stepCards = steps.map(function(step) {
+                    var opts = step.options.map(function(opt) {
+                        return '<div style="width:100%;padding:0.55rem 1rem;background:rgba(255,255,255,0.03);border:1px solid ' + esc(cardBorder) + ';font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.65);text-align:center;cursor:pointer;transition:all .2s;">'
+                            + esc(opt) + '</div>';
+                    }).join('');
+                    return '<div style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;padding:1.75rem 1.5rem;text-align:center;">'
+                        + '<div style="width:44px;height:44px;margin:0 auto 1rem;border:1px solid ' + esc(accentColor) + ';display:flex;align-items:center;justify-content:center;font-family:\'Oswald\',sans-serif;font-size:1.1rem;font-weight:700;color:' + esc(accentColor) + ';background:rgba(0,0,0,0.2);">' + step.num + '</div>'
+                        + '<h4 style="font-family:\'Oswald\',sans-serif;font-size:1rem;font-weight:600;text-transform:uppercase;letter-spacing:0.02em;color:' + esc(titleColor) + ';margin:0 0 1rem;">' + esc(step.title) + '</h4>'
+                        + '<div style="display:flex;flex-direction:column;gap:0.5rem;">' + opts + '</div>'
                         + '</div>';
                 }).join('');
 
-                return '<div style="padding:5rem 2rem;background:' + esc(sectionBg) + ';">'
+                return '<div style="padding:5rem 2rem;background:' + esc(sectionBg) + ';border-top:1px solid #1F2937;border-bottom:1px solid #1F2937;">'
                     + '<div style="text-align:center;margin-bottom:3rem;">'
-                    + '<h2 data-sim-field="title" class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0 0 0.6rem;">' + esc(title) + '</h2>'
+                    + '<div style="display:inline-block;padding:4px 16px;border:1px solid ' + esc(accentColor) + ';font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3em;color:' + esc(accentColor) + ';opacity:0.8;margin-bottom:1rem;">Selector</div>'
+                    + '<h2 data-sim-field="title" class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0 0 0.6rem;">Encuentra Tu <span style="color:' + esc(accentColor) + ';">Guante Perfecto</span></h2>'
                     + '<p data-sim-field="subtitle" class="sim-section-sub">' + esc(subtitle) + '</p>'
                     + '</div>'
-                    + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:1rem;max-width:800px;margin:0 auto 2.5rem;">' + catCards + '</div>'
-                    + '<div style="text-align:center;"><a data-sim-field="cta" class="sim-btn-primary" style="background:' + esc(btnBg) + ';color:' + esc(btnText) + ';">Ver Resultados</a></div>'
+                    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;max-width:900px;margin:0 auto 2.5rem;">' + stepCards + '</div>'
+                    + '<div style="text-align:center;"><a data-sim-field="cta" class="sim-btn-primary" style="background:' + esc(accentColor) + ';color:' + esc(btnText) + ';">Ver Resultados</a></div>'
                     + '</div>';
             }
 
