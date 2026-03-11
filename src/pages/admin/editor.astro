@@ -2241,6 +2241,9 @@ let products: any[] = [];
                     return s.id === toId;
                 });
                 if (fromIdx < 0 || toIdx < 0) return;
+                // El Hero siempre permanece en la primera posición
+                if (items[fromIdx].section_key === 'hero') return;
+                if (toIdx === 0 && items[0] && items[0].section_key === 'hero') return;
                 var moved = items.splice(fromIdx, 1)[0];
                 items.splice(toIdx, 0, moved);
                 var orders = items.map(function (s, i) {
@@ -2339,9 +2342,11 @@ let products: any[] = [];
                         var sbPanel = $("#vbSidebar");
                         if (currentPage === "shop") {
                             if (poPanel) poPanel.style.display = "flex";
+                            if (sbPanel) sbPanel.style.display = "none";
                             renderProductOrder();
                         } else {
                             if (poPanel) poPanel.style.display = "none";
+                            if (sbPanel) sbPanel.style.display = "";
                         }
                     });
                 });

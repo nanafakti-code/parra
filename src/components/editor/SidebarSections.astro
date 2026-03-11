@@ -69,27 +69,7 @@
         <!-- Rendered by JS -->
     </div>
 
-    <!-- Sidebar Footer: Add Block -->
-    <div class="vb-sidebar-foot">
-        <button class="vb-add-block-btn" id="vbAddBlock">
-            <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                ><line x1="12" y1="5" x2="12" y2="19"></line><line
-                    x1="5"
-                    y1="12"
-                    x2="19"
-                    y2="12"></line></svg
-            >
-            Añadir bloque
-        </button>
-    </div>
+
 </div>
 
 <style>
@@ -241,6 +221,13 @@
     }
     :global(.vb-block-grip:active) {
         cursor: grabbing;
+    }
+    :global(.vb-block-grip-locked) {
+        cursor: not-allowed !important;
+        color: rgba(57, 255, 20, 0.35) !important;
+    }
+    :global(.vb-block-locked) {
+        opacity: 0.9;
     }
 
     /* Block Icon */
@@ -445,17 +432,22 @@
                 sections.forEach(function (s, i) {
                     var isActive = s.id === selectedId;
                     var unsaved = unsavedIds && unsavedIds.has(s.id);
+                    var isHero = (s.section_key === 'hero' && i === 0);
                     html +=
                         '<div class="vb-block' +
                         (isActive ? " active" : "") +
+                        (isHero ? " vb-block-locked" : "") +
                         '" data-id="' +
                         s.id +
-                        '" draggable="true" style="animation-delay:' +
+                        '" data-key="' +
+                        esc(s.section_key) +
+                        '" draggable="' + (isHero ? 'false' : 'true') + '" style="animation-delay:' +
                         i * 30 +
                         'ms">' +
-                        '<div class="vb-block-grip" title="Arrastrar">' +
-                        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>' +
-                        "</div>" +
+                        (isHero
+                            ? '<div class="vb-block-grip vb-block-grip-locked" title="El Hero siempre es el primero"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>'
+                            : '<div class="vb-block-grip" title="Arrastrar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg></div>') +
+                        "" +
                         '<div class="vb-block-icon">' +
                         getIcon(s.section_key) +
                         "</div>" +
@@ -495,6 +487,8 @@
                 var self = this;
                 container.querySelectorAll(".vb-block").forEach(function (el) {
                     el.addEventListener("dragstart", function (e) {
+                        // El Hero nunca se puede mover
+                        if (this.dataset.key === 'hero') { e.preventDefault(); return; }
                         self._dragSrcId = this.dataset.id;
                         this.classList.add("dragging");
                         e.dataTransfer.effectAllowed = "move";
