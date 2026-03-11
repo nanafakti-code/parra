@@ -7,6 +7,7 @@
  */
 
 import { Resend } from 'resend';
+import { supabaseAdmin } from '../supabase';
 
 // ── Resend client ─────────────────────────────────────────────────────────────
 
@@ -25,13 +26,37 @@ const c = {
   bg: '#0a0a0a',
   card: '#0d0d0d',
   cardBorder: '#1a1a1a',
-  gold: '#39FF14',   // neon green — color acento web
-  goldLight: '#57FF2A',   // neon green claro (hover / subtexto)
+  gold: '#39FF14',        // color acento (se sobreescribe con el del admin)
+  goldLight: '#57FF2A',   // variante clara (se sobreescribe con el del admin)
   white: '#ffffff',
   muted: '#9ca3af',
   subtle: '#6b7280',
   divider: '#1a1a1a',
 };
+
+// Aclara un hex acercando cada canal RGB hacia 255 (factor 0–1)
+function lightenHex(hex: string, factor: number): string {
+  const h = hex.replace('#', '');
+  return '#' + [0, 2, 4]
+    .map(i => {
+      const v = parseInt(h.substring(i, i + 2), 16);
+      return Math.round(v + (255 - v) * factor).toString(16).padStart(2, '0');
+    })
+    .join('');
+}
+
+// Carga el color de marca del admin y actualiza `c.gold` / `c.goldLight`
+async function loadBrandColors(): Promise<void> {
+  try {
+    const { data } = await supabaseAdmin
+      .from('site_settings').select('value').eq('key', 'brand').single();
+    const raw = (data?.value as any)?.primary_color;
+    if (raw && /^#[0-9a-fA-F]{6}$/.test(raw)) {
+      c.gold = raw.toUpperCase();
+      c.goldLight = lightenHex(raw, 0.35);
+    }
+  } catch { /* mantener default */ }
+}
 
 const fontStack = "Arial, 'Helvetica Neue', Helvetica, sans-serif";
 
@@ -237,6 +262,7 @@ function buildOrderConfirmationHtml(
 }
 
 export async function sendOrderConfirmation({ order, items, pdfBuffer }: SendOrderConfirmationOptions) {
+  await loadBrandColors();
   const resend = getResend();
   const orderNumber = order.order_number || `PG-${String(order.id).slice(-8).toUpperCase()}`;
   const html = buildOrderConfirmationHtml(order, items);
@@ -341,6 +367,7 @@ function buildShippingHtml(opts: SendShippingUpdateOptions): string {
 }
 
 export async function sendShippingUpdate(opts: SendShippingUpdateOptions) {
+  await loadBrandColors();
   const resend = getResend();
   const { data, error } = await resend.emails.send({
     from: FROM,
@@ -401,6 +428,7 @@ function buildDeliveredHtml(opts: SendOrderDeliveredOptions): string {
 }
 
 export async function sendOrderDelivered(opts: SendOrderDeliveredOptions) {
+  await loadBrandColors();
   const resend = getResend();
   const { data, error } = await resend.emails.send({
     from: FROM,
@@ -467,6 +495,7 @@ function buildPasswordResetHtml(opts: SendPasswordResetOptions): string {
 }
 
 export async function sendPasswordReset(opts: SendPasswordResetOptions) {
+  await loadBrandColors();
   const resend = getResend();
   const { data, error } = await resend.emails.send({
     from: FROM,
