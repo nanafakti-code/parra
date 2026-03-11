@@ -6,12 +6,12 @@ export default {
         extend: {
             colors: {
                 brand: {
-                    DEFAULT: '#39FF14',
+                    DEFAULT: 'rgb(var(--brand-rgb))',
                     50: '#E8FFE0',
                     100: '#CCFFBD',
                     200: '#9FFF82',
                     300: '#72FF47',
-                    400: '#39FF14',
+                    400: 'rgb(var(--brand-rgb))',
                     500: '#2DD60E',
                     600: '#22A30A',
                     700: '#177007',
@@ -55,8 +55,8 @@ export default {
                     '100%': { transform: 'translateX(0)' },
                 },
                 'glow-pulse': {
-                    '0%, 100%': { boxShadow: '0 0 20px rgba(57, 255, 20, 0.3)' },
-                    '50%': { boxShadow: '0 0 40px rgba(57, 255, 20, 0.6)' },
+                    '0%, 100%': { boxShadow: '0 0 20px rgba(var(--brand-rgb), 0.3)' },
+                    '50%': { boxShadow: '0 0 40px rgba(var(--brand-rgb), 0.6)' },
                 },
                 marquee: {
                     '0%': { transform: 'translateX(0)' },
