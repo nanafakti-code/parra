@@ -1361,9 +1361,7 @@ const navItems = [
                             window.adminToast("Sesión cerrada.", "success");
                         }
                         setTimeout(function () {
-                            window.location.replace(
-                                "http://localhost:4322/admin/login",
-                            );
+                            window.location.replace("/admin/login");
                         }, 400);
                     } else {
                         try {
