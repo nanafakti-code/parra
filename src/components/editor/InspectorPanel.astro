@@ -1001,18 +1001,25 @@
                 var iconEl = document.getElementById("vbInspectorIcon");
                 if (iconHtml) iconEl.innerHTML = iconHtml;
 
-                // Reset to content tab
+                var hasContent = schema && schema.length > 0;
+
+                // Mostrar/ocultar pestaña Contenido según si hay campos
+                var tabContent = document.querySelector('.vb-inspector-tab[data-tab="content"]');
+                if (tabContent) tabContent.style.display = hasContent ? "" : "none";
+
+                // Reset a la primera pestaña visible
+                var firstVisibleTab = hasContent ? "content" : "style";
                 document
                     .querySelectorAll(".vb-inspector-tab")
-                    .forEach(function (t, i) {
-                        t.classList.toggle("active", i === 0);
+                    .forEach(function (t) {
+                        t.classList.toggle("active", t.dataset.tab === firstVisibleTab);
                     });
                 document
                     .querySelectorAll(".vb-tab-panel")
                     .forEach(function (p) {
                         p.classList.toggle(
                             "active",
-                            p.dataset.panel === "content",
+                            p.dataset.panel === firstVisibleTab,
                         );
                     });
 
@@ -1022,9 +1029,7 @@
                 (schema || []).forEach(function (f) {
                     contentHtml += renderField(f, content[f.key]);
                 });
-                document.getElementById("vbPanelContent").innerHTML =
-                    contentHtml ||
-                    '<div class="vb-inspector-empty-sub" style="padding:1rem;text-align:center;">Sin campos editables</div>';
+                document.getElementById("vbPanelContent").innerHTML = contentHtml;
 
                 // Render style tab — Visibilidad + dynamic style fields
                 var styleHtml =
