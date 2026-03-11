@@ -2999,23 +2999,28 @@ let products: any[] = [];
             }
 
             function renderNewsletter(c) {
-                var title = c.title || 'Únete a la Élite';
-                var subtitle = c.subtitle || 'Recibe ofertas exclusivas y novedades antes que nadie.';
                 var btnText = c.button_text || 'Suscribirme';
                 var titleColor = c.style_title_color || '#FFFFFF';
-                var accentColor = c.style_accent_color || '#39FF14';
-                var inputBg = c.style_input_bg || 'rgba(255,255,255,0.04)';
+                var accentColor = c.style_btn_bg || '#39FF14';
+                var subtitleColor = c.style_subtitle_color || 'rgba(255,255,255,0.5)';
+                var inputBg = c.style_input_bg || '#111827';
+                var inputBorder = c.style_input_border || '#1F2937';
+                var inputText = c.style_input_text || '#FFFFFF';
                 var btnBg = c.style_btn_bg || '#39FF14';
                 var btnTextColor = c.style_btn_text || '#000';
+                var sectionBg = c.style_section_bg || 'transparent';
 
-                return '<div style="padding:5rem 2rem;background:linear-gradient(135deg,#060a06 0%,#0d1a0d 100%);border-top:1px solid rgba(57,255,20,0.08);">'
+                return '<div style="padding:5rem 2rem;background:' + esc(sectionBg) + ';">'
                     + '<div style="max-width:520px;margin:0 auto;text-align:center;">'
-                    + '<h2 data-sim-field="title" style="font-family:\'Oswald\',sans-serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;text-transform:uppercase;letter-spacing:-0.02em;margin:0 0 0.6rem;color:' + esc(titleColor) + ';">' + esc(title) + '</h2>'
-                    + '<p data-sim-field="subtitle" style="font-size:0.88rem;color:rgba(255,255,255,0.45);line-height:1.6;margin:0 0 2rem;max-width:380px;margin-left:auto;margin-right:auto;">' + esc(subtitle) + '</p>'
-                    + '<div style="display:flex;gap:0;max-width:420px;margin:0 auto;">'
-                    + '<input type="email" placeholder="tu@email.com" style="flex:1;background:' + esc(inputBg) + ';border:1px solid rgba(255,255,255,0.08);border-right:none;color:#fff;padding:0.85rem 1.1rem;font-size:0.85rem;outline:none;" disabled>'
+                    + '<div style="display:inline-block;padding:4px 16px;border:1px solid ' + esc(accentColor) + ';font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3em;color:' + esc(accentColor) + ';opacity:0.8;margin-bottom:1.25rem;">Exclusivo</div>'
+                    + '<h2 data-sim-field="title" style="font-family:\'Oswald\',sans-serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;text-transform:uppercase;letter-spacing:-0.02em;margin:0 0 1rem;color:' + esc(titleColor) + ';">Únete al <span style="color:' + esc(accentColor) + ';">Club</span></h2>'
+                    + '<p data-sim-field="subtitle" style="font-size:0.88rem;color:' + esc(subtitleColor) + ';line-height:1.6;margin:0 0 2rem;max-width:380px;margin-left:auto;margin-right:auto;">Recibe ofertas exclusivas, novedades y un <strong style="color:' + esc(accentColor) + ';">10% de descuento</strong> en tu primera compra.</p>'
+                    + '<div style="display:flex;gap:0.75rem;max-width:420px;margin:0 auto;">'
+                    + '<input type="email" placeholder="Tu email..." style="flex:1;background:' + esc(inputBg) + ';border:1px solid ' + esc(inputBorder) + ';color:' + esc(inputText) + ';padding:0.85rem 1.1rem;font-size:0.85rem;outline:none;" disabled>'
                     + '<button data-sim-field="button" style="background:' + esc(btnBg) + ';color:' + esc(btnTextColor) + ';border:none;padding:0.85rem 1.6rem;font-family:\'Oswald\',sans-serif;font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.1em;cursor:pointer;white-space:nowrap;">' + esc(btnText) + '</button>'
-                    + '</div></div></div>';
+                    + '</div>'
+                    + '<p style="font-size:0.72rem;margin-top:1rem;color:rgba(255,255,255,0.3);letter-spacing:0.05em;">Sin spam. Cancela cuando quieras.</p>'
+                    + '</div></div>';
             }
 
             function renderBanner(c) {
