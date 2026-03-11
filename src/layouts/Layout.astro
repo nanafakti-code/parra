@@ -125,6 +125,17 @@ const websiteSchema = JSON.stringify({
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
+		<!-- Preload LCP hero image — evita el LCP penalty de 49s -->
+		<!-- La imagen hero se carga como CSS background-image, el browser no la descubre
+		     hasta parsear el CSS. El preload adelanta la descarga al inicio del HTML. -->
+		<link
+			rel="preload"
+			href="https://res.cloudinary.com/djvj32zic/image/upload/f_webp,q_auto,w_1200/v1771850353/wmremove-transformed_qkiglz.png"
+			as="image"
+			type="image/webp"
+			fetchpriority="high"
+		/>
+
 		<!-- Google Fonts: Oswald + Inter — non-blocking load -->
 		<link
 			rel="preload"

@@ -111,7 +111,8 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
     response.headers.set('X-Frame-Options', 'DENY');
     response.headers.set('X-Content-Type-Options', 'nosniff');
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-    response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
+    // max-age=31536000 (1 año) + includeSubDomains + preload — cumple requisitos para HSTS Preload List
+    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     // payment=(self "https://js.stripe.com") — permite que el iframe de Stripe use la
     // Payment Request API (necesario para Apple Pay / Google Pay)
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self "https://js.stripe.com")');
@@ -130,6 +131,8 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
             "font-src 'self' https://fonts.gstatic.com",
             "object-src 'none'",
             "base-uri 'self'",
+            // Stripe usa Web Workers para criptografía del lado del cliente
+            "worker-src blob:",
         ].join('; ')
     );
 
