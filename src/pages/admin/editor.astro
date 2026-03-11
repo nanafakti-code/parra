@@ -1472,7 +1472,7 @@ let products: any[] = [];
                     { key: "step3_opt3", label: "Paso 3 — Opción 3", type: "text", defaultValue: "Entrada (-40€)" },
                 ],
                 testimonials: [
-                    { key: "title",         label: "Título (parte blanca)",   type: "text",     defaultValue: "Lo Que Dicen" },
+                    { key: "title_main",    label: "Título (parte blanca)",   type: "text",     defaultValue: "Lo Que Dicen" },
                     { key: "title_accent",  label: "Título (parte en color)",  type: "text",     defaultValue: "Nuestros Porteros" },
                     { key: "subtitle",      label: "Subtítulo",                type: "textarea", defaultValue: "Porteros de todos los niveles confían en PARRA." },
                     { key: "item1_quote",   label: "Tarjeta 1 — Reseña",       type: "textarea", defaultValue: "Los mejores guantes que he probado. El agarre del Titan Pro es increíble, incluso en condiciones de lluvia." },
@@ -1976,8 +1976,8 @@ let products: any[] = [];
                     step3_opt3: { c: ['step3_opt1','step3_opt2','step3_opt3'], s: ['style_option_text_color_hex'] },
                 },
                 testimonials: {
-                    title:    { c: ['title','title_accent'], s: ['style_title_color','style_stars_color'] },
-                    subtitle: { c: ['subtitle'],            s: ['style_subtitle_color'] },
+                    title_main: { c: ['title_main','title_accent'], s: ['style_title_color','style_stars_color'] },
+                    subtitle:   { c: ['subtitle'],                 s: ['style_subtitle_color'] },
                     item1:    { c: ['item1_quote','item1_name','item1_team','item1_avatar'], s: ['style_card_bg','style_card_border','style_text_color','style_name_color','style_stars_color'] },
                     item2:    { c: ['item2_quote','item2_name','item2_team','item2_avatar'], s: ['style_card_bg','style_card_border','style_text_color','style_name_color','style_stars_color'] },
                     item3:    { c: ['item3_quote','item3_name','item3_team','item3_avatar'], s: ['style_card_bg','style_card_border','style_text_color','style_name_color','style_stars_color'] },
@@ -2958,9 +2958,9 @@ let products: any[] = [];
                 var textColor = c.style_text_color || 'rgba(255,255,255,0.75)';
                 var nameColor = c.style_name_color || '#FFFFFF';
 
-                var titlePart1 = c.title        || 'Lo Que Dicen';
-                var titlePart2 = c.title_accent || 'Nuestros Porteros';
-                var subtitle   = c.subtitle     || 'Porteros de todos los niveles confían en PARRA.';
+                var titlePart1 = c.title_main    || 'Lo Que Dicen';
+                var titlePart2 = c.title_accent  || 'Nuestros Porteros';
+                var subtitle   = c.subtitle       || 'Porteros de todos los niveles confían en PARRA.';
 
                 var items = [
                     {
@@ -3002,7 +3002,7 @@ let products: any[] = [];
 
                 return '<div style="padding:5rem 2rem;background:transparent;">'
                     + '<div style="text-align:center;margin-bottom:3rem;">'
-                    + '<h2 data-sim-field="title" class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0 0 0.6rem;">' + esc(titlePart1) + ' <span style="color:' + esc(accentColor) + ';">' + esc(titlePart2) + '</span></h2>'
+                    + '<h2 data-sim-field="title_main" class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0 0 0.6rem;">' + esc(titlePart1) + ' <span style="color:' + esc(accentColor) + ';">' + esc(titlePart2) + '</span></h2>'
                     + '<p data-sim-field="subtitle" class="sim-section-sub" style="color:' + esc(subColor) + ';">' + esc(subtitle) + '</p>'
                     + '</div>'
                     + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.5rem;max-width:950px;margin:0 auto;">' + cardsHtml + '</div>'
