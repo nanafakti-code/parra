@@ -105,9 +105,9 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
         'Content-Security-Policy',
         [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' https://js.stripe.com https://challenges.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net",
+            "script-src 'self' 'unsafe-inline' https://js.stripe.com https://challenges.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://upload-widget.cloudinary.com",
             "frame-src https://js.stripe.com https://challenges.cloudflare.com",
-            "connect-src 'self' https://api.stripe.com https://jboxsbtfhkanvnhxuxdd.supabase.co https://unpkg.com https://cdn.jsdelivr.net",
+            "connect-src 'self' https://api.stripe.com https://jboxsbtfhkanvnhxuxdd.supabase.co https://unpkg.com https://cdn.jsdelivr.net https://upload-widget.cloudinary.com https://api.cloudinary.com",
             "img-src 'self' data: https:",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com",
