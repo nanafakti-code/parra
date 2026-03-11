@@ -146,9 +146,9 @@ const homeSchemaJson = JSON.stringify([
 					style={`
 					--card-bg-color: ${fpData.style_card_bg || "#111827"};
 					--card-border-color: ${fpData.style_card_border || "#1F2937"};
-					--card-price-color: ${fpData.style_price_color || "var(--brand)"};
+					--card-price-color: ${bc(fpData.style_price_color, "var(--brand)")};
 					--card-name-color: ${fpData.style_product_name_color || "#FFFFFF"};
-					--section-accent-color: ${fpData.style_accent_color || "var(--brand)"};
+					--section-accent-color: ${bc(fpData.style_accent_color, "var(--brand)")};
 				`}
 				>
 					<div class="container">
@@ -160,7 +160,7 @@ const homeSchemaJson = JSON.stringify([
 								>
 									{fpData.title || "Productos"}{" "}
 									<span
-										style={`color: ${fpData.style_accent_color || "var(--brand)"};`}
+										style={`color: ${bc(fpData.style_accent_color, "var(--brand)")};`}
 									>
 										{fpData.title_accent || "Destacados"}
 									</span>
@@ -176,7 +176,7 @@ const homeSchemaJson = JSON.stringify([
 							<a
 								href={fpData.cta_link || "/shop"}
 								class="btn-outline group shrink-0"
-								style={`color: ${fpData.style_accent_color || "var(--brand)"}; border-color: ${fpData.style_accent_color || "var(--brand)"};`}
+								style={`color: ${bc(fpData.style_accent_color, "var(--brand)")}; border-color: ${bc(fpData.style_accent_color, "var(--brand)")};`}
 							>
 								{fpData.cta_text || "Ver toda la tienda"}
 								<svg
