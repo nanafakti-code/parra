@@ -107,8 +107,36 @@ export async function validateAdminAPI(request: Request, cookies: any): Promise<
     });
 
     const { data: { user }, error } = await authClient.auth.getUser(accessToken);
+    let resolvedUser = (!error && user) ? user : null;
 
-    if (!user || error) {
+    // Si el token expiró, intentar renovar con refresh token
+    if (!resolvedUser) {
+        let refreshToken = cookies.get('sb-refresh-token')?.value;
+        if (!refreshToken) {
+            const cookieHeader = request.headers.get('cookie') || '';
+            for (const part of cookieHeader.split(';')) {
+                const eqIdx = part.indexOf('=');
+                if (eqIdx === -1) continue;
+                const name = part.slice(0, eqIdx).trim();
+                if (name === 'sb-refresh-token') {
+                    refreshToken = part.slice(eqIdx + 1).trim();
+                    break;
+                }
+            }
+        }
+        if (refreshToken) {
+            const { data: { session, user: rUser }, error: rErr } = await authClient.auth.refreshSession({ refresh_token: refreshToken });
+            if (session && rUser && !rErr) {
+                const cookieOpts = { path: '/', httpOnly: true, secure: import.meta.env.PROD as boolean, sameSite: 'lax' as const, maxAge: 60 * 60 * 24 * 7 };
+                cookies.set('sb-access-token', session.access_token, cookieOpts);
+                cookies.set('sb-refresh-token', session.refresh_token, cookieOpts);
+                resolvedUser = rUser;
+                console.log('[validateAdminAPI] Token renovado automáticamente para:', rUser.email);
+            }
+        }
+    }
+
+    if (!resolvedUser) {
         console.error('[validateAdminAPI] error: Token inválido.', error);
         return jsonResponse({ error: `Token inválido: ${error?.message || 'Desconocido'}` }, 401);
     }
@@ -117,7 +145,7 @@ export async function validateAdminAPI(request: Request, cookies: any): Promise<
     const { data: byId } = await supabaseAdmin
         .from('users')
         .select('id, name, email, role, is_active')
-        .eq('id', user.id)
+        .eq('id', resolvedUser.id)
         .maybeSingle();
     if (byId) {
         dbUser = byId;
@@ -125,7 +153,7 @@ export async function validateAdminAPI(request: Request, cookies: any): Promise<
         const { data: byEmail } = await supabaseAdmin
             .from('users')
             .select('id, name, email, role, is_active')
-            .eq('email', user.email)
+            .eq('email', resolvedUser.email)
             .maybeSingle();
         dbUser = byEmail;
     }

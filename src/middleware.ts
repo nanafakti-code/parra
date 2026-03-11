@@ -13,8 +13,9 @@ import { supabase, supabaseAdmin } from "./lib/supabase";
 export const onRequest = defineMiddleware(async ({ cookies, locals, request, redirect }, next) => {
     const url = new URL(request.url);
 
-    // 1. Obtener access_token desde cookies para poder validar usuario antes de decidir redirección por mantenimiento
+    // 1. Obtener access_token y refresh_token desde cookies
     const accessToken = cookies.get("sb-access-token")?.value;
+    const refreshToken = cookies.get("sb-refresh-token")?.value;
 
     locals.user = null;
     locals.role = null;
@@ -22,9 +23,23 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
     if (accessToken) {
         // Validar usuario con Supabase Auth (sin usar admin para este paso)
         try {
-            const { data: { user }, error } = await supabase.auth.getUser(accessToken);
-            if (user && !error) {
-                locals.user = user;
+            const { data: authData, error: authError } = await supabase.auth.getUser(accessToken);
+            let resolvedUser = (authData.user && !authError) ? authData.user : null;
+
+            // Si el token expiró, intentar renovar con refresh token
+            if (!resolvedUser && refreshToken) {
+                const { data: { session, user: rUser }, error: rErr } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+                if (session && rUser && !rErr) {
+                    const opts = { path: '/', httpOnly: true, secure: import.meta.env.PROD as boolean, sameSite: 'lax' as const, maxAge: 60 * 60 * 24 * 7 };
+                    cookies.set('sb-access-token', session.access_token, opts);
+                    cookies.set('sb-refresh-token', session.refresh_token, opts);
+                    resolvedUser = rUser;
+                    console.log('[middleware] Token renovado automáticamente para:', rUser.email);
+                }
+            }
+
+            if (resolvedUser) {
+                locals.user = resolvedUser;
 
                 // Obtener rol desde la tabla users (busca por id primero, con fallback a email)
                 let profile: { role: string } | null = null;
@@ -32,7 +47,7 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
                 const { data: byId } = await supabaseAdmin
                     .from("users")
                     .select("id, role")
-                    .eq("id", user.id)
+                    .eq("id", resolvedUser.id)
                     .maybeSingle();
 
                 if (byId) {
@@ -41,7 +56,7 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
                     const { data: byEmail } = await supabaseAdmin
                         .from("users")
                         .select("id, role")
-                        .eq("email", user.email)
+                        .eq("email", resolvedUser.email)
                         .maybeSingle();
                     profile = byEmail;
                 }
@@ -49,7 +64,7 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
                 locals.role = profile?.role || "customer";
             }
         } catch (e) {
-            console.error('[middleware] auth.getUser error', e);
+            console.error('[middleware] auth error', e);
         }
     }
 
