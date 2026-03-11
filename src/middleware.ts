@@ -106,7 +106,7 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
         [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' https://js.stripe.com https://challenges.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://upload-widget.cloudinary.com",
-            "frame-src https://js.stripe.com https://challenges.cloudflare.com",
+            "frame-src https://js.stripe.com https://challenges.cloudflare.com https://upload-widget.cloudinary.com",
             "connect-src 'self' https://api.stripe.com https://jboxsbtfhkanvnhxuxdd.supabase.co https://unpkg.com https://cdn.jsdelivr.net https://upload-widget.cloudinary.com https://api.cloudinary.com",
             "img-src 'self' data: https:",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
