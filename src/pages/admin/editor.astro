@@ -1989,7 +1989,7 @@ let products: any[] = [];
             }
             function findSection(id) {
                 return allSections.find(function (s) {
-                    return s.id === id;
+                    return s.id == id; // loose equality handles string/number mismatch
                 });
             }
             function esc(str) {
@@ -2038,6 +2038,9 @@ let products: any[] = [];
                 highlightSim(null);
             }
 
+            // Expose for onclick inline handlers inside innerHTML
+            window._vbSelectSec = function(id) { selectSection(id); };
+
             // ═══════ EVENTS FROM COMPONENTS ═══════
             document.addEventListener("vb:select", function (e) {
                 selectSection(e.detail.id);
@@ -2048,7 +2051,7 @@ let products: any[] = [];
                 var wrap = e.target.closest('#vbSimContent .sim-sec-wrap');
                 if (wrap) {
                     var secId = wrap.getAttribute('data-sec-id');
-                    if (secId) selectSection(Number(secId));
+                    if (secId) selectSection(secId);
                 }
             });
             document.addEventListener("vb:toggle", function (e) {
@@ -2528,7 +2531,7 @@ let products: any[] = [];
                     var key = sec.section_key || '';
                     var baseKey = key.replace(/_\d+$/, '');
                     var label = sec.label || key;
-                    html += '<div class="sim-sec-wrap" data-sec-id="' + sec.id + '">'
+                    html += '<div class="sim-sec-wrap" data-sec-id="' + sec.id + '" onclick="window._vbSelectSec(\'' + sec.id + '\')" title="Clic para editar: ' + label + '">'
                         + '<div class="sim-sec-label">&#9998; ' + label + '</div>'
                         + renderSection(baseKey, c, sec)
                         + '</div>';
