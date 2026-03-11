@@ -2721,7 +2721,7 @@ try {
                     + '.sim-h{font-family:"Oswald","Impact",sans-serif;}'
                     + '.sim-section{padding:5rem 0;}'
                     + '.sim-container{max-width:1200px;margin:0 auto;padding:0 2rem;}'
-                    + '.sim-badge-sim{display:inline-block;padding:6px 20px;background:rgba(13,31,13,0.85);color:' + SIM_BRAND + ';font-family:"Inter",sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.38em;border:none;}'
+                    + '.sim-badge-sim{display:inline-block;padding:6px 20px;background:rgba(' + SIM_BRAND_RGB + ',0.12);color:' + SIM_BRAND + ';font-family:"Inter",sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.38em;border:1px solid rgba(' + SIM_BRAND_RGB + ',0.3);}'
                     + '.sim-btn-primary{display:inline-flex;align-items:center;gap:8px;padding:14px 36px;background:linear-gradient(135deg,' + SIM_BRAND + ' 0%,' + SIM_BRAND + ' 100%);color:#000;font-family:"Oswald",sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;border:none;cursor:pointer;text-decoration:none;border-radius:4px;box-shadow:0 0 30px rgba(' + SIM_BRAND_RGB + ',0.25);}'
                     + '.sim-btn-outline{display:inline-flex;align-items:center;padding:14px 32px;background:rgba(255,255,255,0.06);color:#fff;font-family:"Oswald",sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;border:none;cursor:pointer;text-decoration:none;border-radius:4px;backdrop-filter:blur(8px);}'
                     + '.sim-card{background:#111827;border:1px solid #1F2937;transition:border-color .3s;}'
@@ -2780,7 +2780,7 @@ try {
                     // content — left-aligned, 10% padding-left (desktop style)
                     + '<div style="position:relative;z-index:2;padding:4rem 2rem 4rem 10%;max-width:700px;">'
                     // badge
-                    + '<span data-sim-field="badge" style="display:inline-block;background:rgba(13,31,13,0.85);color:' + esc(badgeText) + ';font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.38em;padding:6px 20px;border-radius:2px;margin-bottom:1.5rem;">' + esc(badge) + '</span>'
+                    + '<span data-sim-field="badge" style="display:inline-block;background:rgba(' + SIM_BRAND_RGB + ',0.12);color:' + esc(badgeText) + ';font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.38em;padding:6px 20px;border-radius:2px;margin-bottom:1.5rem;border:1px solid rgba(' + SIM_BRAND_RGB + ',0.3);">' + esc(badge) + '</span>'
                     // headline — Oswald, giant, line-height 0.82
                     + '<h1 data-sim-field="title_line1" style="font-family:\'Oswald\',\'Impact\',sans-serif;font-size:clamp(4.5rem,12vw,8rem);font-weight:700;line-height:0.82;letter-spacing:-0.02em;text-transform:uppercase;margin:0 0 1.8rem;color:' + esc(c1) + ';">' 
                     + esc(t1) + '<br><span data-sim-field="title_line2" style="color:' + esc(c2) + ';">' + esc(t2) + '</span></h1>'

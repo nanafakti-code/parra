@@ -102,7 +102,7 @@ const styleSecondaryBorder = bc(content.style_secondary_border, "transparent");
             <div class="max-w-3xl hero-text-container">
                 <span
                     class="inline-block px-5 py-2 hero-badge rounded-sm text-[11px] sm:text-[13px] font-bold uppercase tracking-[0.4em] mb-6 opacity-0 animate-fade-up"
-                    style={`background: rgba(13, 31, 13, 0.8); color: ${styleBadgeText}; border: none; font-size: clamp(10px, 1.2vw, 14px);`}
+                    style={`background: rgba(var(--brand-rgb), 0.12); color: ${styleBadgeText}; border: 1px solid rgba(var(--brand-rgb), 0.3); font-size: clamp(10px, 1.2vw, 14px);`}
                 >
                     {badge}
                 </span>
