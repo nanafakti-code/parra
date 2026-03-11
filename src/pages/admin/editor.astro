@@ -1974,6 +1974,48 @@ let products: any[] = [];
                 ],
             };
 
+            // ═══════ SIM FIELD MAP (click element → schema keys) ═══════
+            var SIM_FIELD_MAP = {
+                hero: {
+                    badge:       { c: ['badge'],                           s: ['style_badge_bg','style_badge_text'] },
+                    title_line1: { c: ['title_line1'],                     s: ['style_title_line1_color'] },
+                    title_line2: { c: ['title_line2'],                     s: ['style_title_line2_color'] },
+                    subtitle:    { c: ['subtitle','subtitle_mobile'],      s: ['style_subtitle_color'] },
+                    cta:         { c: ['cta_text','cta_link'],             s: ['style_cta_bg','style_cta_text','style_cta_hover_bg'] },
+                    secondary:   { c: ['secondary_text','secondary_link'], s: ['style_secondary_bg','style_secondary_text','style_secondary_border'] },
+                },
+                featured_products: {
+                    title:    { c: ['title','title_accent'], s: ['style_title_color','style_accent_color'] },
+                    subtitle: { c: ['subtitle'],            s: ['style_subtitle_color'] },
+                    cta:      { c: ['cta_text','cta_link'], s: ['style_cta_bg','style_cta_text'] },
+                },
+                benefits: {
+                    title: { c: ['title'], s: ['style_title_color','style_icon_color'] },
+                },
+                glove_selector: {
+                    title:    { c: ['title'],    s: ['style_title_color'] },
+                    subtitle: { c: ['subtitle'], s: ['style_subtitle_color'] },
+                    cta:      { c: [],           s: ['style_btn_bg','style_btn_text'] },
+                },
+                testimonials: {
+                    title:    { c: ['title'],    s: ['style_title_color'] },
+                    subtitle: { c: ['subtitle'], s: ['style_subtitle_color','style_stars_color'] },
+                },
+                cta_banner: {
+                    title_line1: { c: ['title_line1'],         s: ['style_title_line1_color'] },
+                    title_line2: { c: ['title_line2'],         s: ['style_title_line2_color'] },
+                    cta:         { c: ['cta_text','cta_link'], s: ['style_cta_bg','style_cta_text','style_cta_hover_bg'] },
+                },
+                newsletter: {
+                    title:   { c: ['title','subtitle'], s: ['style_title_color','style_subtitle_color'] },
+                    subtitle:{ c: ['subtitle'],         s: ['style_subtitle_color'] },
+                    button:  { c: ['button_text'],      s: ['style_btn_bg','style_btn_text'] },
+                },
+                banner: {
+                    text: { c: ['text'], s: ['style_bg_color','style_text_color'] },
+                },
+            };
+
             // ═══════ HELPERS ═══════
             function $(sel) {
                 return document.querySelector(sel);
@@ -2040,6 +2082,25 @@ let products: any[] = [];
 
             // Expose for onclick inline handlers inside innerHTML
             window._vbSelectSec = function(id) { selectSection(id); };
+            window._vbSelectSecField = function(id, fieldName) {
+                selectedId = id;
+                render();
+                var section = findSection(id);
+                if (!section || !window.VBInspector) { highlightSim(id); return; }
+                var schemaKey = section.section_key;
+                if (!SCHEMAS[schemaKey]) {
+                    var bk = schemaKey.replace(/_\d+$/, '');
+                    if (SCHEMAS[bk]) schemaKey = bk;
+                }
+                var allC = SCHEMAS[schemaKey] || [];
+                var allS = STYLE_SCHEMAS[schemaKey] || [];
+                var fd = SIM_FIELD_MAP[schemaKey] && SIM_FIELD_MAP[schemaKey][fieldName];
+                var fc = fd ? allC.filter(function(f){ return fd.c.indexOf(f.key) !== -1; }) : allC;
+                var fs = fd ? allS.filter(function(f){ return fd.s.indexOf(f.key) !== -1; }) : allS;
+                if (fc.length === 0 && fs.length === 0) { fc = allC; fs = allS; }
+                window.VBInspector.show(section, fc, fs);
+                highlightSim(id);
+            };
 
             // ═══════ EVENTS FROM COMPONENTS ═══════
             document.addEventListener("vb:select", function (e) {
@@ -2051,7 +2112,13 @@ let products: any[] = [];
                 var wrap = e.target.closest('#vbSimContent .sim-sec-wrap');
                 if (wrap) {
                     var secId = wrap.getAttribute('data-sec-id');
-                    if (secId) selectSection(secId);
+                    if (!secId) return;
+                    var fieldEl = e.target.closest('[data-sim-field]');
+                    if (fieldEl && wrap.contains(fieldEl)) {
+                        window._vbSelectSecField(secId, fieldEl.getAttribute('data-sim-field'));
+                    } else {
+                        window._vbSelectSec(secId);
+                    }
                 }
             });
             document.addEventListener("vb:toggle", function (e) {
@@ -2655,6 +2722,8 @@ let products: any[] = [];
                     + '.sim-sec-wrap.sim-sec-selected{outline:2px solid #39FF14;}'
                     + '.sim-sec-label{position:absolute;top:0;right:0;z-index:200;background:#39FF14;color:#000;font-family:"Inter",sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;padding:3px 10px;opacity:0;transition:opacity 0.15s;pointer-events:none;}'
                     + '.sim-sec-wrap:hover .sim-sec-label,.sim-sec-wrap.sim-sec-selected .sim-sec-label{opacity:1;}'
+                    + '[data-sim-field]{cursor:pointer;}'
+                    + '[data-sim-field]:hover{outline:1px dashed rgba(57,255,20,0.5);outline-offset:2px;border-radius:2px;}'
                     + '</style>';
             }
 
@@ -2700,19 +2769,19 @@ let products: any[] = [];
                     // content — left-aligned, 10% padding-left (desktop style)
                     + '<div style="position:relative;z-index:2;padding:4rem 2rem 4rem 10%;max-width:700px;">'
                     // badge
-                    + '<span style="display:inline-block;background:rgba(13,31,13,0.85);color:' + esc(badgeText) + ';font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.38em;padding:6px 20px;border-radius:2px;margin-bottom:1.5rem;">' + esc(badge) + '</span>'
+                    + '<span data-sim-field="badge" style="display:inline-block;background:rgba(13,31,13,0.85);color:' + esc(badgeText) + ';font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.38em;padding:6px 20px;border-radius:2px;margin-bottom:1.5rem;">' + esc(badge) + '</span>'
                     // headline — Oswald, giant, line-height 0.82
-                    + '<h1 style="font-family:\'Oswald\',\'Impact\',sans-serif;font-size:clamp(4.5rem,12vw,8rem);font-weight:700;line-height:0.82;letter-spacing:-0.02em;text-transform:uppercase;margin:0 0 1.8rem;color:' + esc(c1) + ';">'
-                    + esc(t1) + '<br><span style="color:' + esc(c2) + ';">' + esc(t2) + '</span></h1>'
+                    + '<h1 data-sim-field="title_line1" style="font-family:\'Oswald\',\'Impact\',sans-serif;font-size:clamp(4.5rem,12vw,8rem);font-weight:700;line-height:0.82;letter-spacing:-0.02em;text-transform:uppercase;margin:0 0 1.8rem;color:' + esc(c1) + ';">' 
+                    + esc(t1) + '<br><span data-sim-field="title_line2" style="color:' + esc(c2) + ';">' + esc(t2) + '</span></h1>'
                     // subtitle
-                    + '<p style="font-size:0.9rem;line-height:1.65;color:' + esc(cs) + ';margin:0 0 2rem;max-width:360px;">' + esc(sub) + '</p>'
+                    + '<p data-sim-field="subtitle" style="font-size:0.9rem;line-height:1.65;color:' + esc(cs) + ';margin:0 0 2rem;max-width:360px;">' + esc(sub) + '</p>'
                     // buttons
                     + '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">'
-                    + '<a class="sim-btn-primary" style="background:linear-gradient(135deg,' + esc(cbg) + ' 0%,' + esc(cbg) + ' 100%);color:' + esc(cct) + ';box-shadow:0 0 25px rgba(57,255,20,0.25);">'
+                    + '<a data-sim-field="cta" class="sim-btn-primary" style="background:linear-gradient(135deg,' + esc(cbg) + ' 0%,' + esc(cbg) + ' 100%);color:' + esc(cct) + ';box-shadow:0 0 25px rgba(57,255,20,0.25);">'
                     + esc(ctaText)
                     + '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>'
                     + '</a>'
-                    + '<a class="sim-btn-outline">' + esc(secText) + '</a>'
+                    + '<a data-sim-field="secondary" class="sim-btn-outline">' + esc(secText) + '</a>'
                     + '</div></div></div>';
             }
 
@@ -2769,8 +2838,8 @@ let products: any[] = [];
 
                 return '<div style="padding:5rem 2rem;background:#0a0a0a;">'
                     + '<div style="text-align:center;margin-bottom:3rem;">'
-                    + '<h2 class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0 0 0.6rem;">' + esc(title) + ' <span style="color:' + esc(accentColor) + ';">' + esc(accent) + '</span></h2>'
-                    + (sub ? '<p class="sim-section-sub">' + esc(sub) + '</p>' : '')
+                    + '<h2 data-sim-field="title" class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0 0 0.6rem;">' + esc(title) + ' <span style="color:' + esc(accentColor) + ';">' + esc(accent) + '</span></h2>'
+                    + (sub ? '<p data-sim-field="subtitle" class="sim-section-sub">' + esc(sub) + '</p>' : '')
                     + '</div>'
                     + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:1.25rem;max-width:960px;margin:0 auto;">' + cardsHtml + '</div>'
                     + '</div>';
@@ -2815,8 +2884,8 @@ let products: any[] = [];
 
                 return '<div style="padding:5rem 2rem;background:' + esc(sectionBg) + ';">'
                     + '<div style="text-align:center;margin-bottom:3.5rem;">'
-                    + '<h2 class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0;">Por Qué <span style="color:' + esc(iconColor) + ';">PARRA</span></h2>'
-                    + '<p class="sim-section-sub">Tecnología de vanguardia para porteros que exigen lo mejor.</p>'
+                    + '<h2 data-sim-field="title" class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0;">Por Qué <span style="color:' + esc(iconColor) + ';">PARRA</span></h2>'
+                    + '<p data-sim-field="subtitle" class="sim-section-sub">Tecnología de vanguardia para porteros que exigen lo mejor.</p>'
                     + '</div>'
                     + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2rem;max-width:900px;margin:0 auto;">' + cardsHtml + '</div>'
                     + '</div>';
@@ -2851,11 +2920,11 @@ let products: any[] = [];
 
                 return '<div style="padding:5rem 2rem;background:' + esc(sectionBg) + ';">'
                     + '<div style="text-align:center;margin-bottom:3rem;">'
-                    + '<h2 class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0 0 0.6rem;">' + esc(title) + '</h2>'
-                    + '<p class="sim-section-sub">' + esc(subtitle) + '</p>'
+                    + '<h2 data-sim-field="title" class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0 0 0.6rem;">' + esc(title) + '</h2>'
+                    + '<p data-sim-field="subtitle" class="sim-section-sub">' + esc(subtitle) + '</p>'
                     + '</div>'
                     + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:1rem;max-width:800px;margin:0 auto 2.5rem;">' + catCards + '</div>'
-                    + '<div style="text-align:center;"><a class="sim-btn-primary" style="background:' + esc(btnBg) + ';color:' + esc(btnText) + ';">Ver Resultados</a></div>'
+                    + '<div style="text-align:center;"><a data-sim-field="cta" class="sim-btn-primary" style="background:' + esc(btnBg) + ';color:' + esc(btnText) + ';">Ver Resultados</a></div>'
                     + '</div>';
             }
 
@@ -2897,8 +2966,8 @@ let products: any[] = [];
 
                 return '<div style="padding:5rem 2rem;background:transparent;">'
                     + '<div style="text-align:center;margin-bottom:3rem;">'
-                    + '<h2 class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0 0 0.6rem;">Lo Que Dicen <span style="color:' + esc(accentColor) + ';">Nuestros Porteros</span></h2>'
-                    + '<p class="sim-section-sub">Porteros de todos los niveles confían en PARRA.</p>'
+                    + '<h2 data-sim-field="title" class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0 0 0.6rem;">Lo Que Dicen <span style="color:' + esc(accentColor) + ';">Nuestros Porteros</span></h2>'
+                    + '<p data-sim-field="subtitle" class="sim-section-sub">Porteros de todos los niveles confían en PARRA.</p>'
                     + '</div>'
                     + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.5rem;max-width:950px;margin:0 auto;">' + cardsHtml + '</div>'
                     + '</div>';
@@ -2918,9 +2987,9 @@ let products: any[] = [];
                     + '">'
                     + (bg ? '<div style="position:absolute;inset:0;background:rgba(0,0,0,' + overlayOpacity + ');"></div>' : '')
                     + '<div style="position:relative;z-index:1;text-align:center;max-width:700px;margin:0 auto;">'
-                    + '<h2 style="font-family:\'Oswald\',sans-serif;font-size:clamp(2.5rem,5vw,4rem);font-weight:700;text-transform:uppercase;letter-spacing:-0.02em;line-height:0.9;margin:0 0 0.15rem;color:' + esc(titleColor) + ';">' + esc(t1) + '</h2>'
-                    + '<h2 style="font-family:\'Oswald\',sans-serif;font-size:clamp(2.5rem,5vw,4rem);font-weight:700;text-transform:uppercase;letter-spacing:-0.02em;line-height:0.9;margin:0 0 2.5rem;color:' + esc(accentColor) + ';">' + esc(t2) + '</h2>'
-                    + '<a class="sim-btn-primary">' + esc(ctaText) + '</a>'
+                    + '<h2 data-sim-field="title_line1" style="font-family:\'Oswald\',sans-serif;font-size:clamp(2.5rem,5vw,4rem);font-weight:700;text-transform:uppercase;letter-spacing:-0.02em;line-height:0.9;margin:0 0 0.15rem;color:' + esc(titleColor) + ';">' + esc(t1) + '</h2>'
+                    + '<h2 data-sim-field="title_line2" style="font-family:\'Oswald\',sans-serif;font-size:clamp(2.5rem,5vw,4rem);font-weight:700;text-transform:uppercase;letter-spacing:-0.02em;line-height:0.9;margin:0 0 2.5rem;color:' + esc(accentColor) + ';">' + esc(t2) + '</h2>'
+                    + '<a data-sim-field="cta" class="sim-btn-primary">' + esc(ctaText) + '</a>'
                     + '</div></div>';
             }
 
@@ -2936,11 +3005,11 @@ let products: any[] = [];
 
                 return '<div style="padding:5rem 2rem;background:linear-gradient(135deg,#060a06 0%,#0d1a0d 100%);border-top:1px solid rgba(57,255,20,0.08);">'
                     + '<div style="max-width:520px;margin:0 auto;text-align:center;">'
-                    + '<h2 style="font-family:\'Oswald\',sans-serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;text-transform:uppercase;letter-spacing:-0.02em;margin:0 0 0.6rem;color:' + esc(titleColor) + ';">' + esc(title) + '</h2>'
-                    + '<p style="font-size:0.88rem;color:rgba(255,255,255,0.45);line-height:1.6;margin:0 0 2rem;max-width:380px;margin-left:auto;margin-right:auto;">' + esc(subtitle) + '</p>'
+                    + '<h2 data-sim-field="title" style="font-family:\'Oswald\',sans-serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;text-transform:uppercase;letter-spacing:-0.02em;margin:0 0 0.6rem;color:' + esc(titleColor) + ';">' + esc(title) + '</h2>'
+                    + '<p data-sim-field="subtitle" style="font-size:0.88rem;color:rgba(255,255,255,0.45);line-height:1.6;margin:0 0 2rem;max-width:380px;margin-left:auto;margin-right:auto;">' + esc(subtitle) + '</p>'
                     + '<div style="display:flex;gap:0;max-width:420px;margin:0 auto;">'
                     + '<input type="email" placeholder="tu@email.com" style="flex:1;background:' + esc(inputBg) + ';border:1px solid rgba(255,255,255,0.08);border-right:none;color:#fff;padding:0.85rem 1.1rem;font-size:0.85rem;outline:none;" disabled>'
-                    + '<button style="background:' + esc(btnBg) + ';color:' + esc(btnTextColor) + ';border:none;padding:0.85rem 1.6rem;font-family:\'Oswald\',sans-serif;font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.1em;cursor:pointer;white-space:nowrap;">' + esc(btnText) + '</button>'
+                    + '<button data-sim-field="button" style="background:' + esc(btnBg) + ';color:' + esc(btnTextColor) + ';border:none;padding:0.85rem 1.6rem;font-family:\'Oswald\',sans-serif;font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.1em;cursor:pointer;white-space:nowrap;">' + esc(btnText) + '</button>'
                     + '</div></div></div>';
             }
 
@@ -2948,7 +3017,7 @@ let products: any[] = [];
                 var text = c.text || 'Banner de información';
                 var bgColor = c.bg_color || '#39FF14';
                 var textColor = c.text_color || '#000';
-                return '<div style="background:' + esc(bgColor) + ';color:' + esc(textColor) + ';text-align:center;padding:0.55rem 1rem;font-family:\'Inter\',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">'
+                return '<div data-sim-field="text" style="background:' + esc(bgColor) + ';color:' + esc(textColor) + ';text-align:center;padding:0.55rem 1rem;font-family:\'Inter\',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">' 
                     + esc(text)
                     + '</div>';
             }
