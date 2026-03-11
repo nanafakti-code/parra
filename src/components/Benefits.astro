@@ -3,6 +3,28 @@ interface Props {
     content?: Record<string, any>;
 }
 const { content = {} } = Astro.props;
+
+const iconPaths: Record<string, string> = {
+    hand:       'M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11',
+    shield:     'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+    heart:      'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
+    award:      'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z',
+    truck:      'M9 17a2 2 0 11-4 0 2 2 0 014 0zm10 0a2 2 0 11-4 0 2 2 0 014 0zM1 1h4l2.68 13.39a2 2 0 001.98 1.61h9.72a2 2 0 001.98-1.61L23 6H6',
+    'refresh-cw': 'M23 4v6h-6M1 20v-6h6m16.93-5A10 10 0 003.27 9m-.2 12a10 10 0 0016.93-3',
+    star:       'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z',
+};
+const defaultIconPath = 'M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z';
+
+const defaultItems = [
+    { icon: 'hand',   title: 'Agarre Extremo',     description: 'Látex de contacto alemán de última generación para un control total en cualquier condición climática.' },
+    { icon: 'shield', title: 'Durabilidad Superior', description: 'Materiales reforzados con tecnología anti-abrasión que resisten las sesiones más intensas.' },
+    { icon: 'heart',  title: 'Comodidad Total',     description: 'Diseño anatómico que se adapta como una segunda piel. Máxima ventilación y mínimo peso.' },
+];
+
+const items: Array<{ icon: string; title: string; description: string }> =
+    (content.items && content.items.length > 0) ? content.items : defaultItems;
+
+const staggerClasses = ['reveal', 'reveal stagger-2', 'reveal stagger-3', 'reveal stagger-4'];
 ---
 
 <section
@@ -28,10 +50,10 @@ const { content = {} } = Astro.props;
             </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8 lg:gap-12">
-            <!-- Benefit 1 -->
+        <div class={`grid grid-cols-1 gap-5 sm:gap-8 lg:gap-12 ${items.length <= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2 lg:grid-cols-4'}`}>
+            {items.map((item, i) => (
             <div
-                class="card p-6 sm:p-8 md:p-10 text-center group hover:-translate-y-2 transition-all duration-500 reveal"
+                class={`card p-6 sm:p-8 md:p-10 text-center group hover:-translate-y-2 transition-all duration-500 ${staggerClasses[i] || 'reveal'}`}
                 style={`background-color: ${content.style_card_bg || "#111827"}; border-color: ${content.style_card_border || "#1F2937"};`}
             >
                 <div
@@ -49,117 +71,29 @@ const { content = {} } = Astro.props;
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="1.5"
-                            d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"
+                            d={iconPaths[item.icon] || defaultIconPath}
                         ></path>
                     </svg>
                 </div>
                 <div
                     class="text-brand/30 font-display text-4xl sm:text-5xl font-bold mb-3 sm:mb-4"
                 >
-                    01
+                    {String(i + 1).padStart(2, '0')}
                 </div>
                 <h3
                     class="font-display text-xl font-semibold uppercase tracking-tight mb-3"
                     style={`color: ${content.style_item_title_color || "#FFFFFF"};`}
                 >
-                    Agarre Extremo
+                    {item.title}
                 </h3>
                 <p
                     class="text-sm leading-relaxed"
                     style={`color: ${content.style_item_desc_color || "var(--text-muted)"};`}
                 >
-                    Látex de contacto alemán de última generación para un
-                    control total en cualquier condición climática.
+                    {item.description}
                 </p>
             </div>
-
-            <!-- Benefit 2 -->
-            <div
-                class="card p-6 sm:p-8 md:p-10 text-center group hover:-translate-y-2 transition-all duration-500 reveal stagger-2"
-                style={`background-color: ${content.style_card_bg || "#111827"}; border-color: ${content.style_card_border || "#1F2937"};`}
-            >
-                <div
-                    class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 border flex items-center justify-center transition-all duration-500"
-                    style={`background-color: ${content.style_icon_bg || "rgba(57,255,20,0.1)"}; border-color: ${content.style_icon_color || "#39FF14"};`}
-                >
-                    <svg
-                        class="w-7 h-7"
-                        style={`color: ${content.style_icon_color || "#39FF14"};`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.5"
-                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                        ></path>
-                    </svg>
-                </div>
-                <div
-                    class="text-brand/30 font-display text-4xl sm:text-5xl font-bold mb-3 sm:mb-4"
-                >
-                    02
-                </div>
-                <h3
-                    class="font-display text-xl font-semibold uppercase tracking-tight mb-3"
-                    style={`color: ${content.style_item_title_color || "#FFFFFF"};`}
-                >
-                    Durabilidad Superior
-                </h3>
-                <p
-                    class="text-sm leading-relaxed"
-                    style={`color: ${content.style_item_desc_color || "var(--text-muted)"};`}
-                >
-                    Materiales reforzados con tecnología anti-abrasión que
-                    resisten las sesiones más intensas.
-                </p>
-            </div>
-
-            <!-- Benefit 3 -->
-            <div
-                class="card p-6 sm:p-8 md:p-10 text-center group hover:-translate-y-2 transition-all duration-500 reveal stagger-3"
-                style={`background-color: ${content.style_card_bg || "#111827"}; border-color: ${content.style_card_border || "#1F2937"};`}
-            >
-                <div
-                    class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 border flex items-center justify-center transition-all duration-500"
-                    style={`background-color: ${content.style_icon_bg || "rgba(57,255,20,0.1)"}; border-color: ${content.style_icon_color || "#39FF14"};`}
-                >
-                    <svg
-                        class="w-7 h-7"
-                        style={`color: ${content.style_icon_color || "#39FF14"};`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.5"
-                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                        ></path>
-                    </svg>
-                </div>
-                <div
-                    class="text-brand/30 font-display text-4xl sm:text-5xl font-bold mb-3 sm:mb-4"
-                >
-                    03
-                </div>
-                <h3
-                    class="font-display text-xl font-semibold uppercase tracking-tight mb-3"
-                    style={`color: ${content.style_item_title_color || "#FFFFFF"};`}
-                >
-                    Comodidad Total
-                </h3>
-                <p
-                    class="text-sm leading-relaxed"
-                    style="color: var(--text-muted);"
-                >
-                    Diseño anatómico que se adapta como una segunda piel. Máxima
-                    ventilación y mínimo peso.
-                </p>
-            </div>
+            ))}
         </div>
     </div>
 </section>
