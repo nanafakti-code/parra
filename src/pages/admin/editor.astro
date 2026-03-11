@@ -311,11 +311,12 @@ let products: any[] = [];
             </div>
         </div>
 
-        <!-- CENTER: Live Preview -->
+        <!-- CENTER: Simulated Preview -->
         <div class="vb-preview-area" id="vbPreviewArea">
             <div class="vb-preview-wrapper" id="vbPreviewWrapper">
-                <iframe id="vbPreviewFrame" src="/" title="Vista previa"
-                ></iframe>
+                <div id="vbPreviewFrame" class="vb-sim-preview">
+                    <div id="vbSimContent"></div>
+                </div>
             </div>
         </div>
 
@@ -994,7 +995,22 @@ let products: any[] = [];
             width: 100%;
             height: 100%;
             border: none;
-            background: #fff;
+            background: #0a0a0a;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .vb-sim-preview {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+        #vbSimContent {
+            min-height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
         }
 
         /* ── History items (reuse from design system) ── */
@@ -2328,8 +2344,7 @@ let products: any[] = [];
                         this.classList.add("active");
                         currentPage = this.dataset.page;
                         deselectSection();
-                        var frame = $("#vbPreviewFrame");
-                        frame.src = currentPage === "shop" ? "/shop" : "/";
+                        refreshPreview();
                         // Toggle product order panel
                         var poPanel = $("#vbProductOrder");
                         var sbPanel = $("#vbSidebar");
@@ -2476,10 +2491,316 @@ let products: any[] = [];
                 }
             });
 
-            // ═══════ PREVIEW ═══════
+            // ═══════ SIMULATED PREVIEW ═══════
             function refreshPreview() {
-                var f = $("#vbPreviewFrame");
-                if (f) f.src = f.src;
+                var container = $("#vbSimContent");
+                if (!container) return;
+
+                var sections = pageSections().filter(function(s){ return s.is_active; });
+
+                if (sections.length === 0) {
+                    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:300px;flex-direction:column;gap:1rem;color:rgba(255,255,255,0.3);">'
+                        + '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>'
+                        + '<p style="font-size:0.85rem;margin:0;">No hay bloques activos</p>'
+                        + '</div>';
+                    return;
+                }
+
+                var html = '<div style="background:#0a0a0a;">';
+
+                // Sim badge
+                html += '<div style="position:sticky;top:0;z-index:999;background:rgba(57,255,20,0.08);border-bottom:1px solid rgba(57,255,20,0.2);padding:6px 16px;display:flex;align-items:center;gap:8px;">'
+                    + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#39FF14" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+                    + '<span style="font-size:0.65rem;font-weight:700;letter-spacing:0.15em;color:#39FF14;text-transform:uppercase;">Vista previa simulada</span>'
+                    + '</div>';
+
+                sections.forEach(function(sec) {
+                    var c = sec.content || {};
+                    var key = sec.section_key || '';
+                    var baseKey = key.replace(/_\d+$/, '');
+                    html += renderSection(baseKey, c, sec);
+                });
+
+                html += '</div>';
+                container.innerHTML = html;
+            }
+
+            function esc(str) {
+                return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            }
+
+            function renderSection(key, c, sec) {
+                switch(key) {
+                    case 'hero': return renderHero(c);
+                    case 'featured_products': return renderFeaturedProducts(c);
+                    case 'benefits': return renderBenefits(c);
+                    case 'glove_selector': return renderGloveSelector(c);
+                    case 'testimonials': return renderTestimonials(c);
+                    case 'cta_banner': return renderCtaBanner(c);
+                    case 'newsletter': return renderNewsletter(c);
+                    case 'banner': return renderBanner(c);
+                    default: return renderGeneric(key, c, sec);
+                }
+            }
+
+            function renderHero(c) {
+                var bg = c.bg_image || 'https://res.cloudinary.com/djvj32zic/image/upload/f_webp,q_auto,w_1400/v1771850353/wmremove-transformed_qkiglz.png';
+                var overlayColor = c.overlay_color || '#000';
+                var overlayOpacity = c.overlay_opacity != null ? c.overlay_opacity : 0.4;
+                var t1 = c.title_line1 || 'DOMINA';
+                var t2 = c.title_line2 || 'EL ÁREA';
+                var sub = c.subtitle || 'Siente el agarre absoluto. Diseñados para porteros de elite.';
+                var badge = c.badge || 'Nueva Colección 2026';
+                var ctaText = c.cta_text || 'Comprar Ahora';
+                var secText = c.secondary_text || 'Serie Elite';
+                var c1 = c.style_title_line1_color || '#FFFFFF';
+                var c2 = c.style_title_line2_color || '#39FF14';
+                var cs = c.style_subtitle_color || '#B0B0B0';
+                var cbg = c.style_cta_bg || '#39FF14';
+                var cct = c.style_cta_text || '#000000';
+                var badgeBg = c.style_badge_bg || 'rgba(57,255,20,0.1)';
+                var badgeText = c.style_badge_text || '#39FF14';
+                return '<div style="position:relative;min-height:480px;display:flex;align-items:center;overflow:hidden;background:#000;">'
+                    + '<div style="position:absolute;inset:0;background-image:url(\'' + esc(bg) + '\');background-size:cover;background-position:center right;"></div>'
+                    + '<div style="position:absolute;inset:0;background:' + esc(overlayColor) + ';opacity:' + overlayOpacity + ';"></div>'
+                    + '<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0.85) 40%,transparent);"></div>'
+                    + '<div style="position:relative;z-index:2;padding:3rem 2.5rem;max-width:600px;">'
+                    + '<span style="display:inline-block;border:1px solid ' + esc(badgeText) + ';color:' + esc(badgeText) + ';background:' + esc(badgeBg) + ';font-size:0.65rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;padding:5px 14px;border-radius:2px;margin-bottom:1.5rem;">' + esc(badge) + '</span>'
+                    + '<h1 style="font-size:clamp(2.4rem,5vw,4rem);font-weight:900;line-height:1;margin:0 0 0.2rem;letter-spacing:-0.02em;text-transform:uppercase;color:' + esc(c1) + ';">' + esc(t1) + '</h1>'
+                    + '<h1 style="font-size:clamp(2.4rem,5vw,4rem);font-weight:900;line-height:1;margin:0 0 1.2rem;letter-spacing:-0.02em;text-transform:uppercase;color:' + esc(c2) + ';">' + esc(t2) + '</h1>'
+                    + '<p style="font-size:0.95rem;line-height:1.6;color:' + esc(cs) + ';margin:0 0 2rem;max-width:420px;">' + esc(sub) + '</p>'
+                    + '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;">'
+                    + '<a style="display:inline-block;background:' + esc(cbg) + ';color:' + esc(cct) + ';font-weight:700;padding:0.7rem 1.8rem;font-size:0.85rem;text-decoration:none;letter-spacing:0.05em;text-transform:uppercase;">' + esc(ctaText) + '</a>'
+                    + '<a style="display:inline-block;background:rgba(255,255,255,0.08);color:#fff;font-weight:600;padding:0.7rem 1.5rem;font-size:0.85rem;text-decoration:none;border:1px solid rgba(255,255,255,0.2);">' + esc(secText) + '</a>'
+                    + '</div></div></div>';
+            }
+
+            function renderFeaturedProducts(c) {
+                var title = c.title || 'Productos';
+                var accent = c.title_accent || 'Destacados';
+                var sub = c.subtitle || '';
+                var titleColor = c.style_title_color || '#FFFFFF';
+                var accentColor = c.style_accent_color || '#39FF14';
+                var subColor = c.style_subtitle_color || '#737373';
+                var cardBg = c.style_card_bg || '#111827';
+                var cardBorder = c.style_card_border || '#1F2937';
+                var priceColor = c.style_price_color || '#39FF14';
+                var ctaBg = c.style_cta_bg || '#39FF14';
+                var ctaText = c.style_cta_text || '#000';
+                var nameColor = c.style_product_name_color || '#FFFFFF';
+
+                // Get products to display
+                var slugs = c.product_slugs || [];
+                var prods = slugs.length > 0
+                    ? allProducts.filter(function(p){ return slugs.indexOf(p.slug) !== -1; }).slice(0,4)
+                    : allProducts.slice(0,4);
+                if (prods.length === 0) prods = allProducts.slice(0,4);
+
+                var cardsHtml = '';
+                if (prods.length > 0) {
+                    prods.forEach(function(p) {
+                        var price = p.price ? ('€' + Number(p.price).toFixed(2)) : '';
+                        var oldPrice = (p.compare_price && p.compare_price > p.price) ? ('€' + Number(p.compare_price).toFixed(2)) : '';
+                        cardsHtml += '<div style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;overflow:hidden;">'
+                            + '<div style="position:relative;aspect-ratio:4/3;overflow:hidden;background:#1a1a1a;">'
+                            + (p.image ? '<img src="' + esc(p.image) + '" alt="" style="width:100%;height:100%;object-fit:cover;" loading="lazy">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.15);font-size:2rem;">📦</div>')
+                            + '</div>'
+                            + '<div style="padding:1rem;">'
+                            + '<p style="font-size:0.8rem;font-weight:600;color:' + esc(nameColor) + ';margin:0 0 0.4rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(p.name) + '</p>'
+                            + '<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">'
+                            + '<span style="font-weight:700;color:' + esc(priceColor) + ';font-size:0.95rem;">' + esc(price) + '</span>'
+                            + (oldPrice ? '<span style="font-size:0.75rem;color:#666;text-decoration:line-through;">' + esc(oldPrice) + '</span>' : '')
+                            + '</div>'
+                            + '<button style="width:100%;background:' + esc(ctaBg) + ';color:' + esc(ctaText) + ';border:none;padding:0.5rem;font-size:0.75rem;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;">Ver producto</button>'
+                            + '</div></div>';
+                    });
+                } else {
+                    for (var i = 0; i < 4; i++) {
+                        cardsHtml += '<div style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;overflow:hidden;">'
+                            + '<div style="aspect-ratio:4/3;background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.1);font-size:2rem;">📦</div>'
+                            + '<div style="padding:1rem;"><div style="height:12px;background:rgba(255,255,255,0.06);border-radius:4px;margin-bottom:8px;"></div><div style="height:20px;background:rgba(57,255,20,0.1);border-radius:4px;width:50%;margin-bottom:8px;"></div><div style="height:30px;background:rgba(57,255,20,0.15);border-radius:4px;"></div></div></div>';
+                    }
+                }
+
+                return '<div style="padding:4rem 2rem;background:#0a0a0a;">'
+                    + '<div style="text-align:center;margin-bottom:2.5rem;">'
+                    + '<h2 style="font-size:clamp(1.6rem,3vw,2.4rem);font-weight:900;text-transform:uppercase;letter-spacing:-0.02em;margin:0 0 0.5rem;color:' + esc(titleColor) + ';">' + esc(title) + ' <span style="color:' + esc(accentColor) + ';">' + esc(accent) + '</span></h2>'
+                    + (sub ? '<p style="color:' + esc(subColor) + ';font-size:0.9rem;max-width:500px;margin:0 auto;">' + esc(sub) + '</p>' : '')
+                    + '</div>'
+                    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;max-width:900px;margin:0 auto;">' + cardsHtml + '</div>'
+                    + '</div>';
+            }
+
+            function renderBenefits(c) {
+                var sectionBg = c.style_section_bg || '#0a0a0a';
+                var titleColor = c.style_title_color || '#FFFFFF';
+                var iconColor = c.style_icon_color || '#39FF14';
+                var iconBg = c.style_icon_bg || 'rgba(57,255,20,0.1)';
+                var cardBg = c.style_card_bg || '#111827';
+                var cardBorder = c.style_card_border || '#1F2937';
+                var itemTitleColor = c.style_item_title_color || '#FFFFFF';
+                var itemDescColor = c.style_item_desc_color || '#9CA3AF';
+                var sectionTitle = c.title || 'Por Qué PARRA';
+
+                var items = c.items && c.items.length > 0 ? c.items : [
+                    { icon: 'shield', title: 'Agarre Extremo', description: 'Látex de contacto alemán de última generación.' },
+                    { icon: 'award', title: 'Durabilidad Pro', description: 'Materiales de alta resistencia para temporadas completas.' },
+                    { icon: 'truck', title: 'Envío Rápido', description: 'Entrega express en 24-48h para toda España.' }
+                ];
+
+                var icons = {
+                    shield: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>',
+                    award: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>',
+                    truck: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1H15M9 17a2 2 0 00-2-2m6 2a2 2 0 00-2-2"/>'
+                };
+                var defaultIconPaths = '<circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/>';
+
+                var cardsHtml = items.map(function(item, i) {
+                    var iconKey = (item.icon || '').toLowerCase();
+                    var iconPath = icons[iconKey] || defaultIconPaths;
+                    return '<div style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;padding:2rem;text-align:center;">'
+                        + '<div style="width:48px;height:48px;margin:0 auto 1rem;background:' + esc(iconBg) + ';border:1px solid ' + esc(iconColor) + ';border-radius:4px;display:flex;align-items:center;justify-content:center;">'
+                        + '<svg width="22" height="22" fill="none" stroke="' + esc(iconColor) + '" viewBox="0 0 24 24">' + iconPath + '</svg>'
+                        + '</div>'
+                        + '<div style="font-size:1.8rem;font-weight:900;color:' + esc(iconColor) + ';opacity:0.25;margin-bottom:0.5rem;">0' + (i+1) + '</div>'
+                        + '<h3 style="font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:' + esc(itemTitleColor) + ';margin:0 0 0.5rem;">' + esc(item.title || '') + '</h3>'
+                        + '<p style="font-size:0.78rem;color:' + esc(itemDescColor) + ';line-height:1.5;margin:0;">' + esc(item.description || '') + '</p>'
+                        + '</div>';
+                }).join('');
+
+                return '<div style="padding:4rem 2rem;background:' + esc(sectionBg) + ';">'
+                    + '<div style="text-align:center;margin-bottom:2.5rem;">'
+                    + '<h2 style="font-size:clamp(1.6rem,3vw,2.4rem);font-weight:900;text-transform:uppercase;letter-spacing:-0.02em;margin:0;color:' + esc(titleColor) + ';">' + esc(sectionTitle) + '</h2>'
+                    + '</div>'
+                    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;max-width:800px;margin:0 auto;">' + cardsHtml + '</div>'
+                    + '</div>';
+            }
+
+            function renderGloveSelector(c) {
+                var sectionBg = c.style_section_bg || '#0a0a0a';
+                var titleColor = c.style_title_color || '#FFFFFF';
+                var subColor = c.style_subtitle_color || '#737373';
+                var cardBg = c.style_card_bg || '#111827';
+                var cardBorder = c.style_card_border || '#1F2937';
+                var btnBg = c.style_btn_bg || '#39FF14';
+                var btnText = c.style_btn_text || '#000';
+                var title = c.title || 'Encuentra Tu Guante Perfecto';
+                var subtitle = c.subtitle || 'Descubre qué modelo se adapta mejor a tu estilo de juego.';
+
+                var cats = ['Competición', 'Entrenamiento', 'Condiciones Extremas', 'Junior'];
+                var catCards = cats.map(function(cat) {
+                    return '<div style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;padding:1.5rem;cursor:pointer;">'
+                        + '<div style="width:40px;height:40px;background:rgba(57,255,20,0.08);border-radius:6px;margin-bottom:1rem;display:flex;align-items:center;justify-content:center;">'
+                        + '<svg width="18" height="18" fill="none" stroke="#39FF14" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/></svg>'
+                        + '</div>'
+                        + '<p style="font-size:0.82rem;font-weight:600;color:#fff;margin:0;">' + cat + '</p>'
+                        + '</div>';
+                }).join('');
+
+                return '<div style="padding:4rem 2rem;background:' + esc(sectionBg) + ';">'
+                    + '<div style="text-align:center;margin-bottom:2.5rem;">'
+                    + '<h2 style="font-size:clamp(1.6rem,3vw,2.2rem);font-weight:900;text-transform:uppercase;letter-spacing:-0.02em;margin:0 0 0.5rem;color:' + esc(titleColor) + ';">' + esc(title) + '</h2>'
+                    + '<p style="color:' + esc(subColor) + ';font-size:0.88rem;max-width:500px;margin:0 auto;">' + esc(subtitle) + '</p>'
+                    + '</div>'
+                    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;max-width:700px;margin:0 auto 2rem;">' + catCards + '</div>'
+                    + '<div style="text-align:center;"><button style="background:' + esc(btnBg) + ';color:' + esc(btnText) + ';border:none;padding:0.75rem 2rem;font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.08em;cursor:pointer;">Ver Resultados</button></div>'
+                    + '</div>';
+            }
+
+            function renderTestimonials(c) {
+                var title = c.title || 'Lo Que Dicen Los Porteros';
+                var subtitle = c.subtitle || '';
+                var titleColor = c.style_title_color || '#FFFFFF';
+                var accentColor = c.style_accent_color || '#39FF14';
+                var subColor = c.style_subtitle_color || '#737373';
+                var cardBg = c.style_card_bg || '#111827';
+                var cardBorder = c.style_card_border || '#1F2937';
+                var textColor = c.style_text_color || '#D1D5DB';
+                var nameColor = c.style_name_color || '#FFFFFF';
+
+                var items = c.items && c.items.length > 0 ? c.items : [
+                    { name: 'Carlos M.', role: 'Portero profesional', text: 'El mejor guante que he usado en toda mi carrera. El agarre es increíble.' },
+                    { name: 'Alejandro R.', role: 'Guardameta amateur', text: 'Calidad excepcional. Los llevo en cada entrenamiento y partido.' },
+                    { name: 'Miguel L.', role: 'Entrenador de porteros', text: 'Los recomiendo a todos mis alumnos. Son simplemente superiores.' }
+                ];
+
+                var stars = '<span style="color:#39FF14;font-size:0.75rem;letter-spacing:2px;">★★★★★</span>';
+                var cardsHtml = items.map(function(item) {
+                    return '<div style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;padding:1.5rem;">'
+                        + stars
+                        + '<p style="font-size:0.82rem;color:' + esc(textColor) + ';line-height:1.6;margin:0.75rem 0;">"' + esc(item.text || '') + '"</p>'
+                        + '<div style="display:flex;align-items:center;gap:0.6rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.06);">'
+                        + '<div style="width:30px;height:30px;background:rgba(57,255,20,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#39FF14;">' + esc((item.name||'?').charAt(0)) + '</div>'
+                        + '<div><p style="font-size:0.77rem;font-weight:600;color:' + esc(nameColor) + ';margin:0;">' + esc(item.name||'') + '</p>'
+                        + '<p style="font-size:0.68rem;color:#666;margin:0;">' + esc(item.role||'') + '</p></div>'
+                        + '</div></div>';
+                }).join('');
+
+                return '<div style="padding:4rem 2rem;background:#0a0a0a;">'
+                    + '<div style="text-align:center;margin-bottom:2.5rem;">'
+                    + '<h2 style="font-size:clamp(1.6rem,3vw,2.2rem);font-weight:900;text-transform:uppercase;letter-spacing:-0.02em;margin:0 0 0.5rem;color:' + esc(titleColor) + ';">' + esc(title) + '</h2>'
+                    + (subtitle ? '<p style="color:' + esc(subColor) + ';font-size:0.88rem;max-width:500px;margin:0 auto;">' + esc(subtitle) + '</p>' : '')
+                    + '</div>'
+                    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;max-width:850px;margin:0 auto;">' + cardsHtml + '</div>'
+                    + '</div>';
+            }
+
+            function renderCtaBanner(c) {
+                var t1 = c.title_line1 || 'LLEVA TU JUEGO';
+                var t2 = c.title_line2 || 'AL SIGUIENTE NIVEL';
+                var ctaText = c.cta_text || 'Comprar Ahora';
+                var bg = c.bg_image || '';
+                var overlayOpacity = c.overlay_opacity != null ? c.overlay_opacity : 0.65;
+
+                var style = 'position:relative;padding:4rem 2rem;background:#111827;overflow:hidden;';
+                if (bg) style += 'background-image:url(\'' + esc(bg) + '\');background-size:cover;background-position:center;';
+
+                return '<div style="' + style + '">'
+                    + (bg ? '<div style="position:absolute;inset:0;background:rgba(0,0,0,' + overlayOpacity + ');"></div>' : '')
+                    + '<div style="position:relative;z-index:1;text-align:center;max-width:600px;margin:0 auto;">'
+                    + '<h2 style="font-size:clamp(1.8rem,4vw,3rem);font-weight:900;text-transform:uppercase;letter-spacing:-0.02em;margin:0 0 0.2rem;color:#fff;">' + esc(t1) + '</h2>'
+                    + '<h2 style="font-size:clamp(1.8rem,4vw,3rem);font-weight:900;text-transform:uppercase;letter-spacing:-0.02em;margin:0 0 2rem;color:#39FF14;">' + esc(t2) + '</h2>'
+                    + '<a style="display:inline-block;background:#39FF14;color:#000;font-weight:700;padding:0.9rem 2.5rem;font-size:0.9rem;text-decoration:none;letter-spacing:0.08em;text-transform:uppercase;">' + esc(ctaText) + '</a>'
+                    + '</div></div>';
+            }
+
+            function renderNewsletter(c) {
+                var title = c.title || 'Únete a la Élite';
+                var subtitle = c.subtitle || 'Recibe ofertas exclusivas y novedades antes que nadie.';
+                var btnText = c.button_text || 'Suscribirme';
+                var titleColor = c.style_title_color || '#FFFFFF';
+                var accentColor = c.style_accent_color || '#39FF14';
+                var inputBg = c.style_input_bg || '#1a1a1a';
+                var btnBg = c.style_btn_bg || '#39FF14';
+                var btnTextColor = c.style_btn_text || '#000';
+
+                return '<div style="padding:3.5rem 2rem;background:linear-gradient(135deg,#0d1117 0%,#111827 100%);border-top:1px solid #1F2937;">'
+                    + '<div style="max-width:500px;margin:0 auto;text-align:center;">'
+                    + '<h2 style="font-size:1.6rem;font-weight:900;text-transform:uppercase;letter-spacing:-0.02em;margin:0 0 0.5rem;color:' + esc(titleColor) + ';">' + esc(title) + '</h2>'
+                    + '<p style="font-size:0.85rem;color:#737373;margin:0 0 1.5rem;">' + esc(subtitle) + '</p>'
+                    + '<div style="display:flex;gap:0.5rem;">'
+                    + '<input type="email" placeholder="tu@email.com" style="flex:1;background:' + esc(inputBg) + ';border:1px solid #2a2a2a;color:#fff;padding:0.7rem 1rem;font-size:0.85rem;outline:none;border-radius:4px 0 0 4px;" disabled>'
+                    + '<button style="background:' + esc(btnBg) + ';color:' + esc(btnTextColor) + ';border:none;padding:0.7rem 1.5rem;font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.05em;cursor:pointer;border-radius:0 4px 4px 0;">' + esc(btnText) + '</button>'
+                    + '</div></div></div>';
+            }
+
+            function renderBanner(c) {
+                var text = c.text || 'Banner de información';
+                var bgColor = c.bg_color || '#39FF14';
+                var textColor = c.text_color || '#000';
+                return '<div style="background:' + esc(bgColor) + ';color:' + esc(textColor) + ';text-align:center;padding:0.6rem 1rem;font-size:0.78rem;font-weight:600;letter-spacing:0.05em;">'
+                    + esc(text)
+                    + '</div>';
+            }
+
+            function renderGeneric(key, c, sec) {
+                return '<div style="padding:2rem;background:#111;border-top:1px solid #1F2937;display:flex;align-items:center;gap:1rem;opacity:0.7;">'
+                    + '<div style="width:40px;height:40px;background:rgba(57,255,20,0.08);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">'
+                    + '<svg width="18" height="18" fill="none" stroke="#39FF14" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>'
+                    + '</div>'
+                    + '<div><p style="font-size:0.8rem;font-weight:600;color:#fff;margin:0;">' + esc(sec ? (sec.display_name || key) : key) + '</p>'
+                    + '<p style="font-size:0.68rem;color:#555;margin:0;font-family:monospace;">' + esc(key) + '</p></div>'
+                    + '</div>';
             }
 
             // ═══════ ADD BLOCK MODAL ═══════
@@ -2600,6 +2921,7 @@ let products: any[] = [];
 
             // ═══════ INIT ═══════
             render();
+            refreshPreview();
 
             // ═══════ PRODUCT ORDER SYSTEM ═══════
             function escHtml(str) {
