@@ -687,6 +687,16 @@ const tabs = [
                                     Cambiar contraseña
                                 </h3>
                                 <form id="pwd-form" class="space-y-4">
+                                    <!-- Campo de usuario oculto — requerido por accesibilidad/gestores de contraseñas (WCAG) -->
+                                    <input
+                                        type="text"
+                                        name="username"
+                                        autocomplete="username"
+                                        value={user?.email ?? ""}
+                                        aria-hidden="true"
+                                        tabindex="-1"
+                                        style="display:none"
+                                    />
                                     <!-- Contraseña actual -->
                                     <div>
                                         <label

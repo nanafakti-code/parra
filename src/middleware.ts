@@ -112,12 +112,17 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
     response.headers.set('X-Content-Type-Options', 'nosniff');
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
-    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self)');
+    // payment=(self "https://js.stripe.com") — permite que el iframe de Stripe use la
+    // Payment Request API (necesario para Apple Pay / Google Pay)
+    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self "https://js.stripe.com")');
     response.headers.set(
         'Content-Security-Policy',
         [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' https://js.stripe.com https://challenges.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://upload-widget.cloudinary.com",
+            // data: es necesario para Astro ClientRouter (View Transitions) que inyecta
+            // scripts como data:application/javascript URIs en runtime
+            "script-src 'self' 'unsafe-inline' data: https://js.stripe.com https://challenges.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://upload-widget.cloudinary.com",
+            "script-src-elem 'self' 'unsafe-inline' data: https://js.stripe.com https://challenges.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://upload-widget.cloudinary.com",
             "frame-src https://js.stripe.com https://challenges.cloudflare.com https://upload-widget.cloudinary.com",
             "connect-src 'self' https://api.stripe.com https://jboxsbtfhkanvnhxuxdd.supabase.co https://unpkg.com https://cdn.jsdelivr.net https://upload-widget.cloudinary.com https://api.cloudinary.com",
             "img-src 'self' data: https:",
