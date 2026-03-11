@@ -53,23 +53,35 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
         }
     }
 
-    // 2. Comprobar modo mantenimiento: primero revisar variable de entorno, si no está, consultar site_settings
+    // 2. Comprobar modo mantenimiento
+    // La fuente de verdad es la BD (site_settings key: 'maintenance').
+    // La variable de entorno MAINTENANCE_MODE solo actúa como override de emergencia
+    // cuando vale exactamente "true" (útil para forzar mantenimiento sin acceder al admin).
     let isMaintenanceMode = false;
-    // Env override (fast)
-    const rawEnv = import.meta.env.MAINTENANCE_MODE || (typeof process !== 'undefined' ? process.env.MAINTENANCE_MODE : false);
-    if (rawEnv && String(rawEnv).trim().length > 0) {
-        isMaintenanceMode = String(rawEnv).trim().toLowerCase() === 'true';
+
+    const envOverride = import.meta.env.MAINTENANCE_MODE ?? (typeof process !== 'undefined' ? process.env.MAINTENANCE_MODE : undefined);
+    if (envOverride !== undefined && String(envOverride).trim().toLowerCase() === 'true') {
+        // Hard override from env — maintenance forced ON regardless of DB
+        isMaintenanceMode = true;
     } else {
-        // Fallback: read from DB (site_settings key: 'maintenance')
+        // Source of truth: DB
         try {
-            const { data } = await supabaseAdmin.from('site_settings').select('value').eq('key', 'maintenance').maybeSingle();
-            if (data && data.value) {
-                const v = typeof data.value === 'string' ? data.value : JSON.stringify(data.value);
-                try {
-                    const parsed = JSON.parse(v);
-                    isMaintenanceMode = !!parsed.enabled;
-                } catch {
-                    isMaintenanceMode = String(v).trim().toLowerCase() === 'true';
+            const { data } = await supabaseAdmin
+                .from('site_settings')
+                .select('value')
+                .eq('key', 'maintenance')
+                .maybeSingle();
+            if (data?.value) {
+                const v = data.value;
+                // value can be a JSONB object already parsed by Supabase client, or a string
+                if (typeof v === 'object' && v !== null) {
+                    isMaintenanceMode = !!v.enabled;
+                } else {
+                    try {
+                        isMaintenanceMode = !!(JSON.parse(String(v))?.enabled);
+                    } catch {
+                        isMaintenanceMode = String(v).trim().toLowerCase() === 'true';
+                    }
                 }
             }
         } catch (e) {
