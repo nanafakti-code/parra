@@ -1174,20 +1174,15 @@ const navItems = [
                             <div class="admin-email">{admin.email}</div>
                         </div>
                     </div>
-                    <form
-                        method="post"
-                        action="/api/auth/logout"
-                        style="margin:0;"
+                    <button
+                        class="btn-logout"
+                        id="btn-admin-logout"
+                        type="button"
+                        onclick="handleAdminLogout(event)"
                     >
-                        <button
-                            class="btn-logout"
-                            id="btn-admin-logout"
-                            type="submit"
-                        >
-                            <i data-feather="log-out"></i>
-                            Cerrar sesión
-                        </button>
-                    </form>
+                        <i data-feather="log-out"></i>
+                        Cerrar sesión
+                    </button>
                 </div>
             </aside>
 
