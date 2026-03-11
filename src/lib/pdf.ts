@@ -1,4 +1,23 @@
 import PDFDocument from "pdfkit";
+import { supabaseAdmin } from "./supabase";
+
+// Oscurece un hex multiplicando cada canal por `factor` (0–1)
+function darkenHex(hex: string, factor: number): string {
+    const c = hex.replace("#", "");
+    return "#" + [0, 2, 4]
+        .map(i => Math.round(parseInt(c.substring(i, i + 2), 16) * factor)
+            .toString(16).padStart(2, "0"))
+        .join("");
+}
+
+// Mezcla un hex con el fondo oscuro base (#07090d) usando `alpha` (0=fondo, 1=color)
+function mixWithDark(hex: string, alpha: number): string {
+    const c = hex.replace("#", "");
+    const fg = [0, 2, 4].map(i => parseInt(c.substring(i, i + 2), 16));
+    const bg = [7, 9, 13]; // #07090d
+    return "#" + fg.map((v, i) => Math.round(bg[i] * (1 - alpha) + v * alpha)
+        .toString(16).padStart(2, "0")).join("");
+}
 
 // Formatea un número con coma decimal y € al final: 79,99 €
 const fmt = (n: number) => n.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " \u20AC";
@@ -22,6 +41,15 @@ const drawSectionLabel = (doc: any, GREEN: string, label: string, x: number, y: 
 };
 
 export async function generateInvoicePdf(order: any, userProfile?: any): Promise<Buffer> {
+    // ── Color de marca desde configuración del admin ──────────────────
+    let brandPrimary = "#39FF14";
+    try {
+        const { data: brandData } = await supabaseAdmin
+            .from("site_settings").select("value").eq("key", "brand").single();
+        const raw = (brandData?.value as any)?.primary_color;
+        if (raw && /^#[0-9a-fA-F]{6}$/.test(raw)) brandPrimary = raw.toUpperCase();
+    } catch { /* mantener default */ }
+
     const items = (order.order_items || []).map((i: any) => ({
         name: i.products?.name || i.product_name || "Producto",
         quantity: Number(i.quantity) || 1,
@@ -80,10 +108,10 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         const BLACK = "#0d0f14";   // negro panel
         const CARD = "#111520";   // tarjetas
         const CARD2 = "#0e1119";   // filas alternas
-        const GREEN = "#39FF14";   // verde neon principal (color acento web)
-        const GREEND = "#27CC00";   // verde oscuro
-        const GREENG = "#1A9900";   // verde glow layer
-        const GREENX = "#0A2B00";   // verde muy oscuro (glow bg)
+        const GREEN  = brandPrimary;                    // color acento principal (admin)
+        const GREEND = darkenHex(brandPrimary, 0.62);   // variante oscura
+        const GREENG = darkenHex(brandPrimary, 0.42);   // variante más oscura
+        const GREENX = mixWithDark(brandPrimary, 0.14); // fondo muy oscuro tintado
         const WHITE = "#f0f4f8";
         const GRAY = "#6b7280";
         const LGRAY = "#9ca3af";
