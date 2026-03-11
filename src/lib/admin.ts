@@ -73,7 +73,22 @@ export function jsonResponse(data: Record<string, unknown>, status = 200): Respo
 
 /** Validate admin API request – returns admin user or error Response */
 export async function validateAdminAPI(request: Request, cookies: any): Promise<{ admin: any } | Response> {
-    const accessToken = cookies.get('sb-access-token')?.value || cookies.get('auth_token')?.value;
+    // Primary: Astro cookies object
+    let accessToken = cookies.get('sb-access-token')?.value || cookies.get('auth_token')?.value;
+
+    // Fallback: parse Cookie header directly (more reliable on Vercel for non-GET fetch requests)
+    if (!accessToken) {
+        const cookieHeader = request.headers.get('cookie') || '';
+        for (const part of cookieHeader.split(';')) {
+            const eqIdx = part.indexOf('=');
+            if (eqIdx === -1) continue;
+            const name = part.slice(0, eqIdx).trim();
+            if (name === 'sb-access-token' || name === 'auth_token') {
+                accessToken = part.slice(eqIdx + 1).trim();
+                break;
+            }
+        }
+    }
 
     if (!accessToken) {
         console.error('[validateAdminAPI] error: No autorizado, no accessToken provided in cookies.', cookies);
