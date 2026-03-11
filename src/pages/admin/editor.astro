@@ -1985,12 +1985,14 @@ let products: any[] = [];
                     secondary:   { c: ['secondary_text','secondary_link'], s: ['style_secondary_bg','style_secondary_text','style_secondary_border'] },
                 },
                 featured_products: {
-                    title:    { c: ['title','title_accent'], s: ['style_title_color','style_accent_color'] },
-                    subtitle: { c: ['subtitle'],            s: ['style_subtitle_color'] },
-                    cta:      { c: ['cta_text','cta_link'], s: ['style_cta_bg','style_cta_text'] },
+                    title:        { c: ['title','title_accent'], s: ['style_title_color','style_accent_color'] },
+                    subtitle:     { c: ['subtitle'],            s: ['style_subtitle_color'] },
+                    cta:          { c: ['cta_text','cta_link'], s: ['style_cta_bg','style_cta_text'] },
+                    product_card: { c: [],                     s: ['style_card_bg','style_card_border','style_price_color','style_product_name_color','style_accent_color'] },
                 },
                 benefits: {
                     title: { c: ['title'], s: ['style_title_color','style_icon_color'] },
+                    items: { c: ['items'], s: ['style_item_title_color','style_item_desc_color','style_icon_color','style_icon_bg','style_card_bg','style_card_border'] },
                 },
                 glove_selector: {
                     title:    { c: ['title'],    s: ['style_title_color'] },
@@ -2789,6 +2791,7 @@ let products: any[] = [];
                 var title = c.title || 'Productos';
                 var accent = c.title_accent || 'Destacados';
                 var sub = c.subtitle || '';
+                var ctaText = c.cta_text || 'Ver toda la tienda';
                 var titleColor = c.style_title_color || '#FFFFFF';
                 var accentColor = c.style_accent_color || '#39FF14';
                 var subColor = c.style_subtitle_color || 'rgba(255,255,255,0.45)';
@@ -2796,6 +2799,8 @@ let products: any[] = [];
                 var cardBorder = c.style_card_border || '#1F2937';
                 var priceColor = c.style_price_color || '#39FF14';
                 var nameColor = c.style_product_name_color || '#FFFFFF';
+                var ctaBg = c.style_cta_bg || '#39FF14';
+                var ctaTextColor = c.style_cta_text || '#000000';
 
                 var slugs = c.product_slugs || [];
                 var prods = slugs.length > 0
@@ -2808,7 +2813,7 @@ let products: any[] = [];
                     var oldPrice = (p.compare_price && p.compare_price > p.price) ? ('€' + Number(p.compare_price).toFixed(2)) : '';
                     var pct = (p.compare_price && p.compare_price > p.price) ? Math.round((p.compare_price - p.price) / p.compare_price * 100) : 0;
                     var catName = (p.categories && p.categories.name) ? p.categories.name : 'Guantes';
-                    return '<article style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;overflow:hidden;">'
+                    return '<article data-sim-field="product_card" style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;overflow:hidden;">'
                         + '<a style="display:block;aspect-ratio:3/4;overflow:hidden;position:relative;background:#0d1117;">'
                         + (p.image ? '<img src="' + esc(p.image) + '" alt="' + esc(p.name) + '" loading="lazy" style="width:100%;height:100%;object-fit:cover;transition:transform .7s ease;">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem;">🧤</div>')
                         + (pct > 0 ? '<span style="position:absolute;top:10px;left:10px;background:#F59E0B;color:#000;font-size:9px;font-weight:900;padding:3px 7px;letter-spacing:0.05em;border-radius:2px;">-' + pct + '%</span>' : '')
@@ -2837,9 +2842,12 @@ let products: any[] = [];
                 }
 
                 return '<div style="padding:5rem 2rem;background:#0a0a0a;">'
-                    + '<div style="text-align:center;margin-bottom:3rem;">'
-                    + '<h2 data-sim-field="title" class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0 0 0.6rem;">' + esc(title) + ' <span style="color:' + esc(accentColor) + ';">' + esc(accent) + '</span></h2>'
-                    + (sub ? '<p data-sim-field="subtitle" class="sim-section-sub">' + esc(sub) + '</p>' : '')
+                    + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:2rem;max-width:960px;margin:0 auto 3rem;">'
+                    + '<div>'
+                    + '<h2 data-sim-field="title" class="sim-section-title" style="color:' + esc(titleColor) + ';margin:0 0 0.6rem;text-align:left;">' + esc(title) + ' <span style="color:' + esc(accentColor) + ';">' + esc(accent) + '</span></h2>'
+                    + (sub ? '<p data-sim-field="subtitle" class="sim-section-sub" style="text-align:left;margin-left:0;">' + esc(sub) + '</p>' : '')
+                    + '</div>'
+                    + '<div style="flex-shrink:0;padding-top:0.5rem;"><a data-sim-field="cta" style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;background:transparent;color:#fff;font-family:\'Oswald\',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;border:1px solid rgba(255,255,255,0.25);cursor:pointer;text-decoration:none;white-space:nowrap;">' + esc(ctaText) + ' →</a></div>'
                     + '</div>'
                     + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:1.25rem;max-width:960px;margin:0 auto;">' + cardsHtml + '</div>'
                     + '</div>';
@@ -2872,7 +2880,8 @@ let products: any[] = [];
                     var key2 = (item.icon || '').toLowerCase();
                     var path = iconPaths[key2] || defaultPath;
                     var num = ['01','02','03','04'][i] || ('0'+(i+1));
-                    return '<div style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;padding:2.5rem 2rem;text-align:center;transition:transform .5s;">'
+                    return '<div data-sim-field="items" style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;padding:2.5rem 2rem;text-align:center;transition:transform .5s;">'
+
                         + '<div style="width:56px;height:56px;margin:0 auto 1.25rem;background:' + esc(iconBg) + ';border:1px solid ' + esc(iconColor) + ';display:flex;align-items:center;justify-content:center;">'
                         + '<svg width="26" height="26" fill="none" stroke="' + esc(iconColor) + '" viewBox="0 0 24 24">' + path + '</svg>'
                         + '</div>'
