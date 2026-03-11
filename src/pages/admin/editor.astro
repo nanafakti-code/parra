@@ -1353,43 +1353,50 @@ let products: any[] = [];
             // ═══════ SCHEMAS ═══════
             var SCHEMAS = {
                 hero: [
-                    { key: "badge", label: "Badge", type: "text" },
+                    { key: "badge", label: "Badge", type: "text", defaultValue: "Nueva Colección 2026" },
                     {
                         key: "title_line1",
                         label: "Título línea 1",
                         type: "text",
+                        defaultValue: "DOMINA",
                     },
                     {
                         key: "title_line2",
                         label: "Título línea 2",
                         type: "text",
+                        defaultValue: "EL ÁREA",
                     },
                     {
                         key: "subtitle",
                         label: "Subtítulo (Desktop)",
                         type: "textarea",
+                        defaultValue: "Siente el agarre absoluto. Diseñados para porteros de elite que no aceptan menos que la perfección.",
                     },
                     {
                         key: "subtitle_mobile",
                         label: "Subtítulo (Móvil)",
                         type: "textarea",
+                        defaultValue: "Agarre absoluto. Para porteros que exigen perfección.",
                     },
-                    { key: "cta_text", label: "Texto CTA", type: "text" },
-                    { key: "cta_link", label: "Enlace CTA", type: "text" },
+                    { key: "cta_text", label: "Texto CTA", type: "text", defaultValue: "Comprar Ahora" },
+                    { key: "cta_link", label: "Enlace CTA", type: "text", defaultValue: "/shop" },
                     {
                         key: "secondary_text",
                         label: "Texto secundario",
                         type: "text",
+                        defaultValue: "Serie Elite",
                     },
                     {
                         key: "secondary_link",
                         label: "Enlace secundario",
                         type: "text",
+                        defaultValue: "/shop?category=elite",
                     },
                     {
                         key: "bg_image",
                         label: "Imagen de fondo",
                         type: "image",
+                        defaultValue: "https://res.cloudinary.com/djvj32zic/image/upload/f_webp,q_auto,w_1400/v1771850353/wmremove-transformed_qkiglz.png",
                     },
                     {
                         key: "overlay_color",
@@ -1406,15 +1413,16 @@ let products: any[] = [];
                     },
                 ],
                 featured_products: [
-                    { key: "title", label: "Título", type: "text" },
+                    { key: "title", label: "Título", type: "text", defaultValue: "Productos" },
                     {
                         key: "title_accent",
                         label: "Título accent",
                         type: "text",
+                        defaultValue: "Destacados",
                     },
-                    { key: "subtitle", label: "Subtítulo", type: "textarea" },
-                    { key: "cta_text", label: "Texto CTA", type: "text" },
-                    { key: "cta_link", label: "Enlace CTA", type: "text" },
+                    { key: "subtitle", label: "Subtítulo", type: "textarea", defaultValue: "Nuestra selección de los guantes más vendidos. Tecnología de vanguardia para porteros exigentes." },
+                    { key: "cta_text", label: "Texto CTA", type: "text", defaultValue: "Ver toda la tienda" },
+                    { key: "cta_link", label: "Enlace CTA", type: "text", defaultValue: "/shop" },
                     {
                         key: "product_slugs",
                         label: "Slugs de productos",
@@ -1422,7 +1430,7 @@ let products: any[] = [];
                     },
                 ],
                 benefits: [
-                    { key: "title", label: "Título sección", type: "text" },
+                    { key: "title", label: "Título sección", type: "text", defaultValue: "Por Qué PARRA" },
                     {
                         key: "items",
                         label: "Beneficios",
@@ -1444,34 +1452,34 @@ let products: any[] = [];
                     },
                 ],
                 glove_selector: [
-                    { key: "title", label: "Título", type: "text" },
-                    { key: "subtitle", label: "Subtítulo", type: "textarea" },
+                    { key: "title", label: "Título", type: "text", defaultValue: "Encuentra Tu Guante Perfecto" },
+                    { key: "subtitle", label: "Subtítulo", type: "textarea", defaultValue: "Responde unas simples preguntas y te recomendaremos el guante ideal para tu juego." },
                 ],
                 testimonials: [
-                    { key: "title", label: "Título", type: "text" },
-                    { key: "subtitle", label: "Subtítulo", type: "textarea" },
+                    { key: "title", label: "Título", type: "text", defaultValue: "Lo Que Dicen Nuestros Porteros" },
+                    { key: "subtitle", label: "Subtítulo", type: "textarea", defaultValue: "Porteros de todos los niveles confían en PARRA." },
                 ],
                 cta_banner: [
                     {
                         key: "title_line1",
                         label: "Título línea 1",
                         type: "text",
+                        defaultValue: "¿LISTO PARA",
                     },
                     {
                         key: "title_line2",
                         label: "Título línea 2",
                         type: "text",
+                        defaultValue: "VOLAR?",
                     },
-                    { key: "cta_text", label: "Texto CTA", type: "text" },
-                    { key: "cta_link", label: "Enlace CTA", type: "text" },
+                    { key: "cta_text", label: "Texto CTA", type: "text", defaultValue: "Únete al Club PARRA" },
+                    { key: "cta_link", label: "Enlace CTA", type: "text", defaultValue: "/register" },
                     {
                         key: "bg_image",
                         label: "Imagen de fondo",
                         type: "image",
+                        defaultValue: "https://res.cloudinary.com/djvj32zic/image/upload/v1771869186/b6c3767d-ca9e-49a5-8187-b0610793ba75_zgic3i.png",
                     },
-                    {
-                        key: "overlay_opacity",
-                        label: "Opacidad overlay",
                         type: "range",
                         min: 0,
                         max: 1,
@@ -1479,12 +1487,12 @@ let products: any[] = [];
                     },
                 ],
                 newsletter: [
-                    { key: "title", label: "Título", type: "text" },
-                    { key: "subtitle", label: "Subtítulo", type: "textarea" },
-                    { key: "button_text", label: "Texto botón", type: "text" },
+                    { key: "title", label: "Título", type: "text", defaultValue: "Únete al Club" },
+                    { key: "subtitle", label: "Subtítulo", type: "textarea", defaultValue: "Recibe ofertas exclusivas, novedades y un 10% de descuento en tu primera compra." },
+                    { key: "button_text", label: "Texto botón", type: "text", defaultValue: "Suscribirme" },
                 ],
                 banner: [
-                    { key: "text", label: "Texto del banner", type: "text" },
+                    { key: "text", label: "Texto del banner", type: "text", defaultValue: "Envío gratis en pedidos +50€" },
                     { key: "bg_color", label: "Color de fondo", type: "color" },
                     {
                         key: "text_color",

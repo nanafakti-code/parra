@@ -628,6 +628,8 @@
         // ── Field Renderer ──
         function renderField(field, value) {
             var h = '<div class="vb-field" data-field-key="' + field.key + '">';
+            // Usar defaultValue cuando el DB está vacío
+            var displayVal = (value !== undefined && value !== null && value !== '') ? value : (field.defaultValue || '');
 
             if (field.type === "text") {
                 h +=
@@ -638,7 +640,7 @@
                     '<input type="text" class="ve2-input" data-key="' +
                     field.key +
                     '" value="' +
-                    esc(value || "") +
+                    esc(displayVal) +
                     '"' +
                     (field.placeholder
                         ? ' placeholder="' + esc(field.placeholder) + '"'
@@ -653,7 +655,7 @@
                     '<textarea class="ve2-input" data-key="' +
                     field.key +
                     '">' +
-                    esc(value || "") +
+                    esc(displayVal) +
                     "</textarea>";
             } else if (field.type === "color") {
                 var colorVal = value || field.defaultValue || "#000000";
@@ -697,15 +699,16 @@
                 h += '<span class="ve2-range-value">' + cur + "</span>";
                 h += "</div>";
             } else if (field.type === "image") {
+                var imgVal = displayVal;
                 h +=
                     '<label class="vb-field-label">' +
                     esc(field.label) +
                     "</label>";
                 h += '<div class="vb-img-preview">';
-                if (value) {
+                if (imgVal) {
                     h +=
                         '<img src="' +
-                        esc(value) +
+                        esc(imgVal) +
                         '" alt="Preview" onerror="this.parentElement.innerHTML=\'<span class=vb-no-img>Error al cargar</span>\'" />';
                 } else {
                     h += '<span class="vb-no-img">Sin imagen</span>';
@@ -715,7 +718,7 @@
                     '<input type="url" class="ve2-input" data-key="' +
                     field.key +
                     '" value="' +
-                    esc(value || "") +
+                    esc(imgVal) +
                     '" placeholder="https://..." />';
             } else if (field.type === "tags") {
                 var tags = Array.isArray(value) ? value : [];
