@@ -9,6 +9,7 @@ import Testimonials from "../components/Testimonials.astro";
 import Newsletter from "../components/Newsletter.astro";
 import Footer from "../components/Footer.astro";
 import { supabase } from "../lib/supabase";
+import { bc } from "../lib/brand-color";
 
 // No cachear para evitar que el navegador guarde la sesión antigua y no actualice el Header sin pulsar F5
 Astro.response.headers.set(
@@ -242,7 +243,7 @@ const homeSchemaJson = JSON.stringify([
 							{ctaContent.title_line1 || "¿LISTO PARA"}
 							<br />
 							<span
-								style={`color: ${ctaContent.style_title_line2_color || "var(--brand)"};`}
+								style={`color: ${bc(ctaContent.style_title_line2_color, "var(--brand)")};`}
 							>
 								{ctaContent.title_line2 || "VOLAR?"}
 							</span>
@@ -250,7 +251,7 @@ const homeSchemaJson = JSON.stringify([
 						<a
 							href={ctaContent.cta_link || "/register"}
 							class="btn-glow inline-flex"
-							style={`background: ${ctaContent.style_cta_bg || "var(--brand)"}; color: ${ctaContent.style_cta_text || "#000000"}; --glow-color: ${ctaContent.style_cta_bg || "var(--brand)"};`}
+							style={`background: ${bc(ctaContent.style_cta_bg, "var(--brand)")}; color: ${ctaContent.style_cta_text || "#000000"}; --glow-color: ${bc(ctaContent.style_cta_bg, "var(--brand)")};`}
 						>
 							{ctaContent.cta_text || "Únete al Club PARRA"}
 							<svg
