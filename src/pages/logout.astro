@@ -1,0 +1,42 @@
+---
+/**
+ * GET /logout
+ *
+ * Página SSR de logout. Elimina las cookies de sesión en el servidor
+ * y redirige al inicio. Al ser una navegación normal (no fetch POST),
+ * no está sujeta a los checks CSRF de Astro ni a problemas de credenciales
+ * del browser en producción (Vercel).
+ *
+ * Seguridad: un CSRF de logout (forzar a alguien a salir vía <img src="/logout">)
+ * no expone datos — solo es un inconveniente. Es el trade-off estándar para logouts GET.
+ */
+
+import { supabase, supabaseAdmin } from '../lib/supabase';
+
+const cookieOptions = {
+    path: '/',
+    httpOnly: true,
+    secure: import.meta.env.PROD,
+    sameSite: 'lax' as const,
+};
+
+// Invalidar sesión server-side para que el refresh token no pueda reutilizarse
+const accessToken = Astro.cookies.get('sb-access-token')?.value;
+if (accessToken) {
+    try {
+        const { data: { user } } = await supabase.auth.getUser(accessToken);
+        if (user?.id) {
+            await supabaseAdmin.auth.admin.signOut(user.id);
+        }
+    } catch {
+        // No crítico — la eliminación de cookies es suficiente
+    }
+}
+
+// Eliminar cookies de sesión
+Astro.cookies.delete('sb-access-token', cookieOptions);
+Astro.cookies.delete('sb-refresh-token', cookieOptions);
+
+// La respuesta de redirección lleva ya los Set-Cookie: Max-Age=0 en los headers
+return Astro.redirect('/', 302);
+---

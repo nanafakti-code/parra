@@ -461,25 +461,13 @@ const { user, role } = Astro.locals;
         window.addEventListener("cart:updated", updateCartCount);
 
         // ── Logout ──
-        async function handleLogout() {
-            // Limpiar el carrito del usuario actual y volver al modo invitado
+        function handleLogout() {
+            // Limpiar carrito local del usuario
             localStorage.removeItem("parra_cart_user_id");
             localStorage.removeItem("parra_cart_session");
-            try {
-                const res = await fetch("/api/auth/logout", {
-                    method: "POST",
-                    credentials: "same-origin",
-                    headers: { "Accept": "application/json" },
-                });
-                if (!res.ok) {
-                    console.error("[logout] La API devolvió error:", res.status);
-                }
-            } catch (e) {
-                console.error("[logout] Error de red:", e);
-            }
-            // window.location.replace hace una navegación HTTP completa (no View Transition)
-            // y reemplaza la entrada del historial para que "atrás" no devuelva al estado autenticado
-            window.location.replace("/");
+            // Navegar a /logout (página SSR que elimina cookies server-side y redirige a /)
+            // window.location.replace evita que "atrás" devuelva a estado autenticado
+            window.location.replace("/logout");
         }
 
         var logoutBtn = document.getElementById("logout-btn");
