@@ -853,8 +853,9 @@
 
                 var colorWrap = fieldEl.querySelector(".ve2-color-wrap");
                 if (colorWrap) {
-                    content[key] =
-                        colorWrap.querySelector('input[type="text"]').value;
+                    var raw = colorWrap.querySelector('input[type="text"]').value;
+                    // Normalize hex to lowercase so comparisons in bc() are case-insensitive
+                    content[key] = /^#[0-9a-fA-F]{3,8}$/.test(raw) ? raw.toLowerCase() : raw;
                     return;
                 }
 

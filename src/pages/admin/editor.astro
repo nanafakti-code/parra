@@ -45,6 +45,19 @@ let products: any[] = [];
         }));
     }
 }
+
+let editorBrandColor = "#39FF14";
+try {
+    const { data: brandSettings } = await supabaseAdmin
+        .from("site_settings")
+        .select("value")
+        .eq("key", "brand")
+        .single();
+    if (brandSettings?.value) {
+        const raw = (brandSettings.value as any).primary_color;
+        if (raw && /^#[0-9a-fA-F]{3,8}$/.test(raw)) editorBrandColor = raw;
+    }
+} catch {}
 ---
 
 <AdminLayout title="Editor Visual" activeSection="editor" admin={admin}>
@@ -1284,6 +1297,7 @@ let products: any[] = [];
         define:vars={{
             sectionsData: JSON.stringify(sections),
             productsData: JSON.stringify(products),
+            simBrandColor: editorBrandColor,
         }}
     >
         (function () {
@@ -1302,6 +1316,21 @@ let products: any[] = [];
             } catch (e) {
                 console.error("Products parse error:", e);
             }
+
+            // ═══════ BRAND COLOR HELPERS ═══════
+            var SIM_BRAND = (typeof simBrandColor !== 'undefined' && simBrandColor) ? simBrandColor : '#39FF14';
+            function hexToRgbStr(hex) {
+                var c = hex.replace('#', '');
+                if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+                return parseInt(c.substr(0,2),16) + ',' + parseInt(c.substr(2,2),16) + ',' + parseInt(c.substr(4,2),16);
+            }
+            var SIM_BRAND_RGB = hexToRgbStr(SIM_BRAND);
+            function resolveColor(val) {
+                if (!val) return SIM_BRAND;
+                if (val.toLowerCase().trim() === '#39ff14') return SIM_BRAND;
+                return val;
+            }
+
             var currentPage = "home";
             var selectedId = null;
             var unsavedIds = new Set();
@@ -2614,11 +2643,11 @@ let products: any[] = [];
                 var links = ['Inicio','Tienda','Elite','Entrenamiento','Infantil'];
                 var linksHtml = links.map(function(l) {
                     var active = (l === 'Tienda' && isShop) || (l === 'Inicio' && !isShop);
-                    return '<a style="font-family:\'Inter\',sans-serif;font-size:0.78rem;font-weight:500;text-transform:uppercase;letter-spacing:0.12em;color:' + (active ? '#39FF14' : 'rgba(255,255,255,0.7)') + ';text-decoration:none;padding:4px 0;">' + l + '</a>';
+                    return '<a style="font-family:\'Inter\',sans-serif;font-size:0.78rem;font-weight:500;text-transform:uppercase;letter-spacing:0.12em;color:' + (active ? SIM_BRAND : 'rgba(255,255,255,0.7)') + ';text-decoration:none;padding:4px 0;">' + l + '</a>';
                 }).join('');
                 return '<header style="position:sticky;top:27px;z-index:998;background:rgba(0,0,0,0.92);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.05);">'
                     + '<div style="max-width:1200px;margin:0 auto;padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;">'
-                    + '<span style="font-family:\'Oswald\',sans-serif;font-size:1.5rem;font-weight:700;color:#39FF14;letter-spacing:0.05em;">PARRA</span>'
+                    + '<span style="font-family:\'Oswald\',sans-serif;font-size:1.5rem;font-weight:700;color:' + SIM_BRAND + ';letter-spacing:0.05em;">PARRA</span>'
                     + '<nav style="display:flex;align-items:center;gap:1.5rem;">' + linksHtml + '</nav>'
                     + '<div style="display:flex;align-items:center;gap:1rem;">'
                     + '<svg width="18" height="18" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
@@ -2666,10 +2695,10 @@ let products: any[] = [];
                             + (pct > 0 ? '<span style="position:absolute;top:8px;left:8px;background:#F59E0B;color:#000;font-size:9px;font-weight:900;padding:3px 8px;letter-spacing:0.04em;border-radius:2px;">-' + pct + '%</span>' : '')
                             + '</div>'
                             + '<div style="padding:0.85rem 1rem;">'
-                            + '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:#39FF14;">' + esc(catName) + '</span>'
+                            + '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:' + SIM_BRAND + ';">' + esc(catName) + '</span>'
                             + '<h3 style="font-family:\'Oswald\',sans-serif;font-size:0.88rem;font-weight:600;text-transform:uppercase;letter-spacing:-0.01em;color:#fff;margin:4px 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(p.name) + '</h3>'
                             + '<div style="display:flex;align-items:center;gap:8px;">'
-                            + '<span style="font-size:0.95rem;font-weight:700;color:#39FF14;">' + esc(price) + '</span>'
+                            + '<span style="font-size:0.95rem;font-weight:700;color:' + SIM_BRAND + ';">' + esc(price) + '</span>'
                             + (oldPrice ? '<span style="font-size:0.72rem;color:rgba(255,255,255,0.2);text-decoration:line-through;">' + esc(oldPrice) + '</span>' : '')
                             + '</div>'
                             + '</div></article>';
@@ -2692,20 +2721,20 @@ let products: any[] = [];
                     + '.sim-h{font-family:"Oswald","Impact",sans-serif;}'
                     + '.sim-section{padding:5rem 0;}'
                     + '.sim-container{max-width:1200px;margin:0 auto;padding:0 2rem;}'
-                    + '.sim-badge-sim{display:inline-block;padding:6px 20px;background:rgba(13,31,13,0.85);color:#39FF14;font-family:"Inter",sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.38em;border:none;}'
-                    + '.sim-btn-primary{display:inline-flex;align-items:center;gap:8px;padding:14px 36px;background:linear-gradient(135deg,#39FF14 0%,#2DD60E 100%);color:#000;font-family:"Oswald",sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;border:none;cursor:pointer;text-decoration:none;border-radius:4px;box-shadow:0 0 30px rgba(57,255,20,0.25);}'
+                    + '.sim-badge-sim{display:inline-block;padding:6px 20px;background:rgba(13,31,13,0.85);color:' + SIM_BRAND + ';font-family:"Inter",sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.38em;border:none;}'
+                    + '.sim-btn-primary{display:inline-flex;align-items:center;gap:8px;padding:14px 36px;background:linear-gradient(135deg,' + SIM_BRAND + ' 0%,' + SIM_BRAND + ' 100%);color:#000;font-family:"Oswald",sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;border:none;cursor:pointer;text-decoration:none;border-radius:4px;box-shadow:0 0 30px rgba(' + SIM_BRAND_RGB + ',0.25);}'
                     + '.sim-btn-outline{display:inline-flex;align-items:center;padding:14px 32px;background:rgba(255,255,255,0.06);color:#fff;font-family:"Oswald",sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;border:none;cursor:pointer;text-decoration:none;border-radius:4px;backdrop-filter:blur(8px);}'
                     + '.sim-card{background:#111827;border:1px solid #1F2937;transition:border-color .3s;}'
-                    + '.sim-card:hover{border-color:rgba(57,255,20,0.3);}'
+                    + '.sim-card:hover{border-color:rgba(' + SIM_BRAND_RGB + ',0.3);}'
                     + '.sim-section-title{font-family:"Oswald",sans-serif;font-size:clamp(2rem,4vw,3.5rem);font-weight:700;text-transform:uppercase;letter-spacing:-0.02em;line-height:1;}'
                     + '.sim-section-sub{font-size:0.95rem;color:rgba(255,255,255,0.45);max-width:480px;margin:0.75rem auto 0;line-height:1.6;}'
                     + '.sim-sec-wrap{position:relative;cursor:pointer;outline:2px solid transparent;transition:outline 0.1s;}'
-                    + '.sim-sec-wrap:hover{outline:2px solid rgba(57,255,20,0.4);}'
-                    + '.sim-sec-wrap.sim-sec-selected{outline:2px solid #39FF14;}'
-                    + '.sim-sec-label{position:absolute;top:0;right:0;z-index:200;background:#39FF14;color:#000;font-family:"Inter",sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;padding:3px 10px;opacity:0;transition:opacity 0.15s;pointer-events:none;}'
+                    + '.sim-sec-wrap:hover{outline:2px solid rgba(' + SIM_BRAND_RGB + ',0.4);}'
+                    + '.sim-sec-wrap.sim-sec-selected{outline:2px solid ' + SIM_BRAND + ';}'
+                    + '.sim-sec-label{position:absolute;top:0;right:0;z-index:200;background:' + SIM_BRAND + ';color:#000;font-family:"Inter",sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;padding:3px 10px;opacity:0;transition:opacity 0.15s;pointer-events:none;}'
                     + '.sim-sec-wrap:hover .sim-sec-label,.sim-sec-wrap.sim-sec-selected .sim-sec-label{opacity:1;}'
                     + '[data-sim-field]{cursor:pointer;}'
-                    + '[data-sim-field]:hover{outline:1px dashed rgba(57,255,20,0.5);outline-offset:2px;border-radius:2px;}'
+                    + '[data-sim-field]:hover{outline:1px dashed rgba(' + SIM_BRAND_RGB + ',0.5);outline-offset:2px;border-radius:2px;}'
                     + '</style>';
             }
 
@@ -2734,11 +2763,11 @@ let products: any[] = [];
                 var ctaText = c.cta_text || 'Comprar Ahora';
                 var secText = c.secondary_text || 'Serie Elite';
                 var c1 = c.style_title_line1_color || '#FFFFFF';
-                var c2 = c.style_title_line2_color || '#39FF14';
+                var c2 = resolveColor(c.style_title_line2_color);
                 var cs = c.style_subtitle_color || '#B0B0B0';
-                var cbg = c.style_cta_bg || '#39FF14';
+                var cbg = resolveColor(c.style_cta_bg);
                 var cct = c.style_cta_text || '#000000';
-                var badgeText = c.style_badge_text || '#39FF14';
+                var badgeText = resolveColor(c.style_badge_text);
                 return '<div style="position:relative;min-height:520px;display:flex;align-items:center;overflow:hidden;background:#000;">'
                     // bg image — positioned to the right like the real site
                     + '<div style="position:absolute;inset:0;background-image:url(\'' + esc(bg) + '\');background-size:cover;background-position:center right;"></div>'
@@ -2747,7 +2776,7 @@ let products: any[] = [];
                     // gradient-hero-side: left=black, fades right
                     + '<div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,1) 0%,rgba(0,0,0,0.82) 30%,rgba(0,0,0,0.35) 60%,rgba(0,0,0,0) 100%);"></div>'
                     // vertical accent line (left side)
-                    + '<div style="position:absolute;left:2.5%;top:25%;bottom:25%;width:2px;background:linear-gradient(to bottom,transparent,rgba(57,255,20,0.35),transparent);"></div>'
+                    + '<div style="position:absolute;left:2.5%;top:25%;bottom:25%;width:2px;background:linear-gradient(to bottom,transparent,rgba(' + SIM_BRAND_RGB + ',0.35),transparent);"></div>'
                     // content — left-aligned, 10% padding-left (desktop style)
                     + '<div style="position:relative;z-index:2;padding:4rem 2rem 4rem 10%;max-width:700px;">'
                     // badge
@@ -2759,7 +2788,7 @@ let products: any[] = [];
                     + '<p data-sim-field="subtitle" style="font-size:0.9rem;line-height:1.65;color:' + esc(cs) + ';margin:0 0 2rem;max-width:360px;">' + esc(sub) + '</p>'
                     // buttons
                     + '<div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">'
-                    + '<a data-sim-field="cta" class="sim-btn-primary" style="background:linear-gradient(135deg,' + esc(cbg) + ' 0%,' + esc(cbg) + ' 100%);color:' + esc(cct) + ';box-shadow:0 0 25px rgba(57,255,20,0.25);">'
+                    + '<a data-sim-field="cta" class="sim-btn-primary" style="background:linear-gradient(135deg,' + esc(cbg) + ' 0%,' + esc(cbg) + ' 100%);color:' + esc(cct) + ';box-shadow:0 0 25px rgba(' + SIM_BRAND_RGB + ',0.25);">'
                     + esc(ctaText)
                     + '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>'
                     + '</a>'
@@ -2773,13 +2802,13 @@ let products: any[] = [];
                 var sub = c.subtitle || '';
                 var ctaText = c.cta_text || 'Ver toda la tienda';
                 var titleColor = c.style_title_color || '#FFFFFF';
-                var accentColor = c.style_accent_color || '#39FF14';
+                var accentColor = resolveColor(c.style_accent_color);
                 var subColor = c.style_subtitle_color || 'rgba(255,255,255,0.45)';
                 var cardBg = c.style_card_bg || 'transparent';
                 var cardBorder = c.style_card_border || '#1F2937';
-                var priceColor = c.style_price_color || '#39FF14';
+                var priceColor = resolveColor(c.style_price_color);
                 var nameColor = c.style_product_name_color || '#FFFFFF';
-                var ctaBg = c.style_cta_bg || '#39FF14';
+                var ctaBg = resolveColor(c.style_cta_bg);
                 var ctaTextColor = c.style_cta_text || '#000000';
 
                 var slugs = c.product_slugs || [];
@@ -2836,8 +2865,8 @@ let products: any[] = [];
             function renderBenefits(c) {
                 var sectionBg = c.style_section_bg || 'transparent';
                 var titleColor = c.style_title_color || '#FFFFFF';
-                var iconColor = c.style_icon_color || '#39FF14';
-                var iconBg = c.style_icon_bg || 'rgba(57,255,20,0.1)';
+                var iconColor = resolveColor(c.style_icon_color);
+                var iconBg = c.style_icon_bg || ('rgba(' + SIM_BRAND_RGB + ',0.1)');
                 var cardBg = c.style_card_bg || '#111827';
                 var cardBorder = c.style_card_border || '#1F2937';
                 var itemTitleColor = c.style_item_title_color || '#FFFFFF';
@@ -2887,7 +2916,7 @@ let products: any[] = [];
                 var optionColor = c.style_option_text_color_hex || '#A0A0A0';
                 var cardBg = c.style_card_bg || '#111827';
                 var cardBorder = c.style_card_border || '#1F2937';
-                var accentColor = c.style_btn_bg || '#39FF14';
+                var accentColor = resolveColor(c.style_btn_bg);
                 var btnText = c.style_btn_text || '#000';
                 var title = c.title || 'Encuentra Tu Guante Perfecto';
                 var subtitle = c.subtitle || 'Responde 3 preguntas y te recomendaremos el guante ideal para ti.';
@@ -2951,7 +2980,7 @@ let products: any[] = [];
 
             function renderTestimonials(c) {
                 var titleColor = c.style_title_color || '#FFFFFF';
-                var accentColor = c.style_stars_color || '#39FF14';
+                var accentColor = resolveColor(c.style_stars_color);
                 var subColor = c.style_subtitle_color || 'rgba(255,255,255,0.45)';
                 var cardBg = c.style_card_bg || '#111827';
                 var cardBorder = c.style_card_border || '#1F2937';
@@ -3015,7 +3044,7 @@ let products: any[] = [];
                 var ctaText = c.cta_text || 'Comprar Ahora';
                 var bg = c.bg_image || '';
                 var overlayOpacity = c.overlay_opacity != null ? c.overlay_opacity : 0.65;
-                var accentColor = c.style_accent_color || '#39FF14';
+                var accentColor = resolveColor(c.style_accent_color);
                 var titleColor = c.style_title_color || '#FFFFFF';
 
                 return '<div style="position:relative;padding:5rem 2rem;background:#0d1117;overflow:hidden;'
@@ -3032,12 +3061,12 @@ let products: any[] = [];
             function renderNewsletter(c) {
                 var btnText = c.button_text || 'Suscribirme';
                 var titleColor = c.style_title_color || '#FFFFFF';
-                var accentColor = c.style_btn_bg || '#39FF14';
+                var accentColor = resolveColor(c.style_btn_bg);
                 var subtitleColor = c.style_subtitle_color || 'rgba(255,255,255,0.5)';
                 var inputBg = c.style_input_bg || '#111827';
                 var inputBorder = c.style_input_border || '#1F2937';
                 var inputText = c.style_input_text || '#FFFFFF';
-                var btnBg = c.style_btn_bg || '#39FF14';
+                var btnBg = resolveColor(c.style_btn_bg);
                 var btnTextColor = c.style_btn_text || '#000';
                 var sectionBg = c.style_section_bg || 'transparent';
 
@@ -3056,7 +3085,7 @@ let products: any[] = [];
 
             function renderBanner(c) {
                 var text = c.text || 'Banner de información';
-                var bgColor = c.bg_color || '#39FF14';
+                var bgColor = resolveColor(c.bg_color);
                 var textColor = c.text_color || '#000';
                 return '<div data-sim-field="text" style="background:' + esc(bgColor) + ';color:' + esc(textColor) + ';text-align:center;padding:0.55rem 1rem;font-family:\'Inter\',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">' 
                     + esc(text)
@@ -3066,7 +3095,7 @@ let products: any[] = [];
             function renderGeneric(key, c, sec) {
                 return '<div style="padding:2rem;background:#111;border-top:1px solid #1F2937;display:flex;align-items:center;gap:1rem;opacity:0.7;">'
                     + '<div style="width:40px;height:40px;background:rgba(57,255,20,0.08);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">'
-                    + '<svg width="18" height="18" fill="none" stroke="#39FF14" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>'
+                    + '<svg width="18" height="18" fill="none" stroke="' + SIM_BRAND + '" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>'
                     + '</div>'
                     + '<div><p style="font-size:0.8rem;font-weight:600;color:#fff;margin:0;">' + esc(sec ? (sec.display_name || key) : key) + '</p>'
                     + '<p style="font-size:0.68rem;color:#555;margin:0;font-family:monospace;">' + esc(key) + '</p></div>'
