@@ -1946,9 +1946,21 @@ let products: any[] = [];
                     items: { c: ['items'], s: ['style_item_title_color','style_item_desc_color','style_icon_color','style_icon_bg','style_card_bg','style_card_border'] },
                 },
                 glove_selector: {
-                    title:    { c: ['title'],    s: ['style_title_color'] },
-                    subtitle: { c: ['subtitle'], s: ['style_subtitle_color'] },
-                    cta:      { c: [],           s: ['style_btn_bg','style_btn_text'] },
+                    title:      { c: ['title'],              s: ['style_title_color'] },
+                    subtitle:   { c: ['subtitle'],           s: ['style_subtitle_color'] },
+                    cta:        { c: ['cta_text'],           s: ['style_btn_bg','style_btn_text'] },
+                    step1_title:{ c: ['step1_title'],        s: ['style_step_title_color'] },
+                    step1_opt1: { c: ['step1_opt1','step1_opt2','step1_opt3'], s: ['style_option_text_color_hex'] },
+                    step1_opt2: { c: ['step1_opt1','step1_opt2','step1_opt3'], s: ['style_option_text_color_hex'] },
+                    step1_opt3: { c: ['step1_opt1','step1_opt2','step1_opt3'], s: ['style_option_text_color_hex'] },
+                    step2_title:{ c: ['step2_title'],        s: ['style_step_title_color'] },
+                    step2_opt1: { c: ['step2_opt1','step2_opt2','step2_opt3'], s: ['style_option_text_color_hex'] },
+                    step2_opt2: { c: ['step2_opt1','step2_opt2','step2_opt3'], s: ['style_option_text_color_hex'] },
+                    step2_opt3: { c: ['step2_opt1','step2_opt2','step2_opt3'], s: ['style_option_text_color_hex'] },
+                    step3_title:{ c: ['step3_title'],        s: ['style_step_title_color'] },
+                    step3_opt1: { c: ['step3_opt1','step3_opt2','step3_opt3'], s: ['style_option_text_color_hex'] },
+                    step3_opt2: { c: ['step3_opt1','step3_opt2','step3_opt3'], s: ['style_option_text_color_hex'] },
+                    step3_opt3: { c: ['step3_opt1','step3_opt2','step3_opt3'], s: ['style_option_text_color_hex'] },
                 },
                 testimonials: {
                     title:    { c: ['title'],    s: ['style_title_color'] },
@@ -2868,41 +2880,44 @@ let products: any[] = [];
                 var steps = [
                     {
                         num: '01',
+                        titleKey: 'step1_title',
                         title: c.step1_title || '¿Cuál es tu nivel?',
-                        options: [
-                            c.step1_opt1 || 'Profesional / Semi-pro',
-                            c.step1_opt2 || 'Entrenamiento regular',
-                            c.step1_opt3 || 'Iniciación / Juvenil'
+                        opts: [
+                            { key: 'step1_opt1', val: c.step1_opt1 || 'Profesional / Semi-pro' },
+                            { key: 'step1_opt2', val: c.step1_opt2 || 'Entrenamiento regular' },
+                            { key: 'step1_opt3', val: c.step1_opt3 || 'Iniciación / Juvenil' }
                         ]
                     },
                     {
                         num: '02',
+                        titleKey: 'step2_title',
                         title: c.step2_title || 'Corte preferido',
-                        options: [
-                            c.step2_opt1 || 'Negativo (ajustado)',
-                            c.step2_opt2 || 'Rollfinger (más agarre)',
-                            c.step2_opt3 || 'Híbrido (equilibrado)'
+                        opts: [
+                            { key: 'step2_opt1', val: c.step2_opt1 || 'Negativo (ajustado)' },
+                            { key: 'step2_opt2', val: c.step2_opt2 || 'Rollfinger (más agarre)' },
+                            { key: 'step2_opt3', val: c.step2_opt3 || 'Híbrido (equilibrado)' }
                         ]
                     },
                     {
                         num: '03',
+                        titleKey: 'step3_title',
                         title: c.step3_title || 'Presupuesto',
-                        options: [
-                            c.step3_opt1 || 'Premium (+70€)',
-                            c.step3_opt2 || 'Gama media (40-70€)',
-                            c.step3_opt3 || 'Entrada (-40€)'
+                        opts: [
+                            { key: 'step3_opt1', val: c.step3_opt1 || 'Premium (+70€)' },
+                            { key: 'step3_opt2', val: c.step3_opt2 || 'Gama media (40-70€)' },
+                            { key: 'step3_opt3', val: c.step3_opt3 || 'Entrada (-40€)' }
                         ]
                     }
                 ];
 
                 var stepCards = steps.map(function(step) {
-                    var opts = step.options.map(function(opt) {
-                        return '<div style="width:100%;padding:0.55rem 1rem;background:rgba(255,255,255,0.03);border:1px solid ' + esc(cardBorder) + ';font-size:0.75rem;font-weight:500;color:' + esc(optionColor) + ';text-align:center;cursor:pointer;transition:all .2s;">'
-                            + esc(opt) + '</div>';
+                    var opts = step.opts.map(function(opt) {
+                        return '<div data-sim-field="' + opt.key + '" style="width:100%;padding:0.55rem 1rem;background:rgba(255,255,255,0.03);border:1px solid ' + esc(cardBorder) + ';font-size:0.75rem;font-weight:500;color:' + esc(optionColor) + ';text-align:center;cursor:pointer;transition:all .2s;">'
+                            + esc(opt.val) + '</div>';
                     }).join('');
                     return '<div style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;padding:1.75rem 1.5rem;text-align:center;">'
                         + '<div style="width:44px;height:44px;margin:0 auto 1rem;border:1px solid ' + esc(accentColor) + ';display:flex;align-items:center;justify-content:center;font-family:\'Oswald\',sans-serif;font-size:1.1rem;font-weight:700;color:' + esc(accentColor) + ';background:rgba(0,0,0,0.2);">' + step.num + '</div>'
-                        + '<h4 style="font-family:\'Oswald\',sans-serif;font-size:1rem;font-weight:600;text-transform:uppercase;letter-spacing:0.02em;color:' + esc(stepTitleColor) + ';margin:0 0 1rem;">' + esc(step.title) + '</h4>'
+                        + '<h4 data-sim-field="' + step.titleKey + '" style="font-family:\'Oswald\',sans-serif;font-size:1rem;font-weight:600;text-transform:uppercase;letter-spacing:0.02em;color:' + esc(stepTitleColor) + ';margin:0 0 1rem;">' + esc(step.title) + '</h4>'
                         + '<div style="display:flex;flex-direction:column;gap:0.5rem;">' + opts + '</div>'
                         + '</div>';
                 }).join('');
