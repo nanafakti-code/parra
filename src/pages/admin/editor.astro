@@ -127,101 +127,7 @@ let products: any[] = [];
             </div>
         </div>
 
-        <div class="vb-toolbar-center">
-            <!-- Edit mode toggle -->
-            <div class="vb-edit-mode" id="vbEditMode">
-                <button
-                    class="vb-edit-mode-btn active"
-                    id="vbModeVisual"
-                    data-ve2-tooltip="Modo visual"
-                >
-                    <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        ><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                        ></path><circle cx="12" cy="12" r="3"></circle></svg
-                    >
-                </button>
-                <button
-                    class="vb-edit-mode-btn"
-                    id="vbModeEdit"
-                    data-ve2-tooltip="Modo edición inline"
-                >
-                    <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        ><path
-                            d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                        ></path><path
-                            d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                        ></path></svg
-                    >
-                </button>
-            </div>
-            <!-- Viewport switcher -->
-            <div class="vb-viewport" id="vbViewport">
-                <button
-                    class="vb-vp-btn active"
-                    data-vp="desktop"
-                    data-ve2-tooltip="Desktop"
-                >
-                    <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        ><rect x="2" y="3" width="20" height="14" rx="2"
-                        ></rect><line x1="8" y1="21" x2="16" y2="21"
-                        ></line><line x1="12" y1="17" x2="12" y2="21"
-                        ></line></svg
-                    >
-                </button>
-                <button
-                    class="vb-vp-btn"
-                    data-vp="tablet"
-                    data-ve2-tooltip="Tablet"
-                >
-                    <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        ><rect x="4" y="2" width="16" height="20" rx="2"
-                        ></rect><line x1="12" y1="18" x2="12.01" y2="18"
-                        ></line></svg
-                    >
-                </button>
-                <button
-                    class="vb-vp-btn"
-                    data-vp="mobile"
-                    data-ve2-tooltip="Móvil"
-                >
-                    <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        ><rect x="5" y="2" width="14" height="20" rx="2"
-                        ></rect><line x1="12" y1="18" x2="12.01" y2="18"
-                        ></line></svg
-                    >
-                </button>
-            </div>
-        </div>
+        <div class="vb-toolbar-center"></div>
 
         <div class="vb-toolbar-right">
             <button class="ve2-btn ve2-btn-ghost ve2-btn-sm" id="vbBtnHistory">
@@ -2585,11 +2491,7 @@ let products: any[] = [];
                 var html = getSimStyles();
                 html += '<div class="sim-wrap">';
 
-                // Sim badge bar
-                html += '<div style="position:sticky;top:0;z-index:999;background:rgba(10,10,10,0.95);border-bottom:1px solid rgba(57,255,20,0.18);padding:5px 16px;display:flex;align-items:center;gap:8px;backdrop-filter:blur(12px);">'
-                    + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#39FF14" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
-                    + '<span style="font-family:\'Inter\',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.18em;color:#39FF14;text-transform:uppercase;">Vista previa simulada — ' + (isShop ? 'Tienda' : 'Inicio') + '</span>'
-                    + '</div>';
+
 
                 // Simulated navbar
                 html += renderNavbar(isShop);
