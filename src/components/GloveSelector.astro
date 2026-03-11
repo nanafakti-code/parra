@@ -1,4 +1,6 @@
 ---
+import { bc } from "../lib/brand-color";
+
 interface Props {
     content?: Record<string, any>;
 }
@@ -13,7 +15,7 @@ const { content = {} } = Astro.props;
         <div class="text-center mb-10 md:mb-16 reveal">
             <div
                 class="inline-block px-3 py-1 sm:px-4 sm:py-1.5 border text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] mb-4 sm:mb-6"
-                style={`color: ${content.style_btn_bg || "var(--brand)"}; border-color: ${content.style_btn_bg || "var(--brand)"}; opacity: 0.8;`}
+                style={`color: ${bc(content.style_btn_bg, "var(--brand)")}; border-color: ${bc(content.style_btn_bg, "var(--brand)")}; opacity: 0.8;`}
             >
                 Selector
             </div>
@@ -22,7 +24,7 @@ const { content = {} } = Astro.props;
                 style={`color: ${content.style_title_color || "#FFFFFF"};`}
             >
                 Encuentra Tu <span
-                    style={`color: ${content.style_btn_bg || "var(--brand)"};`}
+                    style={`color: ${bc(content.style_btn_bg, "var(--brand)")};`}
                     >Guante Perfecto</span
                 >
             </h2>
@@ -45,7 +47,7 @@ const { content = {} } = Astro.props;
             >
                 <div
                     class="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-4 sm:mb-5 border flex items-center justify-center font-display text-lg sm:text-xl font-bold transition-colors"
-                    style={`background-color: rgba(0,0,0,0.2); border-color: ${content.style_btn_bg || "var(--brand)"}; color: ${content.style_btn_bg || "var(--brand)"};`}
+                    style={`background-color: rgba(0,0,0,0.2); border-color: ${bc(content.style_btn_bg, "var(--brand)")}; color: ${bc(content.style_btn_bg, "var(--brand)")};`}
                 >
                     01
                 </div>
@@ -87,7 +89,7 @@ const { content = {} } = Astro.props;
             >
                 <div
                     class="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-4 sm:mb-5 border flex items-center justify-center font-display text-lg sm:text-xl font-bold transition-colors"
-                    style={`background-color: rgba(0,0,0,0.2); border-color: ${content.style_btn_bg || "var(--brand)"}; color: ${content.style_btn_bg || "var(--brand)"};`}
+                    style={`background-color: rgba(0,0,0,0.2); border-color: ${bc(content.style_btn_bg, "var(--brand)")}; color: ${bc(content.style_btn_bg, "var(--brand)")};`}
                 >
                     02
                 </div>
@@ -129,7 +131,7 @@ const { content = {} } = Astro.props;
             >
                 <div
                     class="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-4 sm:mb-5 border flex items-center justify-center font-display text-lg sm:text-xl font-bold transition-colors"
-                    style={`background-color: rgba(0,0,0,0.2); border-color: ${content.style_btn_bg || "var(--brand)"}; color: ${content.style_btn_bg || "var(--brand)"};`}
+                    style={`background-color: rgba(0,0,0,0.2); border-color: ${bc(content.style_btn_bg, "var(--brand)")}; color: ${bc(content.style_btn_bg, "var(--brand)")};`}
                 >
                     03
                 </div>
@@ -187,7 +189,7 @@ const { content = {} } = Astro.props;
                     id="selector-product-link"
                     href="#"
                     class="btn-primary inline-flex"
-                    style={`background: ${content.style_btn_bg || "var(--brand)"}; color: ${content.style_btn_text || "#000000"}; --glow-color: ${content.style_btn_bg || "var(--brand)"};`}
+                    style={`background: ${bc(content.style_btn_bg, "var(--brand)")}; color: ${content.style_btn_text || "#000000"}; --glow-color: ${bc(content.style_btn_bg, "var(--brand)")};`}
                 >
                     Ver Producto
                     <svg

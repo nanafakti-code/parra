@@ -1,4 +1,6 @@
 ---
+import { bc } from "../lib/brand-color";
+
 interface Props {
     content?: {
         title_line1?: string;
@@ -51,18 +53,17 @@ const overlayColor = content.overlay_color || "#000000";
 const overlayOpacity = content.overlay_opacity ?? 0.4;
 
 // Style overrides with current design defaults
-const styleBadgeBg = content.style_badge_bg || "var(--brand)";
-const styleBadgeText = content.style_badge_text || "var(--brand)";
-const styleTitleLine1Color = content.style_title_line1_color || "#FFFFFF";
-const styleTitleLine2Color = content.style_title_line2_color || "var(--brand)";
-const styleSubtitleColor = content.style_subtitle_color || "#B0B0B0";
-const styleCtaBg = content.style_cta_bg || "var(--brand)";
-const styleCtaText = content.style_cta_text || "#000000";
-const styleCtaHoverBg = content.style_cta_hover_bg || "var(--brand-500)";
-const styleSecondaryBg =
-    content.style_secondary_bg || "rgba(255, 255, 255, 0.08)";
-const styleSecondaryText = content.style_secondary_text || "#FFFFFF";
-const styleSecondaryBorder = content.style_secondary_border || "transparent";
+const styleBadgeBg = bc(content.style_badge_bg, "var(--brand)");
+const styleBadgeText = bc(content.style_badge_text, "var(--brand)");
+const styleTitleLine1Color = bc(content.style_title_line1_color, "#FFFFFF");
+const styleTitleLine2Color = bc(content.style_title_line2_color, "var(--brand)");
+const styleSubtitleColor = bc(content.style_subtitle_color, "#B0B0B0");
+const styleCtaBg = bc(content.style_cta_bg, "var(--brand)");
+const styleCtaText = bc(content.style_cta_text, "#000000");
+const styleCtaHoverBg = bc(content.style_cta_hover_bg, "var(--brand-500)");
+const styleSecondaryBg = bc(content.style_secondary_bg, "rgba(255, 255, 255, 0.08)");
+const styleSecondaryText = bc(content.style_secondary_text, "#FFFFFF");
+const styleSecondaryBorder = bc(content.style_secondary_border, "transparent");
 ---
 
 <div class="relative overflow-hidden hero-wrapper">
