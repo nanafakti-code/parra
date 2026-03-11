@@ -422,8 +422,8 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
         box-shadow: 0 0 0 6px rgba(255, 59, 48, 0.04);
     }
     .dot-green {
-        background: #39ff14;
-        box-shadow: 0 0 0 6px rgba(57, 255, 20, 0.04);
+        background: var(--brand);
+        box-shadow: 0 0 0 6px rgba(var(--brand-rgb),0.04);
     }
     .switch {
         display: inline-block;
@@ -455,11 +455,11 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
     }
     .toggle-input:checked + .switch-track {
         background: linear-gradient(90deg, var(--brand) 0%, #2dd60e 100%);
-        box-shadow: 0 0 18px rgba(57, 255, 20, 0.12);
+        box-shadow: 0 0 18px rgba(var(--brand-rgb),0.12);
     }
     .toggle-input:checked + .switch-track::after {
         transform: translateX(30px);
-        box-shadow: 0 4px 18px rgba(57, 255, 20, 0.18);
+        box-shadow: 0 4px 18px rgba(var(--brand-rgb),0.18);
     }
     /* Floating save button */
     .floating-save {
@@ -471,9 +471,9 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
         font-size: 0.85rem;
         z-index: 60;
         box-shadow:
-            0 6px 28px rgba(57, 255, 20, 0.28),
-            inset 0 0 8px rgba(57, 255, 20, 0.06);
-        border: 1px solid rgba(57, 255, 20, 0.85);
+            0 6px 28px rgba(var(--brand-rgb),0.28),
+            inset 0 0 8px rgba(var(--brand-rgb),0.06);
+        border: 1px solid rgba(var(--brand-rgb),0.85);
     }
     .floating-save:hover {
         transform: translateY(-2px);

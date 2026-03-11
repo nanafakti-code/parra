@@ -274,10 +274,14 @@ const chartData = JSON.stringify({
         document.addEventListener('DOMContentLoaded', function() {
             var data = JSON.parse(chartData);
 
+            var styles = getComputedStyle(document.documentElement);
+            var brandColor = styles.getPropertyValue('--brand').trim() || '#39FF14';
+            var brandRgb = styles.getPropertyValue('--brand-rgb').trim() || '57, 255, 20';
+
             var chartColors = {
-                green: '#39FF14',
-                greenBg: 'rgba(57,255,20,0.15)',
-                greenBorder: 'rgba(57,255,20,0.6)',
+                green: brandColor,
+                greenBg: 'rgba(' + brandRgb + ', 0.15)',
+                greenBorder: 'rgba(' + brandRgb + ', 0.6)',
                 blue: '#60a5fa',
                 orange: '#FFA400',
                 red: '#f87171',
@@ -324,7 +328,7 @@ const chartData = JSON.stringify({
             if (ctxStatus) {
                 var statusLabels = Object.keys(data.statusCounts);
                 var statusMap = { pending: 'Pendiente', processing: 'Procesando', shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado', refunded: 'Reembolso' };
-                var statusColors = { pending: '#FFA400', processing: '#60a5fa', shipped: '#818cf8', delivered: '#39FF14', cancelled: '#f87171', refunded: '#a78bfa' };
+                var statusColors = { pending: '#FFA400', processing: '#60a5fa', shipped: '#818cf8', delivered: brandColor, cancelled: '#f87171', refunded: '#a78bfa' };
 
                 new Chart(ctxStatus, {
                     type: 'doughnut',

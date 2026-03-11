@@ -40,7 +40,7 @@ const testimonials = [
                 style={`color: ${content.style_title_color || "#FFFFFF"};`}
             >
                 {content.title_main || "Lo Que Dicen"} <span
-                    style={`color: ${content.style_stars_color || "#39FF14"};`}
+                    style={`color: ${content.style_stars_color || "var(--brand)"};`}
                     >{content.title_accent || "Nuestros Porteros"}</span
                 >
             </h2>
@@ -62,7 +62,7 @@ const testimonials = [
                         {/* Quote mark */}
                         <div
                             class="text-[6rem] font-display font-bold absolute top-4 right-6 leading-none"
-                            style={`color: ${content.style_stars_color || "#39FF14"}; opacity: 0.1;`}
+                            style={`color: ${content.style_stars_color || "var(--brand)"}; opacity: 0.1;`}
                         >
                             "
                         </div>
@@ -93,7 +93,7 @@ const testimonials = [
                         <div class="flex items-center gap-3">
                             <div
                                 class="w-10 h-10 border flex items-center justify-center text-xs font-bold"
-                                style={`background-color: rgba(0,0,0,0.2); border-color: ${content.style_stars_color || "#39FF14"}; color: ${content.style_stars_color || "#39FF14"};`}
+                                style={`background-color: rgba(0,0,0,0.2); border-color: ${content.style_stars_color || "var(--brand)"}; color: ${content.style_stars_color || "var(--brand)"};`}
                             >
                                 {t.avatar}
                             </div>

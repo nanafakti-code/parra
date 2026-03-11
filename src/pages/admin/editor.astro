@@ -558,12 +558,12 @@ let products: any[] = [];
             background:
                 radial-gradient(
                     circle at 20% 20%,
-                    rgba(57, 255, 20, 0.03) 0%,
+                    rgba(var(--brand-rgb),0.03) 0%,
                     transparent 40%
                 ),
                 radial-gradient(
                     circle at 80% 80%,
-                    rgba(57, 255, 20, 0.02) 0%,
+                    rgba(var(--brand-rgb),0.02) 0%,
                     transparent 40%
                 );
             pointer-events: none;
@@ -582,7 +582,7 @@ let products: any[] = [];
             border-radius: 24px;
             box-shadow:
                 0 25px 50px -12px rgba(0, 0, 0, 0.5),
-                0 0 40px rgba(57, 255, 20, 0.03);
+                0 0 40px rgba(var(--brand-rgb),0.03);
             animation: vbAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -604,7 +604,7 @@ let products: any[] = [];
             transform: translateX(-50%);
             width: 200px;
             height: 100px;
-            background: rgba(57, 255, 20, 0.1);
+            background: rgba(var(--brand-rgb),0.1);
             filter: blur(60px);
             border-radius: 50%;
             pointer-events: none;
@@ -637,7 +637,7 @@ let products: any[] = [];
             padding: 1px;
             background: linear-gradient(
                 135deg,
-                rgba(57, 255, 20, 0.3),
+                rgba(var(--brand-rgb),0.3),
                 transparent
             );
             -webkit-mask:
@@ -667,7 +667,7 @@ let products: any[] = [];
             background: #39ff14;
             margin: 0 auto 1.5rem;
             border-radius: 1px;
-            box-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+            box-shadow: 0 0 10px rgba(var(--brand-rgb),0.5);
         }
 
         .vb-mobile-block-msg {
@@ -702,7 +702,7 @@ let products: any[] = [];
         .vb-premium-btn:hover {
             transform: translateY(-3px);
             background: #39ff14;
-            box-shadow: 0 15px 30px rgba(57, 255, 20, 0.2);
+            box-shadow: 0 15px 30px rgba(var(--brand-rgb),0.2);
         }
 
         .vb-premium-btn i {
@@ -788,9 +788,9 @@ let products: any[] = [];
             background: rgba(255, 255, 255, 0.03);
         }
         .vb-page-tab.active {
-            background: var(--ve2-neon-dim, rgba(57, 255, 20, 0.06));
+            background: var(--ve2-neon-dim, rgba(var(--brand-rgb),0.06));
             color: var(--ve2-neon, #39ff14);
-            border-color: rgba(57, 255, 20, 0.1);
+            border-color: rgba(var(--brand-rgb),0.1);
         }
 
         /* Edit mode */
@@ -820,7 +820,7 @@ let products: any[] = [];
             color: var(--ve2-text-secondary, rgba(255, 255, 255, 0.65));
         }
         .vb-edit-mode-btn.active {
-            background: var(--ve2-neon-dim, rgba(57, 255, 20, 0.08));
+            background: var(--ve2-neon-dim, rgba(var(--brand-rgb),0.08));
             color: var(--ve2-neon, #39ff14);
         }
 
@@ -851,7 +851,7 @@ let products: any[] = [];
             color: var(--ve2-text-secondary, rgba(255, 255, 255, 0.65));
         }
         .vb-vp-btn.active {
-            background: var(--ve2-neon-dim, rgba(57, 255, 20, 0.08));
+            background: var(--ve2-neon-dim, rgba(var(--brand-rgb),0.08));
             color: var(--ve2-neon, #39ff14);
         }
 
@@ -1067,8 +1067,8 @@ let products: any[] = [];
             border-color: var(--ve2-border-subtle, rgba(255, 255, 255, 0.04));
         }
         :global(.vb-po-item.drag-over) {
-            background: var(--ve2-neon-ghost, rgba(57, 255, 20, 0.04));
-            border-color: rgba(57, 255, 20, 0.15);
+            background: var(--ve2-neon-ghost, rgba(var(--brand-rgb),0.04));
+            border-color: rgba(var(--brand-rgb),0.15);
         }
         :global(.vb-po-item.dragging) {
             opacity: 0.25;
@@ -1089,7 +1089,7 @@ let products: any[] = [];
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(57, 255, 20, 0.08);
+            background: rgba(var(--brand-rgb),0.08);
             border-radius: 5px;
             font-size: 0.62rem;
             font-weight: 700;
@@ -1190,8 +1190,8 @@ let products: any[] = [];
             transition: all 150ms;
         }
         .vb-block-option:hover {
-            border-color: rgba(57, 255, 20, 0.3);
-            background: rgba(57, 255, 20, 0.04);
+            border-color: rgba(var(--brand-rgb),0.3);
+            background: rgba(var(--brand-rgb),0.04);
         }
         .vb-bo-icon {
             width: 36px;
@@ -1206,7 +1206,7 @@ let products: any[] = [];
             transition: all 150ms;
         }
         .vb-block-option:hover .vb-bo-icon {
-            background: rgba(57, 255, 20, 0.08);
+            background: rgba(var(--brand-rgb),0.08);
             color: var(--ve2-neon, #39ff14);
         }
         .vb-bo-info {

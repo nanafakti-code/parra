@@ -235,7 +235,7 @@ if (user) return Astro.redirect("/");
         height: 600px;
         background: radial-gradient(
             circle,
-            rgba(57, 255, 20, 0.05) 0%,
+            rgba(var(--brand-rgb),0.05) 0%,
             transparent 70%
         );
         pointer-events: none;
@@ -283,7 +283,7 @@ if (user) return Astro.redirect("/");
         height: 380px;
         background: radial-gradient(
             circle,
-            rgba(57, 255, 20, 0.07) 0%,
+            rgba(var(--brand-rgb),0.07) 0%,
             transparent 70%
         );
         pointer-events: none;
@@ -621,7 +621,7 @@ if (user) return Astro.redirect("/");
             border-radius: 8px;
             box-shadow:
                 0 6px 18px rgba(0, 0, 0, 0.5),
-                0 0 12px rgba(57, 255, 20, 0.06);
+                0 0 12px rgba(var(--brand-rgb),0.06);
         }
 
         /* Reduce hero/branding pseudo-size to avoid overflow */

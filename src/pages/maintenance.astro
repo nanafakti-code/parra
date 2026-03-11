@@ -1,6 +1,32 @@
 ---
-// src/pages/maintenance.astro
----
+import { supabaseAdmin } from "../lib/supabase";
+
+function sanitizeColor(color: string): string {
+    return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : "#39FF14";
+}
+function hexToRgb(hex: string): string {
+    const c = hex.replace("#", "");
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    return `${r}, ${g}, ${b}`;
+}
+
+let primaryColor = "#39FF14";
+let secondaryColor = "#2DD60E";
+try {
+    const { data } = await supabaseAdmin
+        .from("site_settings")
+        .select("value")
+        .eq("key", "brand")
+        .single();
+    if (data?.value) {
+        primaryColor = sanitizeColor((data.value as any).primary_color || primaryColor);
+        secondaryColor = sanitizeColor((data.value as any).secondary_color || secondaryColor);
+    }
+} catch {}
+
+const brandRgb = hexToRgb(primaryColor);
 
 <!doctype html>
 <html lang="es">
@@ -20,6 +46,13 @@
             href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap"
             rel="stylesheet"
         />
+        <style set:html={`
+            :root {
+                --brand: ${primaryColor};
+                --brand-500: ${secondaryColor};
+                --brand-rgb: ${brandRgb};
+            }
+        `} />
     </head>
     <body>
         <div class="maintenance-wrapper">
@@ -110,9 +143,9 @@
 <style>
     :root {
         --color-bg: #030303;
-        --color-green: #39ff14;
-        --color-green-glow: rgba(57, 255, 20, 0.4);
-        --color-green-dim: rgba(57, 255, 20, 0.08);
+        --color-green: var(--brand);
+        --color-green-glow: rgba(var(--brand-rgb),0.4);
+        --color-green-dim: rgba(var(--brand-rgb),0.08);
         --color-text: #ffffff;
         --color-text-muted: #a1a1aa;
         --font-heading: "Bebas Neue", Impact, sans-serif;
@@ -342,13 +375,13 @@
         background: var(--color-green);
         color: var(--color-bg);
         border: 1px solid var(--color-green);
-        box-shadow: 0 0 20px rgba(57, 255, 20, 0.15);
+        box-shadow: 0 0 20px rgba(var(--brand-rgb),0.15);
     }
 
     .btn-solid:hover {
         background: #4bff20;
         border-color: #4bff20;
-        box-shadow: 0 0 30px rgba(57, 255, 20, 0.3);
+        box-shadow: 0 0 30px rgba(var(--brand-rgb),0.3);
         transform: translateY(-2px);
     }
 
@@ -361,7 +394,7 @@
     .btn-outline:hover {
         border-color: var(--color-green);
         color: var(--color-green);
-        background: rgba(57, 255, 20, 0.05);
+        background: rgba(var(--brand-rgb),0.05);
         transform: translateY(-2px);
     }
 

@@ -145,9 +145,9 @@ const homeSchemaJson = JSON.stringify([
 					style={`
 					--card-bg-color: ${fpData.style_card_bg || "#111827"};
 					--card-border-color: ${fpData.style_card_border || "#1F2937"};
-					--card-price-color: ${fpData.style_price_color || "#39FF14"};
+					--card-price-color: ${fpData.style_price_color || "var(--brand)"};
 					--card-name-color: ${fpData.style_product_name_color || "#FFFFFF"};
-					--section-accent-color: ${fpData.style_accent_color || "#39FF14"};
+					--section-accent-color: ${fpData.style_accent_color || "var(--brand)"};
 				`}
 				>
 					<div class="container">
@@ -159,7 +159,7 @@ const homeSchemaJson = JSON.stringify([
 								>
 									{fpData.title || "Productos"}{" "}
 									<span
-										style={`color: ${fpData.style_accent_color || "#39FF14"};`}
+										style={`color: ${fpData.style_accent_color || "var(--brand)"};`}
 									>
 										{fpData.title_accent || "Destacados"}
 									</span>
@@ -175,7 +175,7 @@ const homeSchemaJson = JSON.stringify([
 							<a
 								href={fpData.cta_link || "/shop"}
 								class="btn-outline group shrink-0"
-								style={`color: ${fpData.style_accent_color || "#39FF14"}; border-color: ${fpData.style_accent_color || "#39FF14"};`}
+								style={`color: ${fpData.style_accent_color || "var(--brand)"}; border-color: ${fpData.style_accent_color || "var(--brand)"};`}
 							>
 								{fpData.cta_text || "Ver toda la tienda"}
 								<svg
@@ -242,7 +242,7 @@ const homeSchemaJson = JSON.stringify([
 							{ctaContent.title_line1 || "¿LISTO PARA"}
 							<br />
 							<span
-								style={`color: ${ctaContent.style_title_line2_color || "#39FF14"};`}
+								style={`color: ${ctaContent.style_title_line2_color || "var(--brand)"};`}
 							>
 								{ctaContent.title_line2 || "VOLAR?"}
 							</span>
@@ -250,7 +250,7 @@ const homeSchemaJson = JSON.stringify([
 						<a
 							href={ctaContent.cta_link || "/register"}
 							class="btn-glow inline-flex"
-							style={`background: ${ctaContent.style_cta_bg || "#39FF14"}; color: ${ctaContent.style_cta_text || "#000000"}; --glow-color: ${ctaContent.style_cta_bg || "#39FF14"};`}
+							style={`background: ${ctaContent.style_cta_bg || "var(--brand)"}; color: ${ctaContent.style_cta_text || "#000000"}; --glow-color: ${ctaContent.style_cta_bg || "var(--brand)"};`}
 						>
 							{ctaContent.cta_text || "Únete al Club PARRA"}
 							<svg

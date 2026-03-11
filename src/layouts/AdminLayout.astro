@@ -1,4 +1,6 @@
 ---
+import { supabaseAdmin } from "../lib/supabase";
+
 interface Props {
     title: string;
     activeSection?: string;
@@ -6,6 +8,34 @@ interface Props {
 }
 
 const { title, activeSection = "dashboard", admin } = Astro.props;
+
+// ── Brand color (from settings) ───────────────────────────────────────────
+function sanitizeColor(color: string): string {
+    return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : "#39FF14";
+}
+function hexToRgb(hex: string): string {
+    const c = hex.replace("#", "");
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    return `${r}, ${g}, ${b}`;
+}
+
+let primaryColor = "#39FF14";
+let secondaryColor = "#2DD60E";
+try {
+    const { data } = await supabaseAdmin
+        .from("site_settings")
+        .select("value")
+        .eq("key", "brand")
+        .single();
+    if (data?.value) {
+        primaryColor = sanitizeColor((data.value as any).primary_color || primaryColor);
+        secondaryColor = sanitizeColor((data.value as any).secondary_color || secondaryColor);
+    }
+} catch {}
+
+const brandRgb = hexToRgb(primaryColor);
 
 const navItems = [
     { id: "dashboard", label: "Dashboard", icon: "layout", href: "/admin" },
@@ -140,7 +170,7 @@ const navItems = [
                 font-family: "Oswald", system-ui, sans-serif;
                 font-size: 1.5rem;
                 font-weight: 700;
-                color: #39ff14;
+                color: var(--brand);
                 text-decoration: none;
                 letter-spacing: -0.02em;
             }
@@ -185,8 +215,8 @@ const navItems = [
                 background: rgba(255, 255, 255, 0.04);
             }
             .nav-item.active {
-                color: #39ff14;
-                background: rgba(57, 255, 20, 0.06);
+                color: var(--brand);
+                background: rgba(var(--brand-rgb), 0.06);
             }
             .nav-item svg {
                 width: 16px;
@@ -207,8 +237,8 @@ const navItems = [
                 width: 30px;
                 height: 30px;
                 border-radius: 50%;
-                background: rgba(57, 255, 20, 0.1);
-                color: #39ff14;
+                background: rgba(var(--brand-rgb), 0.1);
+                color: var(--brand);
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -292,10 +322,10 @@ const navItems = [
                 align-items: center;
                 gap: 0.4rem;
                 padding: 0.45rem 0.85rem;
-                background: rgba(57, 255, 20, 0.06);
-                border: 1px solid rgba(57, 255, 20, 0.2);
+                background: rgba(var(--brand-rgb), 0.06);
+                border: 1px solid rgba(var(--brand-rgb), 0.2);
                 border-radius: 8px;
-                color: #39ff14;
+                color: var(--brand);
                 font-size: 0.72rem;
                 font-weight: 600;
                 text-decoration: none;
@@ -304,9 +334,9 @@ const navItems = [
                 letter-spacing: 0.01em;
             }
             .btn-store:hover {
-                background: rgba(57, 255, 20, 0.1);
-                border-color: rgba(57, 255, 20, 0.35);
-                box-shadow: 0 0 12px rgba(57, 255, 20, 0.1);
+                background: rgba(var(--brand-rgb), 0.1);
+                border-color: rgba(var(--brand-rgb), 0.35);
+                box-shadow: 0 0 12px rgba(var(--brand-rgb), 0.1);
             }
             .btn-store svg {
                 width: 13px;
@@ -451,10 +481,10 @@ const navItems = [
                 /* ── Botón "Ver tienda" rediseñado mobile ── */
                 .btn-store {
                     padding: 0.45rem 0.85rem;
-                    background: rgba(57, 255, 20, 0.06);
-                    border: 1px solid rgba(57, 255, 20, 0.2);
+                    background: rgba(var(--brand-rgb), 0.06);
+                    border: 1px solid rgba(var(--brand-rgb), 0.2);
                     border-radius: 8px;
-                    color: #39ff14;
+                    color: var(--brand);
                     font-size: 0.72rem;
                     font-weight: 600;
                     gap: 0.35rem;
@@ -523,8 +553,8 @@ const navItems = [
                     position: relative;
                 }
                 .data-table tbody tr:hover {
-                    background: rgba(57, 255, 20, 0.02);
-                    border-color: rgba(57, 255, 20, 0.08);
+                    background: rgba(var(--brand-rgb), 0.02);
+                    border-color: rgba(var(--brand-rgb), 0.08);
                 }
                 .data-table td {
                     padding: 0.2rem 0;
@@ -704,8 +734,8 @@ const navItems = [
                 letter-spacing: 0.05em;
             }
             .badge-success {
-                background: rgba(57, 255, 20, 0.1);
-                color: #39ff14;
+                background: rgba(var(--brand-rgb), 0.1);
+                color: var(--brand);
             }
             .badge-warning {
                 background: rgba(255, 186, 0, 0.1);
@@ -770,13 +800,13 @@ const navItems = [
                 height: 14px;
             }
             .btn-primary {
-                background: linear-gradient(135deg, #39ff14, #2dd60e);
+                background: linear-gradient(135deg, var(--brand), var(--brand-500));
                 color: #000;
-                box-shadow: 0 4px 16px rgba(57, 255, 20, 0.2);
+                box-shadow: 0 4px 16px rgba(var(--brand-rgb), 0.2);
             }
             .btn-primary:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 8px 24px rgba(57, 255, 20, 0.3);
+                box-shadow: 0 8px 24px rgba(var(--brand-rgb), 0.3);
             }
             .btn-primary:active {
                 transform: translateY(0);
@@ -851,7 +881,7 @@ const navItems = [
             .form-input:focus,
             .form-select:focus,
             .form-textarea:focus {
-                border-color: rgba(57, 255, 20, 0.4);
+                border-color: rgba(var(--brand-rgb), 0.4);
             }
             .form-textarea {
                 min-height: 80px;
@@ -896,7 +926,7 @@ const navItems = [
                 margin-top: 0.35rem;
             }
             .stat-up {
-                color: #39ff14;
+                color: var(--brand);
             }
             .stat-down {
                 color: #f87171;
@@ -995,9 +1025,9 @@ const navItems = [
                 opacity: 1;
             }
             .toast-success {
-                background: rgba(57, 255, 20, 0.12);
-                color: #39ff14;
-                border: 1px solid rgba(57, 255, 20, 0.2);
+                background: rgba(var(--brand-rgb), 0.12);
+                color: var(--brand);
+                border: 1px solid rgba(var(--brand-rgb), 0.2);
             }
             .toast-error {
                 background: rgba(239, 68, 68, 0.12);
@@ -1026,9 +1056,9 @@ const navItems = [
                 background: rgba(255, 255, 255, 0.06);
             }
             .page-btn.active {
-                background: rgba(57, 255, 20, 0.1);
-                color: #39ff14;
-                border-color: rgba(57, 255, 20, 0.2);
+                background: rgba(var(--brand-rgb), 0.1);
+                color: var(--brand);
+                border-color: rgba(var(--brand-rgb), 0.2);
             }
 
             .search-bar {
@@ -1079,11 +1109,27 @@ const navItems = [
             }
             .filter-chip:hover,
             .filter-chip.active {
-                background: rgba(57, 255, 20, 0.06);
-                color: #39ff14;
-                border-color: rgba(57, 255, 20, 0.15);
+                background: rgba(var(--brand-rgb), 0.06);
+                color: var(--brand);
+                border-color: rgba(var(--brand-rgb), 0.15);
             }
         </style>
+
+        <!-- Brand color override — set from admin settings -->
+        <style set:html={`
+            :root {
+                --brand: ${primaryColor};
+                --brand-500: ${secondaryColor};
+                --brand-rgb: ${brandRgb};
+                --ve2-neon: ${primaryColor};
+                --ve2-neon-soft: ${secondaryColor};
+                --ve2-border-focus: ${primaryColor};
+                --ve2-neon-dim: rgba(${brandRgb}, 0.08);
+                --ve2-neon-glow: rgba(${brandRgb}, 0.15);
+                --ve2-neon-glow-lg: rgba(${brandRgb}, 0.25);
+                --ve2-neon-ghost: rgba(${brandRgb}, 0.04);
+            }
+        `} />
     </head>
     <body>
         <div class="admin-wrapper">

@@ -1,4 +1,33 @@
 ---
+import { supabaseAdmin } from "../../lib/supabase";
+
+function sanitizeColor(color: string): string {
+    return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : "#39FF14";
+}
+function hexToRgb(hex: string): string {
+    const c = hex.replace("#", "");
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    return `${r}, ${g}, ${b}`;
+}
+
+let primaryColor = "#39FF14";
+let secondaryColor = "#2DD60E";
+try {
+    const { data } = await supabaseAdmin
+        .from("site_settings")
+        .select("value")
+        .eq("key", "brand")
+        .single();
+    if (data?.value) {
+        primaryColor = sanitizeColor((data.value as any).primary_color || primaryColor);
+        secondaryColor = sanitizeColor((data.value as any).secondary_color || secondaryColor);
+    }
+} catch {}
+
+const brandRgb = hexToRgb(primaryColor);
+
 const { user, role } = Astro.locals;
 if (user && role === 'admin') {
     return Astro.redirect('/admin');
@@ -45,12 +74,12 @@ if (user && role === 'admin') {
             text-align: center;
             margin-bottom: 0.25rem;
             /* Animated neon gradient text */
-            background: linear-gradient(90deg, #39FF14 0%, #b8ff14 25%, #39FF14 50%);
+            background: linear-gradient(90deg, var(--brand) 0%, var(--brand) 25%, var(--brand) 50%);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
             /* keep a soft edge shadow */
-            text-shadow: 0 0 6px rgba(57,255,20,0.12);
+            text-shadow: 0 0 6px rgba(var(--brand-rgb),0.12);
             /* subtle lift to read better */
             transform: translateZ(0);
         }
@@ -64,7 +93,7 @@ if (user && role === 'admin') {
             height: 80%;
             pointer-events: none;
             z-index: -1;
-            background: radial-gradient(circle at 50% 40%, rgba(57,255,20,0.35) 0%, rgba(57,255,20,0.18) 18%, rgba(57,255,20,0.06) 36%, rgba(57,255,20,0) 60%);
+            background: radial-gradient(circle at 50% 40%, rgba(var(--brand-rgb),0.35) 0%, rgba(var(--brand-rgb),0.18) 18%, rgba(var(--brand-rgb),0.06) 36%, rgba(var(--brand-rgb),0) 60%);
             filter: blur(18px);
             opacity: 0;
             mix-blend-mode: screen;
@@ -101,7 +130,7 @@ if (user && role === 'admin') {
             transition: border-color 0.2s;
         }
         input:focus {
-            border-color: rgba(57,255,20,0.4);
+            border-color: rgba(var(--brand-rgb),0.4);
         }
         input::placeholder {
             color: rgba(255,255,255,0.15);
@@ -109,7 +138,7 @@ if (user && role === 'admin') {
         .btn-login {
             width: 100%;
             padding: 0.85rem;
-            background: linear-gradient(135deg, #39FF14 0%, #2DD60E 50%, #39FF14 100%);
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-500) 50%, var(--brand) 100%);
             color: #000;
             font-family: 'Oswald', system-ui, sans-serif;
             font-weight: 700;
@@ -138,7 +167,7 @@ if (user && role === 'admin') {
         }
         .btn-login:hover {
             transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 12px 36px rgba(57,255,20,0.12);
+            box-shadow: 0 12px 36px rgba(var(--brand-rgb),0.12);
         }
 
         @keyframes logo-bloom {
@@ -201,8 +230,17 @@ if (user && role === 'admin') {
             text-decoration: none;
             transition: color 0.2s;
         }
-        .back-link:hover { color: #39FF14; }
+        .back-link:hover { color: var(--brand); }
     </style>
+
+    <!-- Brand color override — set from admin settings -->
+    <style set:html={`
+        :root {
+            --brand: ${primaryColor};
+            --brand-500: ${secondaryColor};
+            --brand-rgb: ${brandRgb};
+        }
+    `} />
 </head>
 <body>
     <div class="login-card">

@@ -38,7 +38,7 @@ const staggerClasses = ['reveal', 'reveal stagger-2', 'reveal stagger-3', 'revea
                 style={`color: ${content.style_title_color || "#FFFFFF"};`}
             >
                 Por Qué <span
-                    style={`color: ${content.style_icon_color || "#39FF14"};`}
+                    style={`color: ${content.style_icon_color || "var(--brand)"};`}
                     >PARRA</span
                 >
             </h2>
@@ -58,11 +58,11 @@ const staggerClasses = ['reveal', 'reveal stagger-2', 'reveal stagger-3', 'revea
             >
                 <div
                     class="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 sm:mb-6 border flex items-center justify-center transition-all duration-500"
-                    style={`background-color: ${content.style_icon_bg || "rgba(57,255,20,0.1)"}; border-color: ${content.style_icon_color || "#39FF14"};`}
+                    style={`background-color: ${content.style_icon_bg || "rgba(var(--brand-rgb), 0.1)"}; border-color: ${content.style_icon_color || "var(--brand)"};`}
                 >
                     <svg
                         class="w-7 h-7"
-                        style={`color: ${content.style_icon_color || "#39FF14"};`}
+                        style={`color: ${content.style_icon_color || "var(--brand)"};`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"

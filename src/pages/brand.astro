@@ -58,20 +58,20 @@ const brandSchema = JSON.stringify([
             <!-- Fondo con glow verde -->
             <div
                 class="absolute inset-0"
-                style="background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(57,255,20,0.08) 0%, transparent 70%);"
+                style="background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(var(--brand-rgb), 0.08) 0%, transparent 70%);"
             >
             </div>
             <!-- Línea verde izquierda -->
             <div
                 class="absolute left-0 top-0 bottom-0 w-[3px]"
-                style="background: #39FF14;"
+                style="background: var(--brand);"
             >
             </div>
 
             <div class="container relative z-10 py-24">
                 <p
                     class="text-xs font-bold uppercase tracking-[0.3em] mb-4"
-                    style="color: #39FF14;"
+                    style="color: var(--brand);"
                 >
                     La Marca
                 </p>
@@ -79,7 +79,7 @@ const brandSchema = JSON.stringify([
                     class="font-display text-6xl md:text-8xl font-bold uppercase tracking-tighter mb-6"
                     style="color: #fff;"
                 >
-                    PARRA<br /><span style="color: #39FF14;">GK GLOVES</span>
+                    PARRA<br /><span style="color: var(--brand);">GK GLOVES</span>
                 </h1>
                 <p
                     class="text-lg md:text-xl max-w-2xl leading-relaxed mb-10"
@@ -127,7 +127,7 @@ const brandSchema = JSON.stringify([
                     <div>
                         <p
                             class="text-xs font-bold uppercase tracking-[0.25em] mb-4"
-                            style="color: #39FF14;"
+                            style="color: var(--brand);"
                         >
                             Nuestra Historia
                         </p>
@@ -181,7 +181,7 @@ const brandSchema = JSON.stringify([
                                 >
                                     <p
                                         class="font-display text-4xl font-bold mb-1"
-                                        style="color: #39FF14;"
+                                        style="color: var(--brand);"
                                     >
                                         {stat.num}
                                     </p>
@@ -205,7 +205,7 @@ const brandSchema = JSON.stringify([
                 <div class="text-center mb-14">
                     <p
                         class="text-xs font-bold uppercase tracking-[0.25em] mb-3"
-                        style="color: #39FF14;"
+                        style="color: var(--brand);"
                     >
                         Tecnología
                     </p>
@@ -260,11 +260,11 @@ const brandSchema = JSON.stringify([
                             >
                                 <div
                                     class="w-10 h-10 mb-4 flex items-center justify-center"
-                                    style="background: rgba(57,255,20,0.1); border: 1px solid rgba(57,255,20,0.2);"
+                                    style="background: rgba(var(--brand-rgb), 0.1); border: 1px solid rgba(var(--brand-rgb), 0.2);"
                                 >
                                     <svg
                                         class="w-5 h-5"
-                                        style="color: #39FF14;"
+                                        style="color: var(--brand);"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -305,7 +305,7 @@ const brandSchema = JSON.stringify([
                 <div class="max-w-3xl mx-auto text-center">
                     <p
                         class="text-xs font-bold uppercase tracking-[0.25em] mb-3"
-                        style="color: #39FF14;"
+                        style="color: var(--brand);"
                     >
                         Uso Profesional
                     </p>
@@ -338,7 +338,7 @@ const brandSchema = JSON.stringify([
                                 >
                                     <svg
                                         class="w-4 h-4 mt-0.5 flex-shrink-0"
-                                        style="color: #39FF14;"
+                                        style="color: var(--brand);"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -385,14 +385,14 @@ const brandSchema = JSON.stringify([
                 <h2
                     class="font-display text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-6"
                 >
-                    ¿Listo Para <span style="color: #39FF14;">Dominar?</span>
+                    ¿Listo Para <span style="color: var(--brand);">Dominar?</span>
                 </h2>
                 <p
                     class="mb-8 max-w-xl mx-auto"
                     style="color: var(--text-muted);"
                 >
                     Únete a los porteros que confían en <strong
-                        style="color: #39FF14;">Parra GK Gloves</strong
+                        style="color: var(--brand);">Parra GK Gloves</strong
                     > para ser mejores bajo los palos.
                 </p>
                 <div class="flex justify-center gap-4 flex-wrap">
