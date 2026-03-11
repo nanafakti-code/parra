@@ -1,32 +1,32 @@
 ---
-const testimonials = [
-    {
-        name: "Carlos Martínez",
-        team: "Real Betis Juvenil A",
-        rating: 5,
-        quote: "Los mejores guantes que he probado. El agarre del Titan Pro es increíble, incluso en condiciones de lluvia.",
-        avatar: "CM",
-    },
-    {
-        name: "Laura Sánchez",
-        team: "Selección Sub-19",
-        rating: 5,
-        quote: "Llevo toda la temporada con los Viper Grip y siguen como el primer día. La durabilidad es otro nivel.",
-        avatar: "LS",
-    },
-    {
-        name: "Miguel Ángel Torres",
-        team: "Entrenador de porteros",
-        rating: 5,
-        quote: "Recomiendo PARRA a todos mis alumnos. Calidad profesional a un precio accesible. Sin duda la mejor marca.",
-        avatar: "MT",
-    },
-];
-
 interface Props {
     content?: Record<string, any>;
 }
 const { content = {} } = Astro.props;
+
+const testimonials = [
+    {
+        name:   content.item1_name   || "Carlos Martínez",
+        team:   content.item1_team   || "Real Betis Juvenil A",
+        rating: 5,
+        quote:  content.item1_quote  || "Los mejores guantes que he probado. El agarre del Titan Pro es increíble, incluso en condiciones de lluvia.",
+        avatar: content.item1_avatar || "CM",
+    },
+    {
+        name:   content.item2_name   || "Laura Sánchez",
+        team:   content.item2_team   || "Selección Sub-19",
+        rating: 5,
+        quote:  content.item2_quote  || "Llevo toda la temporada con los Viper Grip y siguen como el primer día. La durabilidad es otro nivel.",
+        avatar: content.item2_avatar || "LS",
+    },
+    {
+        name:   content.item3_name   || "Miguel Ángel Torres",
+        team:   content.item3_team   || "Entrenador de porteros",
+        rating: 5,
+        quote:  content.item3_quote  || "Recomiendo PARRA a todos mis alumnos. Calidad profesional a un precio accesible. Sin duda la mejor marca.",
+        avatar: content.item3_avatar || "MT",
+    },
+];
 ---
 
 <section
@@ -39,16 +39,16 @@ const { content = {} } = Astro.props;
                 class="section-title"
                 style={`color: ${content.style_title_color || "#FFFFFF"};`}
             >
-                Lo Que Dicen <span
+                {content.title || "Lo Que Dicen"} <span
                     style={`color: ${content.style_stars_color || "#39FF14"};`}
-                    >Nuestros Porteros</span
+                    >{content.title_accent || "Nuestros Porteros"}</span
                 >
             </h2>
             <p
                 class="section-subtitle mx-auto"
                 style={`color: ${content.style_subtitle_color || "#737373"};`}
             >
-                Porteros de todos los niveles confían en PARRA.
+                {content.subtitle || "Porteros de todos los niveles confían en PARRA."}
             </p>
         </div>
 
