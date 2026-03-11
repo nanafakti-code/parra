@@ -224,12 +224,13 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
                     <div class="card p-6 space-y-4">
                         <div
                             id="payment-element"
-                            class="min-h-[150px] p-2 bg-brand/5 border border-brand/20 rounded"
+                            class="min-h-[150px] p-2 bg-brand/5 border border-brand/20 rounded flex items-center justify-center"
                         >
                             <span
+                                id="payment-element-placeholder"
                                 style="color: var(--text-muted);"
-                                class="text-sm"
-                                >Cargando métodos de pago... (Requiere conexión)</span
+                                class="text-sm text-center"
+                                >Completa la verificación de seguridad para cargar el pago</span
                             >
                         </div>
                         <div
@@ -341,6 +342,20 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 <script is:inline define:vars={{ stripePubKey }}>
     window.STRIPE_PUBLIC_KEY = stripePubKey;
 </script>
+<!-- Buffer inline: captura el token de Turnstile aunque dispare antes de que el módulo JS esté listo -->
+<script is:inline>
+    // Si Turnstile completa ANTES de que el módulo principal cargue,
+    // guardamos el token y lo consumimos cuando el módulo se inicialice.
+    window.__cfTokenBuffer = null;
+    window.onTurnstileVerified = function (token) {
+        window.__cfTokenBuffer = token;
+        // Si el módulo ya está listo, invocarlo directamente
+        if (typeof window.__stripeInit === 'function') {
+            window.__stripeInit(token);
+            window.__cfTokenBuffer = null;
+        }
+    };
+</script>
 <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
 <script>
@@ -433,13 +448,32 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
                 _showMsg(data.error);
             }
         } catch (err: any) {
-            console.warn("Stripe init fail:", err);
-            _showMsg("Fallo al inicializar pagos: " + err.message);
+            console.warn("[stripe] Error al inicializar pagos:", err);
+            _showMsg(
+                "Error al conectar con el sistema de pago. Por favor, recarga la página e inténtalo de nuevo.",
+            );
+            // Resetear Turnstile para que el usuario pueda reintentar sin recargar
+            if ((window as any).turnstile) {
+                (window as any).turnstile.reset();
+            }
         }
     }
 
-    // Expose as global so Cloudflare Turnstile can invoke it via data-callback
-    (window as any).onTurnstileVerified = initStripeElements;
+    // ── Registrar el init para que el buffer inline y Turnstile puedan invocarlo ──
+    // Esto resuelve la race condition: si Turnstile disparó antes de que este
+    // módulo cargara, el token está en __cfTokenBuffer y lo consumimos aquí.
+    (window as any).__stripeInit = initStripeElements;
+    // Sobrescribir la callback con la referencia real del módulo
+    (window as any).onTurnstileVerified = function (token: string) {
+        (window as any).__cfTokenBuffer = null;
+        initStripeElements(token);
+    };
+    // Consumir token bufferizado si Turnstile ya disparó antes de este módulo
+    const _buffered = (window as any).__cfTokenBuffer;
+    if (_buffered) {
+        (window as any).__cfTokenBuffer = null;
+        initStripeElements(_buffered);
+    }
 
     async function initCheckoutPage() {
         // Reset variables in case of View Transitions
@@ -447,8 +481,18 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
         elements = null;
         clientSecret = null;
 
-        // Re-register the global callback after each View Transitions navigation
-        (window as any).onTurnstileVerified = initStripeElements;
+        // Re-registrar callbacks tras cada navegación por View Transitions
+        (window as any).__stripeInit = initStripeElements;
+        (window as any).onTurnstileVerified = function (token: string) {
+            (window as any).__cfTokenBuffer = null;
+            initStripeElements(token);
+        };
+        // Si Turnstile ya tiene token (widget no se reseteó), consumirlo
+        const buffered = (window as any).__cfTokenBuffer;
+        if (buffered) {
+            (window as any).__cfTokenBuffer = null;
+            initStripeElements(buffered);
+        }
 
         // ── Auto-relleno desde dirección guardada ──────────────────────────────
         const addrCards =
