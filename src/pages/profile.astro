@@ -136,13 +136,13 @@ const tabs = [
                             id="sidebar-avatar"
                             class="w-16 h-16 bg-brand/10 border border-brand/20 flex items-center justify-center mx-auto mb-3 text-brand font-display text-2xl font-bold"
                         >
-                            {userProfile.name.charAt(0).toUpperCase()}
+                            {(userProfile.name || userProfile.email || '?').charAt(0).toUpperCase()}
                         </div>
                         <h2
                             id="sidebar-name"
                             class="font-display text-base font-bold uppercase tracking-tight mb-0.5"
                         >
-                            {userProfile.name}
+                            {userProfile.name || userProfile.email}
                         </h2>
                         <p
                             class="text-xs mb-2"
@@ -620,7 +620,7 @@ const tabs = [
                                     <input
                                         type="text"
                                         name="name"
-                                        value={userProfile.name}
+                                        value={userProfile.name ?? ""}
                                         class="w-full px-4 py-3 text-sm font-medium bg-transparent border focus:outline-none focus:border-brand transition-colors"
                                         style="border-color: var(--border-color); color: var(--text-primary);"
                                     />
@@ -692,7 +692,7 @@ const tabs = [
                                         type="text"
                                         name="username"
                                         autocomplete="username"
-                                        value={user?.email ?? ""}
+                                        value={authUser?.email ?? ""}
                                         aria-hidden="true"
                                         tabindex="-1"
                                         style="display:none"

@@ -174,7 +174,9 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                padding-bottom: 2.5rem;
+                /* padding-bottom desplaza el centro óptico hacia arriba:
+                   el contenido queda en el tercio superior, lejos del watermark PARRA */
+                padding-bottom: 18vh;
                 min-height: 85vh;
             }
 
@@ -232,8 +234,8 @@ const styleSecondaryBorder = content.style_secondary_border || "transparent";
 
             @media (max-width: 767px) {
                 .hero-wrapper {
-                    height: 80vh;
-                    height: 80svh;
+                    height: 85vh;
+                    height: 85svh;
                 }
 
                 .hero-title {
