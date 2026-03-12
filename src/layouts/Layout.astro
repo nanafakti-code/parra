@@ -63,7 +63,7 @@ const {
 	googleVerification,
 } = Astro.props;
 
-const SITE = "https://www.parragkgloves.es";
+const SITE = Astro.url.origin;
 const canonicalURL =
 	canonicalOverride ?? new URL(Astro.url.pathname, SITE).href;
 const fullTitle = `${title} | Parra GK Gloves`;

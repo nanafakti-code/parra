@@ -69,6 +69,7 @@ try {
     console.error("Supabase products error:", e);
 }
 const filteredProducts = products || [];
+const SITE = Astro.url.origin;
 
 // ── JSON-LD: BreadcrumbList (shop) ──
 const shopSchemaJson = JSON.stringify({
@@ -79,13 +80,13 @@ const shopSchemaJson = JSON.stringify({
             "@type": "ListItem",
             position: 1,
             name: "Inicio",
-            item: "https://parragkgloves.es/",
+            item: `${SITE}/`,
         },
         {
             "@type": "ListItem",
             position: 2,
             name: "Tienda de Guantes de Portero",
-            item: "https://parragkgloves.es/shop",
+            item: `${SITE}/shop`,
         },
     ],
 });

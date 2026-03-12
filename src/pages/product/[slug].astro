@@ -161,7 +161,7 @@ const specs = [
 ];
 
 // ── JSON-LD: Product schema ─────────────────────────────────────────────
-const SITE = "https://parragkgloves.es";
+const SITE = Astro.url.origin;
 const productUrl = `${SITE}/product/${product.slug}`;
 
 const productSchema = JSON.stringify({
@@ -254,7 +254,7 @@ const seoDescription = product.short_description
 <Layout
     title={seoTitle}
     description={seoDescription}
-    image={allImages[0]?.url || "https://parragkgloves.es/og-image.jpg"}
+    image={allImages[0]?.url || `${SITE}/og-image.jpg`}
     schemaJson={productSchemaJson}
 >
     <Header />

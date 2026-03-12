@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 
-export const GET: APIRoute = async () => {
-    const SITE = "https://www.parragkgloves.es";
+export const GET: APIRoute = async ({ request }) => {
+    const SITE = new URL(request.url).origin;
 
     const robots = `User-agent: *
 Allow: /

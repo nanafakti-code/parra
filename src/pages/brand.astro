@@ -3,7 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 
-const SITE = "https://parragkgloves.es";
+const SITE = Astro.url.origin;
 
 // ── JSON-LD: About + BreadcrumbList ──────────────────────────────────────
 const brandSchema = JSON.stringify([

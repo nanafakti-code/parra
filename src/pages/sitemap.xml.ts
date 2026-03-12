@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
 import { supabase } from "../lib/supabase";
 
-export const GET: APIRoute = async () => {
-    const SITE = "https://www.parragkgloves.es";
+export const GET: APIRoute = async ({ request }) => {
+    const SITE = new URL(request.url).origin;
     const now = new Date().toISOString().split("T")[0];
 
     // Fetch active products for dynamic URLs
