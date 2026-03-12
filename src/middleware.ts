@@ -119,6 +119,11 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
         return redirect('/maintenance', 302);
     }
 
+    // Si NO estamos en mantenimiento, la URL /maintenance no debe ser accesible ni indexable.
+    if (!isMaintenanceMode && url.pathname === '/maintenance') {
+        return redirect('/', 302);
+    }
+
 
 
     const response = await next();
@@ -150,6 +155,11 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
             "worker-src blob:",
         ].join('; ')
     );
+
+    // Doble señal anti-indexación para buscadores cuando la URL es /maintenance.
+    if (url.pathname === '/maintenance') {
+        response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet');
+    }
 
     return response;
 });
