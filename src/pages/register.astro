@@ -2,9 +2,24 @@
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import { supabaseAdmin } from "../lib/supabase";
 
 const { user } = Astro.locals;
 if (user) return Astro.redirect("/");
+
+let brandLogoUrl = "/images/brand-mark.svg";
+try {
+    const { data } = await supabaseAdmin
+        .from("site_settings")
+        .select("value")
+        .eq("key", "brand")
+        .single();
+
+    const candidate = (data?.value as any)?.logo_url;
+    if (typeof candidate === "string" && candidate.trim()) {
+        brandLogoUrl = candidate.trim();
+    }
+} catch {}
 ---
 
 <Layout title="Crear Cuenta | PARRA" robots="noindex, nofollow">
@@ -16,7 +31,7 @@ if (user) return Astro.redirect("/");
                 <p class="reg-eyebrow">Únete a PARRA</p>
                 <div class="reg-brand-title-wrap">
                     <img
-                        src="/images/brand-mark.svg"
+                        src={brandLogoUrl}
                         alt="Parra"
                         class="reg-brand-logo"
                         loading="eager"

@@ -25,6 +25,7 @@ function deriveSecondaryColor(hex: string): string {
 }
 
 let primaryColor = "#39FF14";
+let brandLogoUrl = "/icons/icon-512.png";
 try {
 	const { data } = await supabaseAdmin
 		.from("site_settings")
@@ -32,7 +33,11 @@ try {
 		.eq("key", "brand")
 		.single();
 	if (data?.value) {
-		primaryColor = sanitizeColor((data.value as any).primary_color || primaryColor);
+		const v = data.value as any;
+		primaryColor = sanitizeColor(v.primary_color || primaryColor);
+		if (typeof v.logo_url === "string" && v.logo_url.trim()) {
+			brandLogoUrl = v.logo_url.trim();
+		}
 	}
 } catch {}
 
@@ -75,7 +80,7 @@ const orgSchema = JSON.stringify({
 	name: "Parra GK Gloves",
 	alternateName: ["Parra", "parragkgloves", "Parra Goalkeeper Gloves"],
 	url: SITE,
-	logo: `${SITE}/icons/icon-512.png`,
+	logo: brandLogoUrl.startsWith("http") ? brandLogoUrl : `${SITE}${brandLogoUrl}`, 
 	description:
 		"Marca española de guantes de portero profesionales con látex alemán de alta adherencia.",
 	sameAs: ["https://www.instagram.com/parragkgloves/"],

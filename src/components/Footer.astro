@@ -1,5 +1,21 @@
 ---
+import { supabaseAdmin } from "../lib/supabase";
+
 const year = new Date().getFullYear();
+
+let brandLogoUrl = "/images/brand-mark.svg";
+try {
+    const { data } = await supabaseAdmin
+        .from("site_settings")
+        .select("value")
+        .eq("key", "brand")
+        .single();
+
+    const candidate = (data?.value as any)?.logo_url;
+    if (typeof candidate === "string" && candidate.trim()) {
+        brandLogoUrl = candidate.trim();
+    }
+} catch {}
 ---
 
 <footer
@@ -18,7 +34,7 @@ const year = new Date().getFullYear();
                     class="inline-flex items-center gap-3 text-2xl font-display font-bold tracking-tight mb-6"
                 >
                     <img
-                        src="/images/brand-mark.svg"
+                        src={brandLogoUrl}
                         alt="Parra"
                         class="h-9 w-9 object-contain"
                         loading="lazy"

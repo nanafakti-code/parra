@@ -5,9 +5,24 @@
  * Componente de cabecera migrado a Supabase Auth.
  * Usa Astro.locals para detectar el estado del usuario de forma atómica.
  */
+import { supabaseAdmin } from "../lib/supabase";
 
 // 1. Obtener usuario y rol desde locals (inyectado por el middleware)
 const { user, role } = Astro.locals;
+
+let brandLogoUrl = "/images/brand-mark.svg";
+try {
+    const { data } = await supabaseAdmin
+        .from("site_settings")
+        .select("value")
+        .eq("key", "brand")
+        .single();
+
+    const candidate = (data?.value as any)?.logo_url;
+    if (typeof candidate === "string" && candidate.trim()) {
+        brandLogoUrl = candidate.trim();
+    }
+} catch {}
 ---
 
 <header
@@ -211,7 +226,7 @@ const { user, role } = Astro.locals;
         <div class="flex justify-between items-center mb-12">
             <div class="flex items-center gap-2">
                 <img
-                    src="/images/brand-mark.svg"
+                    src={brandLogoUrl}
                     alt="Parra"
                     class="h-10 w-10 object-contain"
                     loading="eager"

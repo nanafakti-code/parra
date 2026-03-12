@@ -35,6 +35,9 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
 ---
 
 <AdminLayout title="Ajustes" activeSection="settings" admin={admin}>
+    <script
+        src="https://upload-widget.cloudinary.com/global/all.js"
+        type="text/javascript"></script>
     <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6"
     >
@@ -78,12 +81,22 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
                 </div>
                 <div class="form-group">
                     <label class="form-label">URL del Logo</label>
-                    <input
-                        type="url"
-                        name="logo_url"
-                        value={brand.logo_url}
-                        class="form-input"
-                        placeholder="https://..."
+                    <div class="flex gap-2">
+                        <input
+                            type="url"
+                            name="logo_url"
+                            value={brand.logo_url}
+                            class="form-input"
+                            placeholder="https://..."
+                        />
+                        <button type="button" id="btn-upload-brand-logo" class="btn-outline whitespace-nowrap">Subir</button>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">Sube el logo a Cloudinary o pega una URL pública.</p>
+                    <img
+                        id="brand-logo-preview"
+                        src={brand.logo_url || "/images/brand-mark.svg"}
+                        alt="Preview logo"
+                        class="mt-3 h-16 w-16 object-contain border border-white/10 rounded bg-black/20 p-1"
                     />
                 </div>
                 <div class="form-group">
@@ -566,6 +579,55 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
             }
         });
     });
+
+    // Brand logo upload (Cloudinary)
+    (function () {
+        var logoInput = document.querySelector('form[data-key="brand"] input[name="logo_url"]');
+        var logoPreview = document.getElementById("brand-logo-preview");
+        var uploadBtn = document.getElementById("btn-upload-brand-logo");
+
+        function setLogo(url) {
+            if (!logoInput) return;
+            logoInput.value = url;
+            if (logoPreview) logoPreview.src = url || "/images/brand-mark.svg";
+        }
+
+        logoInput?.addEventListener("input", function () {
+            if (logoPreview) logoPreview.src = this.value || "/images/brand-mark.svg";
+        });
+
+        if (!uploadBtn) return;
+
+        uploadBtn.addEventListener("click", function () {
+            if (typeof cloudinary === "undefined") {
+                window.adminToast?.("Cloudinary no está cargado", "error");
+                return;
+            }
+
+            try {
+                var widget = cloudinary.createUploadWidget(
+                    {
+                        cloudName: "djvj32zic",
+                        uploadPreset: "parragk",
+                        multiple: false,
+                        sources: ["local", "url", "camera"],
+                        folder: "parra/brand",
+                        resourceType: "image",
+                    },
+                    function (error, result) {
+                        if (!error && result && result.event === "success") {
+                            setLogo(result.info.secure_url);
+                            window.adminToast?.("Logo subido correctamente", "success");
+                        }
+                    },
+                );
+
+                widget.open();
+            } catch (e) {
+                window.adminToast?.("No se pudo abrir Cloudinary", "error");
+            }
+        });
+    })();
 
     // Dynamic maintenance toggle
     const mToggle = document.getElementById("maintenance-toggle");

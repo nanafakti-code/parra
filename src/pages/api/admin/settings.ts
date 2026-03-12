@@ -70,6 +70,18 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             return jsonResponse({ error: 'key y value obligatorios' }, 400);
         }
 
+        // Normalización básica para ajustes de marca
+        if (key === 'brand' && value && typeof value === 'object') {
+            if (typeof value.name === 'string') value.name = value.name.trim();
+            if (typeof value.logo_url === 'string') {
+                const u = value.logo_url.trim();
+                value.logo_url = u;
+                if (u && !/^https?:\/\//i.test(u) && !u.startsWith('/')) {
+                    return jsonResponse({ error: 'logo_url debe ser una URL http(s) o ruta absoluta /...' }, 400);
+                }
+            }
+        }
+
         // Leer el color principal antiguo antes de sobreescribir
         let oldPrimaryColor: string | null = null;
         if (key === 'brand' && value?.primary_color) {
