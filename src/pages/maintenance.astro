@@ -71,7 +71,11 @@ const brandRgb = hexToRgb(primaryColor);
             <main class="content-container">
                 <!-- Branding -->
                 <div class="brand-container fade-in-up">
-                    <h1 class="logo">PARRA</h1>
+                    <img
+                        src="/images/brand-mark.svg"
+                        alt="Parra"
+                        class="logo-mark"
+                    />
                 </div>
 
                 <!-- Main Message -->
@@ -276,6 +280,13 @@ const brandRgb = hexToRgb(primaryColor);
         text-shadow:
             0 0 20px var(--color-green-glow),
             0 0 50px var(--color-green-dim);
+        margin-bottom: 2rem;
+    }
+
+    .logo-mark {
+        width: clamp(180px, 24vw, 260px);
+        height: auto;
+        filter: drop-shadow(0 0 16px rgba(var(--brand-rgb), 0.4));
         margin-bottom: 2rem;
     }
 

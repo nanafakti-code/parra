@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
-  <rect width="256" height="256" fill="#000000" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none" aria-labelledby="title desc" role="img">
+  <title id="title">Parra Brand Mark</title>
+  <desc id="desc">Monograma en trazo neon verde sobre fondo transparente.</desc>
   <path d="M22 60C84 108 126 125 168 126C198 127 223 123 238 118" stroke="#7FFF00" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M72 226L164 44" stroke="#7FFF00" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M168 42L170 242" stroke="#7FFF00" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
