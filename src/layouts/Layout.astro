@@ -75,7 +75,7 @@ const orgSchema = JSON.stringify({
 	name: "Parra GK Gloves",
 	alternateName: ["Parra", "parragkgloves", "Parra Goalkeeper Gloves"],
 	url: SITE,
-	logo: `${SITE}/favicon.svg`,
+	logo: `${SITE}/icons/icon-512.png`,
 	description:
 		"Marca española de guantes de portero profesionales con látex alemán de alta adherencia.",
 	sameAs: ["https://www.instagram.com/parragkgloves/"],
@@ -157,9 +157,12 @@ const websiteSchema = JSON.stringify({
 		/>
 
 		<!-- Favicon -->
+		<link rel="shortcut icon" href="/favicon.ico" sizes="any" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" type="image/png" href="/images/brand-mark.png" />
-		<link rel="apple-touch-icon" href="/images/brand-mark.png" />
+		<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+		<link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+		<link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png" />
+		<link rel="manifest" href="/site.webmanifest" />
 		<meta name="generator" content={Astro.generator} />
 
 		<!-- DNS Prefetch + Preconnect for Fonts & CDN -->
