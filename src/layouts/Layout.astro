@@ -49,18 +49,21 @@ interface Props {
 	schemaJson?: string;
 	/** Canonical override for specific pages */
 	canonicalOverride?: string;
+	/** Google Search Console verification code */
+	googleVerification?: string;
 }
 
 const {
 	title,
 	description = "Parra GK Gloves – Guantes de portero profesionales con látex alemán de alta adherencia. Envío gratis en España. Compra online guantes de portero élite.",
-	image = "https://parragkgloves.es/og-image.jpg",
+	image = "https://res.cloudinary.com/djvj32zic/image/upload/f_jpg,q_80,w_1200,h_630,c_fill,g_auto/v1771869186/b6c3767d-ca9e-49a5-8187-b0610793ba75_zgic3i.png",
 	robots = "index, follow",
 	schemaJson,
 	canonicalOverride,
+	googleVerification,
 } = Astro.props;
 
-const SITE = "https://parragkgloves.es";
+const SITE = "https://www.parragkgloves.es";
 const canonicalURL =
 	canonicalOverride ?? new URL(Astro.url.pathname, SITE).href;
 const fullTitle = `${title} | Parra GK Gloves`;
@@ -123,6 +126,9 @@ const websiteSchema = JSON.stringify({
 			content="parra gk gloves, guantes de portero parra, parra guantes portero, guantes portero profesionales, goalkeeper gloves spain, guantes portero grip, parragkgloves"
 		/>
 		<link rel="canonical" href={canonicalURL} />
+
+		<!-- Google Search Console verification -->
+		{googleVerification && <meta name="google-site-verification" content={googleVerification} />}
 
 		<!-- Open Graph (Facebook / WhatsApp / LinkedIn) -->
 		<meta property="og:type" content="website" />

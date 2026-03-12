@@ -114,7 +114,7 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
         !url.pathname.startsWith('/admin') &&
         !url.pathname.startsWith('/_astro') &&
         !url.pathname.startsWith('/api') &&
-        !url.pathname.match(/\.(png|jpg|jpeg|svg|css|js|ico)$/)
+        !url.pathname.match(/\.(png|jpg|jpeg|svg|css|js|ico|xml|txt)$/)
     ) {
         return redirect('/maintenance', 302);
     }
