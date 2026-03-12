@@ -14,7 +14,16 @@ if (user) return Astro.redirect("/");
         <div class="reg-brand-col">
             <div class="reg-brand-inner">
                 <p class="reg-eyebrow">Únete a PARRA</p>
-                <h1 class="reg-brand-title">PARRA</h1>
+                <div class="reg-brand-title-wrap">
+                    <img
+                        src="/images/brand-mark.svg"
+                        alt="Parra"
+                        class="reg-brand-logo"
+                        loading="eager"
+                        decoding="async"
+                    />
+                    <h1 class="reg-brand-title">PARRA</h1>
+                </div>
                 <p class="reg-brand-sub">GOALKEEPER GLOVES</p>
                 <div class="reg-brand-div"></div>
 
@@ -902,6 +911,18 @@ if (user) return Astro.redirect("/");
         color: var(--text-primary);
         margin: 0;
         line-height: 1;
+    }
+
+    .reg-brand-title-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .reg-brand-logo {
+        width: clamp(52px, 6vw, 74px);
+        height: auto;
+        filter: drop-shadow(0 0 10px rgba(var(--brand-rgb), 0.25));
     }
     .reg-brand-sub {
         font-size: 10px;

@@ -74,6 +74,10 @@ if (user && role === 'admin') {
         .logo {
             position: relative;
             z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
             font-family: 'Oswald', system-ui, sans-serif;
             font-size: 1.75rem;
             font-weight: 700;
@@ -89,6 +93,12 @@ if (user && role === 'admin') {
             text-shadow: 0 0 6px rgba(var(--brand-rgb),0.12);
             /* subtle lift to read better */
             transform: translateZ(0);
+        }
+        .logo-mark {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(var(--brand-rgb),0.3));
         }
         .logo::after {
             content: '';
@@ -251,7 +261,10 @@ if (user && role === 'admin') {
 </head>
 <body>
     <div class="login-card">
-        <div class="logo">PARRA</div>
+        <div class="logo">
+            <img src="/images/brand-mark.svg" alt="Parra" class="logo-mark" loading="eager" decoding="async" />
+            <span>PARRA</span>
+        </div>
         <div class="logo-sub">Panel de Administración</div>
 
         <div id="error" class="error-msg"></div>

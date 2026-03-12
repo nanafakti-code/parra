@@ -14,7 +14,16 @@ if (user) return Astro.redirect("/");
         <div class="brand-col">
             <div class="brand-inner">
                 <p class="brand-eyebrow">Bienvenido de nuevo</p>
-                <h1 class="brand-title">PARRA</h1>
+                <div class="brand-title-wrap">
+                    <img
+                        src="/images/brand-mark.svg"
+                        alt="Parra"
+                        class="brand-logo"
+                        loading="eager"
+                        decoding="async"
+                    />
+                    <h1 class="brand-title">PARRA</h1>
+                </div>
                 <p class="brand-sub">GOALKEEPER GLOVES</p>
                 <div class="brand-divider"></div>
                 <p class="brand-desc">
@@ -322,6 +331,18 @@ if (user) return Astro.redirect("/");
         color: var(--text-primary);
         margin: 0;
         line-height: 1;
+    }
+
+    .brand-title-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .brand-logo {
+        width: clamp(52px, 6vw, 74px);
+        height: auto;
+        filter: drop-shadow(0 0 10px rgba(var(--brand-rgb), 0.25));
     }
 
     .brand-sub {
