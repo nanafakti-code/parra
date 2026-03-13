@@ -257,6 +257,9 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     const id = url.searchParams.get('id');
     if (!id) return jsonResponse({ error: 'id requerido' }, 400);
 
+    // Delete history records first to avoid foreign key constraint violations
+    await supabaseAdmin.from('section_history').delete().eq('section_id', id);
+
     const { error } = await supabaseAdmin
         .from('page_sections')
         .delete()

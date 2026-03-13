@@ -519,33 +519,39 @@ try {
 
     <!-- ═══════ CONFIRM MODAL ═══════ -->
     <div class="modal-overlay" id="vbConfirmModal" style="display:none;">
-        <div class="modal vb-confirm-modal" style="max-width:400px;">
-            <div class="vb-confirm-icon">
-                <svg
-                    width="28"
-                    height="28"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    ><circle cx="12" cy="12" r="10"></circle><line
-                        x1="12"
-                        y1="8"
-                        x2="12"
-                        y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"
-                    ></line></svg
-                >
+        <div class="modal vb-confirm-modal" style="max-width:440px;">
+            <div class="vb-confirm-header">
+                <div class="vb-confirm-icon">
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><polyline points="3 6 5 6 21 6"></polyline><path
+                            d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"
+                        ></path><path d="M10 11v6"></path><path d="M14 11v6"
+                        ></path><path
+                            d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
+                        ></path></svg
+                    >
+                </div>
+                <div class="vb-confirm-text">
+                    <h3 class="vb-confirm-title" id="vbConfirmTitle">¿Eliminar sección?</h3>
+                    <p class="vb-confirm-msg" id="vbConfirmMsg">
+                        Esta acción no se puede deshacer.
+                    </p>
+                </div>
             </div>
-            <h3 class="vb-confirm-title" id="vbConfirmTitle">¿Estás seguro?</h3>
-            <p class="vb-confirm-msg" id="vbConfirmMsg">
-                Esta acción no se puede deshacer.
-            </p>
             <div class="vb-confirm-actions">
                 <button class="ve2-btn ve2-btn-ghost" id="vbConfirmCancel"
                     >Cancelar</button
                 >
                 <button class="ve2-btn vb-confirm-ok" id="vbConfirmOk"
-                    >Confirmar</button
+                    >Eliminar</button
                 >
             </div>
         </div>
@@ -1245,49 +1251,61 @@ try {
 
         /* ── Confirm Modal ── */
         .vb-confirm-modal {
-            text-align: center;
-            padding: 2rem 1.5rem 1.5rem !important;
+            padding: 1.5rem !important;
+        }
+        .vb-confirm-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
         .vb-confirm-icon {
-            width: 52px;
-            height: 52px;
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1rem;
-            background: rgba(255, 59, 48, 0.08);
-            border-radius: 50%;
+            background: rgba(255, 59, 48, 0.1);
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            border-radius: 8px;
             color: #ff3b30;
         }
+        .vb-confirm-text {
+            flex: 1;
+            padding-top: 2px;
+        }
         .vb-confirm-title {
-            font-size: 1rem;
+            font-size: 0.88rem;
             font-weight: 600;
             color: rgba(255, 255, 255, 0.9);
-            margin: 0 0 0.4rem;
+            margin: 0 0 0.35rem;
+            letter-spacing: 0.01em;
         }
         .vb-confirm-msg {
-            font-size: 0.78rem;
-            color: var(--ve2-text-muted, rgba(255, 255, 255, 0.35));
-            margin: 0 0 1.5rem;
-            line-height: 1.4;
+            font-size: 0.77rem;
+            color: var(--ve2-text-muted, rgba(255, 255, 255, 0.4));
+            margin: 0;
+            line-height: 1.5;
         }
         .vb-confirm-actions {
             display: flex;
-            gap: 0.6rem;
-            justify-content: center;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 1rem;
         }
         .vb-confirm-actions .ve2-btn {
-            flex: 1;
-            max-width: 160px;
+            min-width: 90px;
         }
         .vb-confirm-ok {
-            background: rgba(255, 59, 48, 0.12) !important;
-            border: 1px solid rgba(255, 59, 48, 0.25) !important;
+            background: rgba(255, 59, 48, 0.15) !important;
+            border: 1px solid rgba(255, 59, 48, 0.3) !important;
             color: #ff6b6b !important;
             transition: all 150ms !important;
         }
         .vb-confirm-ok:hover {
-            background: rgba(255, 59, 48, 0.2) !important;
+            background: rgba(255, 59, 48, 0.25) !important;
             border-color: rgba(255, 59, 48, 0.5) !important;
             color: #ff3b30 !important;
         }
@@ -2384,9 +2402,13 @@ try {
                     if (selectedId) {
                         var sec = findSection(selectedId);
                         var secLabel = sec ? sec.label : "esta sección";
-                        if (window.confirm('¿Eliminar "' + secLabel + '"? Esta acción no se puede deshacer.')) {
-                            deleteSection(selectedId);
-                        }
+                        vbConfirm(
+                            "Eliminar sección",
+                            'Se eliminará "' + secLabel + '" de forma permanente. Esta acción no se puede deshacer.',
+                            "Eliminar"
+                        ).then(function (ok) {
+                            if (ok) deleteSection(selectedId);
+                        });
                     }
                 }
             });
