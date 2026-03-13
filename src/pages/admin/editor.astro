@@ -734,8 +734,7 @@ try {
         .vb-main,
         .vb-footer-bar,
         #vbAddBlockModal,
-        #vbHistoryModal,
-        #vbConfirmModal {
+        #vbHistoryModal {
             display: none !important;
         }
 
@@ -2375,20 +2374,6 @@ try {
             document.addEventListener("click", function (e) {
                 if (e.target.closest("#vbBtnSave")) {
                     if (selectedId) saveSection(selectedId);
-                }
-                if (e.target.closest("#vbBtnDuplicate")) {
-                    if (selectedId) duplicateSection(selectedId);
-                }
-                if (e.target.closest("#vbBtnReset")) {
-                    if (selectedId) {
-                        vbConfirm(
-                            "¿Restaurar sección?",
-                            "Se restaurará esta sección a su estado original. Los cambios actuales se perderán.",
-                            "Restaurar",
-                        ).then(function (ok) {
-                            if (ok) resetSection(selectedId);
-                        });
-                    }
                 }
                 if (e.target.closest("#vbBtnDelete")) {
                     if (selectedId) {
