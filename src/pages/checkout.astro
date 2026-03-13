@@ -285,6 +285,32 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
                         </h2>
                     </div>
 
+                    <!-- Resumen del pedido -->
+                    <div class="card p-4 space-y-2" id="order-summary">
+                        <p
+                            class="text-[10px] font-bold uppercase tracking-[0.2em] pb-1"
+                            style="color: var(--text-muted);"
+                        >
+                            Resumen del pedido
+                        </p>
+                        <div class="flex justify-between text-sm">
+                            <span style="color: var(--text-muted);">Productos</span>
+                            <span id="summary-products" class="font-semibold">—</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span style="color: var(--text-muted);">Envío</span>
+                            <span id="summary-shipping" class="font-semibold text-brand">—</span>
+                        </div>
+                        <div
+                            class="h-px mt-1"
+                            style="background: var(--border-color);"
+                        ></div>
+                        <div class="flex justify-between text-sm font-bold pt-1">
+                            <span>Total</span>
+                            <span id="summary-total" class="text-brand text-base">—</span>
+                        </div>
+                    </div>
+
                     <div class="card p-6 space-y-4">
                         <div
                             id="payment-element"
@@ -448,6 +474,23 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
         const expEl = document.getElementById("cost-express");
         if (stdEl) stdEl.textContent = isFree ? "Gratis" : `${cfg.standardCost.toFixed(2)} €`;
         if (expEl) expEl.textContent = isFree ? "Gratis" : `${cfg.expressCost.toFixed(2)} €`;
+        updateOrderSummary();
+    }
+
+    function updateOrderSummary() {
+        const cfg = (window as any).SHIPPING_CONFIG || { freeThreshold: 50, standardCost: 4.99, expressCost: 9.99 };
+        const cart = getCart();
+        const subtotal = cart.reduce((s: number, i: any) => s + (Number(i.price) * Number(i.quantity)), 0);
+        const isFree = subtotal >= cfg.freeThreshold;
+        const shippingCost = isFree ? 0 : (selectedShippingMethod === "express" ? cfg.expressCost : cfg.standardCost);
+        const total = subtotal + shippingCost;
+        const fmt = (n: number) => `${n.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+        const productsEl = document.getElementById("summary-products");
+        const shippingEl = document.getElementById("summary-shipping");
+        const totalEl    = document.getElementById("summary-total");
+        if (productsEl) productsEl.textContent = fmt(subtotal);
+        if (shippingEl) shippingEl.textContent = isFree ? "Gratis" : fmt(shippingCost);
+        if (totalEl)    totalEl.textContent    = fmt(total);
     }
 
     function setActiveShippingOption(method: string) {
@@ -589,6 +632,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
                 const method = btn.dataset.method ?? "standard";
                 selectedShippingMethod = method;
                 setActiveShippingOption(method);
+                updateOrderSummary();
 
                 // If PI already created, update its amount
                 if (piId && elements) {
