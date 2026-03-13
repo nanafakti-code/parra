@@ -64,6 +64,7 @@ export const POST: APIRoute = async ({ request }) => {
         const piMetadata = paymentIntent.metadata ?? {};
         const couponId       = piMetadata.coupon_id || null;
         const discountAmount = parseFloat(piMetadata.discount_amount ?? '0') || 0;
+        const shippingCost   = parseFloat(piMetadata.shipping_cost   ?? '0') || 0;
 
         // ── 4b. Fraud signals evaluation ──────────────────────────────────────
         const fraud = evaluateFraudSignals(paymentIntent, items);
@@ -142,7 +143,7 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         if (rpcResult && rpcResult.success) {
-            // ── 8. Persist fraud signals on the created order ───────────────────────
+            // ── 8. Persist fraud signals + shipping cost on the created order ────────
             //    Non-blocking: order is valid regardless of fraud field update
             await supabaseAdmin
                 .from('orders')
@@ -150,6 +151,7 @@ export const POST: APIRoute = async ({ request }) => {
                     fraud_risk_level:      fraud.riskLevel      || null,
                     fraud_review_required: fraud.reviewRequired,
                     payment_outcome_type:  fraud.outcomeType    || null,
+                    shipping_cost:         shippingCost,
                 })
                 .eq('id', rpcResult.order_id);
 

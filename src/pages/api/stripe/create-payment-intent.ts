@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getStripe } from '../../../lib/stripe';
-import { supabase } from '../../../lib/supabase';
+import { supabase, supabaseAdmin } from '../../../lib/supabase';
 import { paymentLimiter } from '../../../lib/security/rateLimiter';
 import { getClientIp } from '../../../lib/security/getClientIp';
 import { validateCoupon } from '../../../lib/security/validateCoupon';
@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         const body = await request.json();
         // Accept couponCode (string only — NEVER a discount value from the client)
-        const { items, shippingInfo, email, couponCode, turnstileToken } = body;
+        const { items, shippingInfo, email, couponCode, turnstileToken, shippingMethod } = body;
 
         // ── Turnstile bot protection (verify before any business logic) ──────────
         const turnstileValid = await verifyTurnstile(turnstileToken, ip);
@@ -83,9 +83,26 @@ export const POST: APIRoute = async ({ request }) => {
             discountCents = Math.round(couponResult.discountAmount * 100);
         }
 
-        const amountTotal = Math.max(50, subtotalCents - discountCents); // Stripe min: 50¢
+        // ── 4. Calculate shipping cost (server-side, from admin settings) ─────────
+        let shippingCostCents = 0;
+        const method = (shippingMethod === 'express' || shippingMethod === 'standard') ? shippingMethod : 'standard';
+        try {
+            const { data: ss } = await supabaseAdmin
+                .from('site_settings').select('value').eq('key', 'shipping').single();
+            const cfg = (ss?.value as any) || {};
+            const freeThreshold = Number(cfg.free_threshold ?? 50);
+            const subtotalEuros = subtotalCents / 100;
+            if (subtotalEuros < freeThreshold) {
+                const cost = method === 'express'
+                    ? Number(cfg.express_cost ?? 9.99)
+                    : Number(cfg.standard_cost ?? 4.99);
+                shippingCostCents = Math.round(cost * 100);
+            }
+        } catch { /* use 0 shipping on error */ }
 
-        // ── 4. Create PaymentIntent with server-computed amount ───────────────────
+        const amountTotal = Math.max(50, subtotalCents - discountCents + shippingCostCents);
+
+        // ── 5. Create PaymentIntent with server-computed amount ───────────────────
         const paymentIntent = await getStripe().paymentIntents.create({
             amount: amountTotal,
             currency: 'eur',
@@ -101,10 +118,18 @@ export const POST: APIRoute = async ({ request }) => {
                 // Coupon data stored server-side in Stripe metadata — never from client
                 coupon_id:        couponId ?? '',
                 discount_amount:  (discountCents / 100).toFixed(2),
+                // Shipping data for update and order creation
+                shipping_method:  method,
+                shipping_cost:    (shippingCostCents / 100).toFixed(2),
+                subtotal_cents:   String(subtotalCents),
+                discount_cents:   String(discountCents),
             },
         });
 
-        return jsonResponse({ clientSecret: paymentIntent.client_secret }, 200);
+        return jsonResponse({
+            clientSecret: paymentIntent.client_secret,
+            paymentIntentId: paymentIntent.id,
+        }, 200);
     } catch (error: unknown) {
         console.error('[create-payment-intent]', error);
         return jsonResponse({ error: 'Error interno del servidor.' }, 500);

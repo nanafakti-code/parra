@@ -17,6 +17,15 @@ if (user) {
         .order("is_default", { ascending: false });
     savedAddresses = data ?? [];
 }
+
+// Cargar configuración de envío desde admin settings
+let shippingConfig = { free_threshold: 50, standard_cost: 4.99, express_cost: 9.99 };
+try {
+    const { data: ss } = await supabaseAdmin
+        .from("site_settings").select("value").eq("key", "shipping").single();
+    if (ss?.value) shippingConfig = { ...shippingConfig, ...(ss.value as any) };
+} catch {}
+
 const stripePubKey =
     import.meta.env.STRIPE_PUBLIC_KEY ||
     process.env.STRIPE_PUBLIC_KEY ||
@@ -196,6 +205,61 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
                             class="input"
                         />
                     </form>
+
+                    <!-- Método de Envío -->
+                    <div class="space-y-3">
+                        <p
+                            class="text-[10px] font-bold uppercase tracking-[0.2em]"
+                            style="color: var(--text-muted);"
+                        >
+                            Método de Envío
+                        </p>
+                        <div class="space-y-2" id="shipping-options">
+                            <button
+                                type="button"
+                                id="option-standard"
+                                class="shipping-opt w-full flex items-center justify-between p-4 border transition-all text-left border-brand/40 bg-brand/5"
+                                data-method="standard"
+                            >
+                                <div>
+                                    <span class="font-semibold text-sm block"
+                                        >Envío Estándar</span
+                                    >
+                                    <span
+                                        class="text-[11px]"
+                                        style="color: var(--text-muted);"
+                                        >3-5 días hábiles</span
+                                    >
+                                </div>
+                                <span
+                                    id="cost-standard"
+                                    class="text-sm font-bold text-brand"
+                                >{shippingConfig.standard_cost.toFixed(2)} €</span>
+                            </button>
+                            <button
+                                type="button"
+                                id="option-express"
+                                class="shipping-opt w-full flex items-center justify-between p-4 border transition-all text-left"
+                                style="border-color: var(--border-color);"
+                                data-method="express"
+                            >
+                                <div>
+                                    <span class="font-semibold text-sm block"
+                                        >Envío Express</span
+                                    >
+                                    <span
+                                        class="text-[11px]"
+                                        style="color: var(--text-muted);"
+                                        >24-48 h</span
+                                    >
+                                </div>
+                                <span
+                                    id="cost-express"
+                                    class="text-sm font-bold text-brand"
+                                >{shippingConfig.express_cost.toFixed(2)} €</span>
+                            </button>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- Payment -->
@@ -342,6 +406,13 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 <script is:inline define:vars={{ stripePubKey }}>
     window.STRIPE_PUBLIC_KEY = stripePubKey;
 </script>
+<script is:inline define:vars={{ shippingConfig }}>
+    window.SHIPPING_CONFIG = {
+        freeThreshold: shippingConfig.free_threshold,
+        standardCost:  shippingConfig.standard_cost,
+        expressCost:   shippingConfig.express_cost,
+    };
+</script>
 <!-- Buffer inline: captura el token de Turnstile aunque dispare antes de que el módulo JS esté listo -->
 <script is:inline>
     // Si Turnstile completa ANTES de que el módulo principal cargue,
@@ -364,6 +435,30 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
     let stripe: any = null;
     let elements: any = null;
     let clientSecret: string | null = null;
+    let piId: string | null = null;
+    let selectedShippingMethod = "standard";
+
+    // ── Shipping UI helpers ─────────────────────────────────────────────────
+    function updateShippingUI() {
+        const cfg = (window as any).SHIPPING_CONFIG || { freeThreshold: 50, standardCost: 4.99, expressCost: 9.99 };
+        const cart = getCart();
+        const subtotal = cart.reduce((s: number, i: any) => s + (Number(i.price) * Number(i.quantity)), 0);
+        const isFree = subtotal >= cfg.freeThreshold;
+        const stdEl = document.getElementById("cost-standard");
+        const expEl = document.getElementById("cost-express");
+        if (stdEl) stdEl.textContent = isFree ? "Gratis" : `${cfg.standardCost.toFixed(2)} €`;
+        if (expEl) expEl.textContent = isFree ? "Gratis" : `${cfg.expressCost.toFixed(2)} €`;
+    }
+
+    function setActiveShippingOption(method: string) {
+        document.querySelectorAll<HTMLButtonElement>(".shipping-opt").forEach((btn) => {
+            const isSelected = btn.dataset.method === method;
+            btn.classList.toggle("border-brand/40", isSelected);
+            btn.classList.toggle("bg-brand/5", isSelected);
+            if (!isSelected) btn.style.borderColor = "var(--border-color)";
+            else btn.style.borderColor = "";
+        });
+    }
 
     // ── initStripeElements ─────────────────────────────────────────────────
     // Called automatically by the Cloudflare Turnstile widget once bot-
@@ -402,12 +497,14 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
                     shippingInfo: {},
                     email: "guest@example.com",
                     turnstileToken: token,
+                    shippingMethod: selectedShippingMethod,
                 }),
             });
             const data = await res.json();
 
             if (data.clientSecret) {
                 clientSecret = data.clientSecret;
+                piId = data.paymentIntentId ?? null;
                 stripe = (window as any).Stripe(pubKey);
                 const appearance = {
                     theme: "night",
@@ -480,6 +577,34 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
         stripe = null;
         elements = null;
         clientSecret = null;
+        piId = null;
+        selectedShippingMethod = "standard";
+
+        // ── Shipping selector ───────────────────────────────────────────────────
+        updateShippingUI();
+        setActiveShippingOption("standard");
+
+        document.querySelectorAll<HTMLButtonElement>(".shipping-opt").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+                const method = btn.dataset.method ?? "standard";
+                selectedShippingMethod = method;
+                setActiveShippingOption(method);
+
+                // If PI already created, update its amount
+                if (piId && elements) {
+                    try {
+                        await fetch("/api/stripe/update-shipping", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ paymentIntentId: piId, shippingMethod: method }),
+                        });
+                        await elements.fetchUpdates();
+                    } catch (e) {
+                        console.warn("[shipping] Error updating PI amount:", e);
+                    }
+                }
+            });
+        });
 
         // Re-registrar callbacks tras cada navegación por View Transitions
         (window as any).__stripeInit = initStripeElements;
