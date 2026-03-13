@@ -4,6 +4,7 @@ import { supabaseAdmin } from "../lib/supabase";
 const year = new Date().getFullYear();
 
 let brandLogoUrl = "/images/brand-mark.svg";
+let brandName = "PARRA";
 try {
     const { data } = await supabaseAdmin
         .from("site_settings")
@@ -14,6 +15,10 @@ try {
     const candidate = (data?.value as any)?.logo_url;
     if (typeof candidate === "string" && candidate.trim()) {
         brandLogoUrl = candidate.trim();
+    }
+    const nameCandidate = (data?.value as any)?.name;
+    if (typeof nameCandidate === "string" && nameCandidate.trim()) {
+        brandName = nameCandidate.trim();
     }
 } catch {}
 ---
@@ -35,12 +40,12 @@ try {
                 >
                     <img
                         src={brandLogoUrl}
-                        alt="Parra"
+                        alt={brandName}
                         class="h-9 w-9 object-contain"
                         loading="lazy"
                         decoding="async"
                     />
-                    <span class="text-brand">PARRA</span>
+                    <span class="text-brand">{brandName}</span>
                 </a>
                 <p class="footer-text text-sm leading-relaxed mb-8 max-w-xs">
                     Guantes de portero diseñados para quienes no aceptan menos
@@ -230,7 +235,7 @@ try {
             class="container py-6 flex flex-col items-center gap-4 text-center md:flex-row md:justify-between md:text-left"
         >
             <p class="footer-copyright text-xs uppercase tracking-[0.15em]">
-                &copy; {year} PARRA. Todos los derechos reservados.
+                &copy; {year} {brandName}. Todos los derechos reservados.
             </p>
 
             <!-- Payment Icons -->

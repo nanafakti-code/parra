@@ -8,6 +8,7 @@ const { user } = Astro.locals;
 if (user) return Astro.redirect("/");
 
 let brandLogoUrl = "/images/brand-mark.svg";
+let brandName = "PARRA";
 try {
     const { data } = await supabaseAdmin
         .from("site_settings")
@@ -19,25 +20,29 @@ try {
     if (typeof candidate === "string" && candidate.trim()) {
         brandLogoUrl = candidate.trim();
     }
+    const nameCandidate = (data?.value as any)?.name;
+    if (typeof nameCandidate === "string" && nameCandidate.trim()) {
+        brandName = nameCandidate.trim();
+    }
 } catch {}
 ---
 
-<Layout title="Crear Cuenta | PARRA" robots="noindex, nofollow">
+<Layout title={`Crear Cuenta | ${brandName}`} robots="noindex, nofollow">
     <Header />
     <main class="reg-main">
         <!-- ── Columna izquierda: branding + timeline ── -->
         <div class="reg-brand-col">
             <div class="reg-brand-inner">
-                <p class="reg-eyebrow">Únete a PARRA</p>
+                <p class="reg-eyebrow">Únete a {brandName}</p>
                 <div class="reg-brand-title-wrap">
                     <img
                         src={brandLogoUrl}
-                        alt="Parra"
+                        alt={brandName}
                         class="reg-brand-logo"
                         loading="eager"
                         decoding="async"
                     />
-                    <h1 class="reg-brand-title">PARRA</h1>
+                    <h1 class="reg-brand-title">{brandName}</h1>
                 </div>
                 <p class="reg-brand-sub">GOALKEEPER GLOVES</p>
                 <div class="reg-brand-div"></div>

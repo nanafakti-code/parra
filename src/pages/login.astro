@@ -8,6 +8,7 @@ const { user } = Astro.locals;
 if (user) return Astro.redirect("/");
 
 let brandLogoUrl = "/images/brand-mark.svg";
+let brandName = "PARRA";
 try {
     const { data } = await supabaseAdmin
         .from("site_settings")
@@ -19,10 +20,14 @@ try {
     if (typeof candidate === "string" && candidate.trim()) {
         brandLogoUrl = candidate.trim();
     }
+    const nameCandidate = (data?.value as any)?.name;
+    if (typeof nameCandidate === "string" && nameCandidate.trim()) {
+        brandName = nameCandidate.trim();
+    }
 } catch {}
 ---
 
-<Layout title="Iniciar Sesión | PARRA" robots="noindex, nofollow">
+<Layout title={`Iniciar Sesión | ${brandName}`} robots="noindex, nofollow">
     <Header />
     <main class="login-main">
         <!-- Columna izquierda: branding -->
@@ -32,12 +37,12 @@ try {
                 <div class="brand-title-wrap">
                     <img
                         src={brandLogoUrl}
-                        alt="Parra"
+                        alt={brandName}
                         class="brand-logo"
                         loading="eager"
                         decoding="async"
                     />
-                    <h1 class="brand-title">PARRA</h1>
+                    <h1 class="brand-title">{brandName}</h1>
                 </div>
                 <p class="brand-sub">GOALKEEPER GLOVES</p>
                 <div class="brand-divider"></div>
@@ -231,7 +236,7 @@ try {
                 <!-- Separador -->
                 <div class="lsep">
                     <span class="lsep-line"></span>
-                    <span class="lsep-text">PARRA SPORT S.L.</span>
+                    <span class="lsep-text">{brandName} SPORT S.L.</span>
                     <span class="lsep-line"></span>
                 </div>
             </div>
