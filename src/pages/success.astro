@@ -35,12 +35,15 @@ import Footer from "../components/Footer.astro";
             </h1>
 
             <p
-                class="text-lg mb-10 text-[var(--text-secondary)] leading-relaxed"
+                class="text-lg mb-8 text-[var(--text-secondary)] leading-relaxed"
             >
                 Gracias por confiar en PARRA. Hemos recibido tu pago
                 correctamente. Tu pedido está siendo procesado por nuestros
                 expertos.
             </p>
+
+            <!-- Order summary (populated from sessionStorage) -->
+            <div id="order-summary-container" style="display:none;" class="mb-10"></div>
 
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="/shop" class="btn-glow inline-flex h-14 items-center">
@@ -69,6 +72,38 @@ import Footer from "../components/Footer.astro";
 
         // Limpiar carrito local
         clearCart();
+
+        // Show order summary from sessionStorage (saved by checkout before redirect)
+        try {
+            const raw = sessionStorage.getItem("lastOrderSummary");
+            if (raw) {
+                const summary = JSON.parse(raw);
+                sessionStorage.removeItem("lastOrderSummary");
+                const fmt = (n: number) =>
+                    n.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+                const container = document.getElementById("order-summary-container");
+                if (container && summary) {
+                    container.innerHTML = `
+                        <div style="background:var(--card-bg,#111);border:1px solid var(--brand);border-radius:8px;padding:20px 24px;max-width:360px;margin:0 auto;text-align:left;">
+                            <p style="font-size:10px;font-weight:700;letter-spacing:0.2em;color:var(--text-muted);text-transform:uppercase;margin:0 0 12px;">Resumen del pedido</p>
+                            <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px;">
+                                <span style="color:var(--text-muted);">Productos</span>
+                                <span>${fmt(summary.subtotal)}</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:12px;">
+                                <span style="color:var(--text-muted);">Envío</span>
+                                <span style="color:var(--brand);">${summary.shipping === 0 ? "Gratis" : fmt(summary.shipping)}</span>
+                            </div>
+                            <div style="height:1px;background:var(--border-color,#1e2433);margin-bottom:12px;"></div>
+                            <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700;">
+                                <span>Total</span>
+                                <span style="color:var(--brand);">${fmt(summary.total)}</span>
+                            </div>
+                        </div>`;
+                    container.style.display = "";
+                }
+            }
+        } catch { /* non-critical */ }
 
         // Llamar al endpoint de respaldo para garantizar que el email se envíe
         // aunque el webhook de Stripe no haya llegado (localhost, webhook tardío, etc.)

@@ -916,7 +916,14 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
                         const data = await response.json();
 
                         if (data.ok) {
-                            // Success! Redirect.
+                            // Save order summary so the success page can show the breakdown
+                            try {
+                                const cfg = (window as any).SHIPPING_CONFIG || { freeThreshold: 50, standardCost: 4.99, expressCost: 9.99 };
+                                const sub = items.reduce((s: number, i: any) => s + (Number(i.price) * Number(i.quantity)), 0);
+                                const isFree = sub >= cfg.freeThreshold;
+                                const ship = isFree ? 0 : (selectedShippingMethod === "express" ? cfg.expressCost : cfg.standardCost);
+                                sessionStorage.setItem("lastOrderSummary", JSON.stringify({ subtotal: sub, shipping: ship, total: sub + ship }));
+                            } catch { /* non-critical */ }
                             clearCart();
                             window.location.href = `/success`;
                         } else {

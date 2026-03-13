@@ -155,9 +155,9 @@ function buildOrderConfirmationHtml(
   const firstName = (order.shipping_name || 'Cliente').split(' ')[0];
   const orderNumber = order.order_number || `PG-${String(order.id).slice(-8).toUpperCase()}`;
   const orderDate = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-  const subtotal = order.subtotal ?? order.total ?? 0;
   const shipping = order.shipping_cost ?? 0;
-  const total = order.total ?? subtotal + shipping;
+  const total = order.total ?? 0;
+  const subtotal = order.subtotal != null ? order.subtotal : (total - shipping);
   const address = [
     order.shipping_street,
     order.shipping_city,

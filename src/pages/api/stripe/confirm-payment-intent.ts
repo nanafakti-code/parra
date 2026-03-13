@@ -167,8 +167,11 @@ export const POST: APIRoute = async ({ request }) => {
                 await stripe.paymentIntents.capture(paymentIntentId);
 
                 // Fetch the created order and items to send confirmation email
-                const { data: orderData } = await supabaseAdmin.from('orders').select('*, order_items(*)').eq('id', rpcResult.order_id).single();
-                if (orderData) {
+                const { data: rawOrderData } = await supabaseAdmin.from('orders').select('*, order_items(*)').eq('id', rpcResult.order_id).single();
+                if (rawOrderData) {
+                    // Override shipping_cost from PI metadata to guarantee correctness
+                    // (avoids any race condition between the DB update and this select)
+                    const orderData = { ...rawOrderData, shipping_cost: shippingCost };
                     try {
                         const pdfBuffer = await generateInvoicePdf(orderData);
                         const sent = await sendOrderConfirmationEmail(orderData, orderData.order_items, pdfBuffer);
