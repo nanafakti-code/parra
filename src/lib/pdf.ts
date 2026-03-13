@@ -43,6 +43,7 @@ const drawSectionLabel = (doc: any, GREEN: string, label: string, x: number, y: 
 export async function generateInvoicePdf(order: any, userProfile?: any): Promise<Buffer> {
     // ── Configuración de marca y contacto desde admin ─────────────────
     let brandPrimary = "#39FF14";
+    let brandName = "PARRA GK Gloves";
     let contactEmail = "info@parragkgloves.es";
     let contactPhone = "+34 91 000 00 00";
     let contactAddress = "Calle Mayor 42, 28001 Madrid";
@@ -53,6 +54,7 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         (settingsRows || []).forEach((r: any) => { sm[r.key] = r.value; });
         const raw = sm.brand?.primary_color;
         if (raw && /^#[0-9a-fA-F]{6}$/.test(raw)) brandPrimary = raw.toUpperCase();
+        if (sm.brand?.name) brandName = sm.brand.name;
         if (sm.contact?.email) contactEmail = sm.contact.email;
         if (sm.contact?.phone) contactPhone = sm.contact.phone;
         if (sm.contact?.address) contactAddress = sm.contact.address;
@@ -206,7 +208,7 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         doc.rect(M + 16, IY + 19, 30, 1).fill(GREEND);
 
         const emisor = [
-            ["Helvetica-Bold", 10, WHITE, "PARRA Sport S.L."],
+            ["Helvetica-Bold", 10, WHITE, brandName],
             ["Helvetica", 7.5, LGRAY, "CIF: B-12345678"],
             ["Helvetica", 7.5, LGRAY, contactAddress],
             ["Helvetica", 7.5, GRAY, contactEmail],
@@ -342,7 +344,7 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         doc.font("Helvetica").fontSize(7).fillColor(GRAY)
             .text(
                 "Documento válido conforme al RD 1619/2012. IVA incluido en los precios. " +
-                `PARRA Sport S.L. — CIF: B-12345678 — ${contactEmail}`,
+                `${brandName} — CIF: B-12345678 — ${contactEmail}`,
                 M + 12, NY + 21, { width: CW - 24, lineBreak: false }
             );
 
@@ -356,7 +358,7 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         doc.moveTo(M, FY + 18).lineTo(W - M, FY + 18).stroke();
 
         doc.font("Helvetica-Bold").fontSize(9).fillColor(WHITE)
-            .text("PARRA SPORT S.L.", M, FY + 10, { lineBreak: false, characterSpacing: 2 });
+            .text(brandName.toUpperCase(), M, FY + 10, { lineBreak: false, characterSpacing: 2 });
         doc.font("Helvetica").fontSize(7).fillColor(GRAY)
             .text(`www.parragkgloves.es  ·  ${contactEmail}  ·  ${contactPhone}`, M, FY + 24, { lineBreak: false });
         doc.font("Helvetica").fontSize(7).fillColor(GRAY)
