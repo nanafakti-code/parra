@@ -124,9 +124,12 @@ const navItems = [
             html {
                 font-size: 14px;
             }
-            /* Prevent iOS Safari/Chrome auto-zoom: inputs need ≥ 16px computed font-size */
-            input, select, textarea {
-                font-size: 16px !important;
+            /* Prevent iOS Safari/Chrome auto-zoom on input focus.
+               Only applies on touch devices — desktop editor stays compact. */
+            @media (hover: none) and (pointer: coarse) {
+                input, select, textarea {
+                    font-size: 16px !important;
+                }
             }
             body {
                 font-family:
