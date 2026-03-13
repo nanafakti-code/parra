@@ -143,8 +143,10 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         if (rpcResult && rpcResult.success) {
-            // ── 8. Persist fraud signals + shipping cost on the created order ────────
-            //    Non-blocking: order is valid regardless of fraud field update
+            // ── 8. Persist fraud signals + shipping cost + correct total on the order ─
+            //    amountTotal = paymentIntent.amount / 100 (always includes shipping).
+            //    The RPC may calculate total from item prices only, so we overwrite it
+            //    here to match the actual Stripe charge amount.
             await supabaseAdmin
                 .from('orders')
                 .update({
@@ -152,6 +154,7 @@ export const POST: APIRoute = async ({ request }) => {
                     fraud_review_required: fraud.reviewRequired,
                     payment_outcome_type:  fraud.outcomeType    || null,
                     shipping_cost:         shippingCost,
+                    total:                 amountTotal,
                 })
                 .eq('id', rpcResult.order_id);
 
@@ -169,9 +172,9 @@ export const POST: APIRoute = async ({ request }) => {
                 // Fetch the created order and items to send confirmation email
                 const { data: rawOrderData } = await supabaseAdmin.from('orders').select('*, order_items(*)').eq('id', rpcResult.order_id).single();
                 if (rawOrderData) {
-                    // Override shipping_cost from PI metadata to guarantee correctness
-                    // (avoids any race condition between the DB update and this select)
-                    const orderData = { ...rawOrderData, shipping_cost: shippingCost };
+                    // Override shipping_cost and total from PI metadata / amount to guarantee
+                    // correctness (avoids any race condition between the DB update and this select)
+                    const orderData = { ...rawOrderData, shipping_cost: shippingCost, total: amountTotal };
                     try {
                         const pdfBuffer = await generateInvoicePdf(orderData);
                         const sent = await sendOrderConfirmationEmail(orderData, orderData.order_items, pdfBuffer);
