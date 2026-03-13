@@ -5,23 +5,16 @@ function sanitizeColor(color: string): string {
     return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : "#39FF14";
 }
 function hexToRgb(hex: string): string {
-    const c = hex.replace("#", "");
+    const c = hex.replace("#", "").padEnd(6, "0");
     const r = parseInt(c.substring(0, 2), 16);
     const g = parseInt(c.substring(2, 4), 16);
     const b = parseInt(c.substring(4, 6), 16);
     return `${r}, ${g}, ${b}`;
 }
-function deriveSecondaryColor(hex: string): string {
-    const c = hex.replace("#", "");
-    const factor = 0.8;
-    const r = Math.round(parseInt(c.substring(0, 2), 16) * factor);
-    const g = Math.round(parseInt(c.substring(2, 4), 16) * factor);
-    const b = Math.round(parseInt(c.substring(4, 6), 16) * factor);
-    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
-}
 
 let primaryColor = "#39FF14";
 let brandLogoUrl = "/images/brand-mark.svg";
+let brandName = "PARRA";
 try {
     const { data } = await supabaseAdmin
         .from("site_settings")
@@ -31,13 +24,13 @@ try {
     if (data?.value) {
         const v = data.value as any;
         primaryColor = sanitizeColor(v.primary_color || primaryColor);
-        if (typeof v.logo_url === "string" && v.logo_url.trim()) {
+        if (typeof v.logo_url === "string" && v.logo_url.trim())
             brandLogoUrl = v.logo_url.trim();
-        }
+        if (typeof v.name === "string" && v.name.trim())
+            brandName = v.name.trim().toUpperCase();
     }
 } catch {}
 
-const secondaryColor = deriveSecondaryColor(primaryColor);
 const brandRgb = hexToRgb(primaryColor);
 ---
 
@@ -46,485 +39,513 @@ const brandRgb = hexToRgb(primaryColor);
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Mantenimiento | PARRA</title>
-        <meta
-            name="description"
-            content="Estamos trabajando en mejoras importantes para ofrecerte un mejor rendimiento. Volveremos muy pronto."
-        />
+        <title>{brandName} — Volvemos Pronto</title>
         <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
         <link rel="shortcut icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content="#000000" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
-            href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600&display=swap"
             rel="stylesheet"
         />
         <style set:html={`
             :root {
                 --brand: ${primaryColor};
-                --brand-500: ${secondaryColor};
                 --brand-rgb: ${brandRgb};
             }
         `} />
     </head>
     <body>
-        <div class="maintenance-wrapper">
-            <!-- Animated background elements -->
-            <div class="bg-grid"></div>
-            <div class="bg-glow"></div>
 
-            <main class="content-container">
-                <!-- Branding -->
-                <div class="brand-container fade-in-up">
-                    <img
-                        src={brandLogoUrl}
-                        alt="Parra"
-                        class="logo-mark"
-                    />
+        <!-- Background layers -->
+        <div class="bg-noise"></div>
+        <div class="bg-grid"></div>
+        <div class="bg-glow"></div>
+        <div class="scanline"></div>
+
+        <div class="page">
+
+            <!-- Top bar -->
+            <header class="top-bar">
+                <div class="top-bar-inner">
+                    <div class="status-pill">
+                        <span class="status-dot"></span>
+                        SISTEMA EN ACTUALIZACIÓN
+                    </div>
+                    <div class="top-date" id="top-date"></div>
+                </div>
+            </header>
+
+            <!-- Main content -->
+            <main class="main">
+
+                <!-- Brand identity -->
+                <div class="brand-block anim-up d1">
+                    <img src={brandLogoUrl} alt={brandName} class="brand-logo" />
+                    <span class="brand-name">{brandName}</span>
                 </div>
 
-                <!-- Main Message -->
-                <div class="message-container fade-in-up delay-1">
-                    <h2 class="title" data-text="MANTENIMIENTO">
+                <!-- Headline -->
+                <div class="headline-block anim-up d2">
+                    <p class="eyebrow">GOALKEEPER GLOVES</p>
+                    <h1 class="headline" data-text="MANTENIMIENTO">
                         MANTENIMIENTO
-                    </h2>
+                    </h1>
+                    <p class="subline">
+                        Estamos trabajando para ofrecerte<br />
+                        una experiencia aún mejor.
+                    </p>
                 </div>
 
-                <!-- Progress Bar -->
-                <div class="progress-wrapper fade-in-up delay-2">
-                    <div class="progress-details">
-                        <span class="progress-label">ACTUALIZANDO SISTEMAS</span
-                        >
-                        <span class="progress-value" id="progress-text">0%</span
-                        >
+                <!-- Progress terminal -->
+                <div class="terminal anim-up d3">
+                    <div class="terminal-header">
+                        <span class="t-dot red"></span>
+                        <span class="t-dot yellow"></span>
+                        <span class="t-dot green"></span>
+                        <span class="t-title">system_update.sh</span>
                     </div>
-                    <div class="progress-track">
-                        <div class="progress-fill"></div>
-                        <div class="progress-glow"></div>
+                    <div class="terminal-body">
+                        <p class="t-line"><span class="t-prompt">$</span> Iniciando actualización de sistemas...</p>
+                        <p class="t-line"><span class="t-prompt">›</span> Optimizando base de datos <span class="t-ok">✓</span></p>
+                        <p class="t-line"><span class="t-prompt">›</span> Desplegando nuevas funciones <span class="t-ok">✓</span></p>
+                        <p class="t-line t-active"><span class="t-prompt">›</span> Realizando pruebas finales <span class="t-cursor">█</span></p>
+                    </div>
+                    <div class="progress-section">
+                        <div class="progress-meta">
+                            <span class="progress-label">PROGRESO DEL SISTEMA</span>
+                            <span class="progress-pct" id="pct">0%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="actions-wrapper fade-in-up delay-3">
-                    <a
-                        href="mailto:raafaablanco@gmail.com"
-                        class="btn btn-outline"
-                        aria-label="Contactar por Email"
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            width="20"
-                            height="20"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            fill="none"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path
-                                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-                            ></path>
-                            <polyline points="22,6 12,13 2,6"></polyline>
+                <!-- CTA buttons -->
+                <div class="cta-row anim-up d4">
+                    <a href="mailto:info@parragkgloves.es" class="btn btn-outline">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
                         </svg>
-                        CONTACTAR
+                        EMAIL
                     </a>
-                    <a
-                        href="https://wa.me/34658823543"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="btn btn-solid"
-                        aria-label="Contactar por WhatsApp"
-                    >
-                        <svg
-                            viewBox="0 0 24 24"
-                            width="20"
-                            height="20"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            fill="none"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path
-                                d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
-                            ></path>
+                    <a href="https://wa.me/34658823543" target="_blank" rel="noopener noreferrer" class="btn btn-solid">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
                         </svg>
                         WHATSAPP
                     </a>
                 </div>
+
             </main>
+
+            <!-- Footer -->
+            <footer class="foot">
+                <span class="foot-copy">&copy; <span id="year"></span> {brandName}. Todos los derechos reservados.</span>
+                <div class="foot-social">
+                    <!-- Instagram -->
+                    <a href="#" aria-label="Instagram" class="social-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                    </a>
+                    <!-- X / Twitter -->
+                    <a href="#" aria-label="X" class="social-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </a>
+                    <!-- TikTok -->
+                    <a href="#" aria-label="TikTok" class="social-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                        </svg>
+                    </a>
+                </div>
+            </footer>
+
         </div>
+
     </body>
 </html>
 
 <style>
-    :root {
-        --color-bg: #030303;
-        --color-green: var(--brand);
-        --color-green-glow: rgba(var(--brand-rgb),0.4);
-        --color-green-dim: rgba(var(--brand-rgb),0.08);
-        --color-text: #ffffff;
-        --color-text-muted: #a1a1aa;
-        --font-heading: "Bebas Neue", Impact, sans-serif;
-        --font-body: "Inter", system-ui, sans-serif;
-    }
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
-
-    html {
-        width: 100%;
-        height: 100%;
+    html, body {
+        width: 100%; height: 100%;
+        background: #020202;
+        color: #fff;
+        font-family: "Inter", system-ui, sans-serif;
         overflow: hidden;
     }
 
-    body {
-        background-color: var(--color-bg);
-        color: var(--color-text);
-        font-family: var(--font-body);
-        height: 100%;
-        width: 100%;
-        margin: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-        position: fixed;
-    }
-
-    /* Background effects */
-    .maintenance-wrapper {
-        width: 100%;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-        z-index: 1;
-        padding: 2rem;
-    }
-
+    /* ── Background ──────────────────────────────────────────── */
     .bg-grid {
-        position: absolute;
-        inset: 0;
-        z-index: -2;
-        background-size: 50px 50px;
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background-size: 48px 48px;
         background-image:
-            linear-gradient(
-                to right,
-                rgba(255, 255, 255, 0.02) 1px,
-                transparent 1px
-            ),
-            linear-gradient(
-                to bottom,
-                rgba(255, 255, 255, 0.02) 1px,
-                transparent 1px
-            );
-        -webkit-mask-image: radial-gradient(
-            circle at center,
-            black 40%,
-            transparent 80%
-        );
-        mask-image: radial-gradient(
-            circle at center,
-            black 40%,
-            transparent 80%
-        );
+            linear-gradient(to right,  rgba(255,255,255,0.025) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+        -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 80%);
+        mask-image:         radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 80%);
     }
 
     .bg-glow {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 60vw;
-        height: 60vw;
-        max-width: 800px;
-        max-height: 800px;
-        background: radial-gradient(
-            circle,
-            var(--color-green-dim) 0%,
-            transparent 70%
-        );
-        border-radius: 50%;
-        z-index: -1;
-        pointer-events: none;
-        animation: pulse-glow 8s ease-in-out infinite alternate;
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(var(--brand-rgb), 0.07) 0%, transparent 70%);
+        animation: glow-pulse 10s ease-in-out infinite alternate;
+    }
+    @keyframes glow-pulse {
+        0%   { opacity: 0.6; transform: scale(0.95); }
+        100% { opacity: 1;   transform: scale(1.05); }
     }
 
-    @keyframes pulse-glow {
-        0% {
-            transform: translate(-50%, -50%) scale(0.8);
-            opacity: 0.5;
-        }
-        100% {
-            transform: translate(-50%, -50%) scale(1.1);
-            opacity: 1;
-        }
+    .bg-noise {
+        position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.018;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        background-size: 200px 200px;
     }
 
-    .content-container {
-        max-width: 700px;
-        width: 100%;
+    .scanline {
+        position: fixed; left: 0; right: 0; height: 2px; z-index: 1; pointer-events: none;
+        background: linear-gradient(to right, transparent, rgba(var(--brand-rgb), 0.35), transparent);
+        animation: scan 6s linear infinite;
+        opacity: 0.5;
+    }
+    @keyframes scan {
+        0%   { top: -4px; }
+        100% { top: 100vh; }
+    }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    .page {
+        position: relative; z-index: 2;
+        min-height: 100vh;
+        display: flex; flex-direction: column;
+        align-items: center;
+        padding: 0 1.5rem;
+    }
+
+    /* ── Top bar ─────────────────────────────────────────────── */
+    .top-bar {
+        width: 100%; max-width: 860px;
+        padding: 1.25rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .top-bar-inner {
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .status-pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
+        color: rgba(255,255,255,0.5);
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 5px 14px; border-radius: 99px;
+    }
+    .status-dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--brand);
+        box-shadow: 0 0 6px rgba(var(--brand-rgb), 0.8);
+        animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.2; }
+    }
+    .top-date {
+        font-size: 10px; letter-spacing: 0.12em;
+        color: rgba(255,255,255,0.25);
+        font-family: "Oswald", sans-serif;
+    }
+
+    /* ── Main ────────────────────────────────────────────────── */
+    .main {
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
         text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        gap: 0;
+        width: 100%; max-width: 700px;
+        padding: 3.5rem 0 2rem;
     }
 
-    /* Typography & Brand */
-    .logo {
-        font-family: var(--font-heading);
-        font-size: clamp(6rem, 15vw, 10rem);
-        line-height: 0.9;
-        letter-spacing: 0.05em;
-        color: var(--color-green);
-        text-shadow:
-            0 0 20px var(--color-green-glow),
-            0 0 50px var(--color-green-dim);
-        margin-bottom: 2rem;
+    /* ── Brand block ──────────────────────────────────────────── */
+    .brand-block {
+        display: flex; align-items: center; gap: 14px;
+        margin-bottom: 3rem;
+    }
+    .brand-logo {
+        width: clamp(44px, 7vw, 64px); height: auto;
+        filter: drop-shadow(0 0 14px rgba(var(--brand-rgb), 0.5));
+    }
+    .brand-name {
+        font-family: "Oswald", sans-serif;
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 700; letter-spacing: 0.08em;
+        color: var(--brand);
+        text-shadow: 0 0 28px rgba(var(--brand-rgb), 0.4);
     }
 
-    .logo-mark {
-        width: clamp(180px, 24vw, 260px);
-        height: auto;
-        filter: drop-shadow(0 0 16px rgba(var(--brand-rgb), 0.4));
-        margin-bottom: 2rem;
+    /* ── Headline block ───────────────────────────────────────── */
+    .headline-block { margin-bottom: 3rem; }
+
+    .eyebrow {
+        font-size: 10px; font-weight: 600; letter-spacing: 0.28em;
+        color: rgba(var(--brand-rgb), 0.7);
+        text-transform: uppercase; margin-bottom: 1rem;
     }
 
-    .title {
-        font-family: var(--font-heading);
-        font-size: clamp(3rem, 8vw, 4.5rem);
-        letter-spacing: 0.05em;
-        color: var(--color-text);
-        margin-bottom: 1rem;
-        position: relative;
+    .headline {
+        font-family: "Oswald", sans-serif;
+        font-size: clamp(3.2rem, 10vw, 6.5rem);
+        font-weight: 700; letter-spacing: 0.04em; line-height: 0.95;
+        color: #fff;
+        position: relative; display: inline-block;
+        margin-bottom: 1.5rem;
+    }
+    /* Glitch layers */
+    .headline::before,
+    .headline::after {
+        content: attr(data-text);
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%;
+        font-family: inherit; font-size: inherit; font-weight: inherit;
+        letter-spacing: inherit;
+    }
+    .headline::before {
+        color: var(--brand);
+        clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+        animation: glitch-top 5s steps(1) infinite;
+        opacity: 0.4;
+    }
+    .headline::after {
+        color: rgba(var(--brand-rgb), 0.5);
+        clip-path: polygon(0 60%, 100% 60%, 100% 75%, 0 75%);
+        animation: glitch-bot 4s steps(1) infinite 1.2s;
+        opacity: 0.25;
+    }
+    @keyframes glitch-top {
+        0%, 94%, 100% { transform: none; opacity: 0; }
+        95%            { transform: translate(-3px, -1px); opacity: 0.4; }
+        97%            { transform: translate(3px, 1px); opacity: 0.4; }
+    }
+    @keyframes glitch-bot {
+        0%, 91%, 100% { transform: none; opacity: 0; }
+        92%            { transform: translate(3px, 2px); opacity: 0.25; }
+        94%            { transform: translate(-3px, -1px); opacity: 0.25; }
+    }
+
+    .subline {
+        font-size: clamp(0.85rem, 2vw, 1rem);
+        line-height: 1.7; color: rgba(255,255,255,0.45);
+    }
+
+    /* ── Terminal ────────────────────────────────────────────── */
+    .terminal {
+        width: 100%; max-width: 520px;
+        background: rgba(255,255,255,0.025);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-top: 2px solid var(--brand);
+        border-radius: 6px;
+        margin-bottom: 2.5rem;
+        overflow: hidden;
+    }
+    .terminal-header {
+        display: flex; align-items: center; gap: 6px;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.03);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .t-dot {
+        width: 10px; height: 10px; border-radius: 50%;
+    }
+    .t-dot.red    { background: #ff5f57; }
+    .t-dot.yellow { background: #febc2e; }
+    .t-dot.green  { background: #28c840; }
+    .t-title {
+        font-size: 10px; color: rgba(255,255,255,0.3);
+        letter-spacing: 0.06em; margin-left: 6px;
+        font-family: "Courier New", monospace;
+    }
+    .terminal-body {
+        padding: 14px 18px;
+        font-family: "Courier New", monospace;
+        font-size: 12px; line-height: 1.9;
+    }
+    .t-line { color: rgba(255,255,255,0.4); }
+    .t-line.t-active { color: rgba(255,255,255,0.7); }
+    .t-prompt { color: var(--brand); margin-right: 8px; }
+    .t-ok { color: var(--brand); }
+    .t-cursor {
         display: inline-block;
+        color: var(--brand);
+        animation: blink 1s step-end infinite;
     }
-
-    .message {
-        font-size: clamp(1rem, 2.5vw, 1.15rem);
-        line-height: 1.6;
-        color: var(--color-text-muted);
-        max-width: 540px;
-        margin: 0 auto;
-        white-space: pre-wrap;
+    .progress-section {
+        padding: 12px 18px 16px;
+        border-top: 1px solid rgba(255,255,255,0.05);
     }
-
-    .message-container {
-        margin-bottom: 3.5rem;
+    .progress-meta {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 8px;
+        font-size: 10px; font-family: "Oswald", sans-serif; letter-spacing: 0.12em;
+        color: rgba(255,255,255,0.35);
     }
-
-    /* Progress Section */
-    .progress-wrapper {
-        width: 100%;
-        max-width: 500px;
-        margin-bottom: 3.5rem;
-    }
-
-    .progress-details {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 0.75rem;
-        font-family: var(--font-heading);
-        letter-spacing: 0.08em;
-        font-size: clamp(1.1rem, 3vw, 1.4rem);
-        color: rgba(255, 255, 255, 0.7);
-    }
-
-    .progress-value {
-        color: var(--color-green);
-    }
-
+    .progress-pct { color: var(--brand); }
     .progress-track {
-        width: 100%;
-        height: 6px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 99px;
-        position: relative;
-        overflow: hidden;
+        width: 100%; height: 4px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 99px; position: relative; overflow: hidden;
     }
-
     .progress-fill {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%;
-        width: 0%;
-        background: var(--color-green);
+        height: 100%; width: 0%;
+        background: linear-gradient(to right, rgba(var(--brand-rgb),0.7), var(--brand));
         border-radius: 99px;
-        box-shadow: 0 0 10px var(--color-green-glow);
-        animation: fill-bar 2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 1s;
+        box-shadow: 0 0 10px rgba(var(--brand-rgb), 0.6);
+        animation: fill 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.8s;
+    }
+    @keyframes fill {
+        0%   { width: 0%; }
+        100% { width: 82%; }
     }
 
-    @keyframes fill-bar {
-        0% {
-            width: 0%;
-        }
-        100% {
-            width: 78%;
-        }
-    }
-
-    /* Action Buttons */
-    .actions-wrapper {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
+    /* ── CTA row ──────────────────────────────────────────────── */
+    .cta-row {
+        display: flex; gap: 12px; justify-content: center;
         flex-wrap: wrap;
-        width: 100%;
     }
-
     .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-        padding: 1.1rem 2.5rem;
-        font-family: var(--font-heading);
-        font-size: clamp(1.2rem, 3vw, 1.4rem);
-        letter-spacing: 0.08em;
+        display: inline-flex; align-items: center; gap: 9px;
+        padding: 12px 28px;
+        font-family: "Oswald", sans-serif;
+        font-size: clamp(0.9rem, 2.5vw, 1rem);
+        font-weight: 600; letter-spacing: 0.1em;
         text-decoration: none;
-        transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-        border-radius: 2px;
-        min-width: 200px;
+        border-radius: 3px;
+        transition: all 0.25s ease;
+        min-width: 160px; justify-content: center;
     }
-
-    .btn-solid {
-        background: var(--color-green);
-        color: var(--color-bg);
-        border: 1px solid var(--color-green);
-        box-shadow: 0 0 20px rgba(var(--brand-rgb),0.15);
-    }
-
-    .btn-solid:hover {
-        background: #4bff20;
-        border-color: #4bff20;
-        box-shadow: 0 0 30px rgba(var(--brand-rgb),0.3);
-        transform: translateY(-2px);
-    }
-
     .btn-outline {
         background: transparent;
-        color: var(--color-text);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255,255,255,0.75);
+        border: 1px solid rgba(255,255,255,0.15);
     }
-
     .btn-outline:hover {
-        border-color: var(--color-green);
-        color: var(--color-green);
-        background: rgba(var(--brand-rgb),0.05);
+        border-color: var(--brand);
+        color: var(--brand);
+        background: rgba(var(--brand-rgb), 0.04);
+        transform: translateY(-2px);
+    }
+    .btn-solid {
+        background: var(--brand);
+        color: #000;
+        border: 1px solid var(--brand);
+        box-shadow: 0 0 18px rgba(var(--brand-rgb), 0.2);
+        font-weight: 700;
+    }
+    .btn-solid:hover {
+        background: #ffffff;
+        border-color: #ffffff;
+        box-shadow: 0 0 28px rgba(var(--brand-rgb), 0.35);
         transform: translateY(-2px);
     }
 
-    /* Animations */
-    .fade-in-up {
+    /* ── Footer ──────────────────────────────────────────────── */
+    .foot {
+        width: 100%; max-width: 860px;
+        padding: 1.5rem 0 1.75rem;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 12px;
+    }
+    .foot-copy {
+        font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+        color: rgba(255,255,255,0.2);
+    }
+    .foot-social {
+        display: flex; gap: 16px; align-items: center;
+    }
+    .social-link {
+        color: rgba(255,255,255,0.2);
+        transition: color 0.2s;
+        display: flex; align-items: center;
+    }
+    .social-link:hover { color: var(--brand); }
+
+    /* ── Animations ──────────────────────────────────────────── */
+    .anim-up {
         opacity: 0;
-        transform: translateY(20px);
-        animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        transform: translateY(24px);
+        animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .d1 { animation-delay: 0.1s; }
+    .d2 { animation-delay: 0.25s; }
+    .d3 { animation-delay: 0.4s; }
+    .d4 { animation-delay: 0.55s; }
+    @keyframes fadeUp {
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    .delay-1 {
-        animation-delay: 0.2s;
-    }
-    .delay-2 {
-        animation-delay: 0.4s;
-    }
-    .delay-3 {
-        animation-delay: 0.6s;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Reduced Motion */
+    /* ── Reduced motion ──────────────────────────────────────── */
     @media (prefers-reduced-motion: reduce) {
-        *,
-        ::before,
-        ::after {
-            animation: none !important;
-            transition: none !important;
-        }
-        .fade-in-up {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .progress-fill {
-            width: 78%;
-        }
+        *, ::before, ::after { animation: none !important; transition: none !important; }
+        .anim-up { opacity: 1; transform: none; }
+        .progress-fill { width: 82%; }
     }
 
-    /* Mobile adjustments */
-    @media (max-width: 640px) {
-        .btn {
-            width: 100%;
-        }
-        .actions-wrapper {
-            flex-direction: column;
-            max-width: 320px;
-        }
+    /* ── Mobile ──────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+        .main { padding: 2.5rem 0 1.5rem; gap: 0; }
+        .brand-block { margin-bottom: 2rem; }
+        .headline-block { margin-bottom: 2rem; }
+        .terminal { margin-bottom: 2rem; }
+        .cta-row { flex-direction: column; width: 100%; max-width: 280px; }
+        .btn { width: 100%; }
+        .foot { justify-content: center; text-align: center; }
     }
 </style>
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        const progressText = document.getElementById("progress-text");
-        const prefersReducedMotion = window.matchMedia(
-            "(prefers-reduced-motion: reduce)",
-        ).matches;
-
-        if (prefersReducedMotion) {
-            if (progressText) progressText.innerText = "78%";
-            return;
+        // Date in top bar
+        const dateEl = document.getElementById("top-date");
+        if (dateEl) {
+            const now = new Date();
+            dateEl.textContent = now.toLocaleDateString("es-ES", {
+                weekday: "long", year: "numeric", month: "long", day: "numeric"
+            }).toUpperCase();
         }
 
-        if (progressText) {
-            const targetPercent = 78;
-            const duration = 2000;
-            const delay = 1000;
-            const fps = 60;
-            const totalFrames = (duration / 1000) * fps;
-            let currentFrame = 0;
+        // Year in footer
+        const yearEl = document.getElementById("year");
+        if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
-            const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
+        // Progress counter
+        const pctEl = document.getElementById("pct");
+        if (!pctEl) return;
 
-            setTimeout(() => {
-                const interval = setInterval(() => {
-                    currentFrame++;
-                    const progress = currentFrame / totalFrames;
-                    const easedProgress = easeOutCubic(progress);
-                    const currentPercent = Math.min(
-                        Math.round(easedProgress * targetPercent),
-                        targetPercent,
-                    );
+        const target = 82;
+        const duration = 2500;
+        const delay = 800;
+        const fps = 60;
+        const frames = (duration / 1000) * fps;
+        let frame = 0;
+        const ease = (x: number) => 1 - Math.pow(1 - x, 3);
 
-                    if (progressText)
-                        progressText.innerText = currentPercent + "%";
-
-                    if (currentFrame >= totalFrames) {
-                        clearInterval(interval);
-                        if (progressText)
-                            progressText.innerText = targetPercent + "%";
-                    }
-                }, 1000 / fps);
-            }, delay);
-        }
+        setTimeout(() => {
+            const tick = setInterval(() => {
+                frame++;
+                const pct = Math.min(Math.round(ease(frame / frames) * target), target);
+                if (pctEl) pctEl.textContent = pct + "%";
+                if (frame >= frames) { clearInterval(tick); if (pctEl) pctEl.textContent = target + "%"; }
+            }, 1000 / fps);
+        }, delay);
     });
 </script>
