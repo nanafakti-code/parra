@@ -95,18 +95,7 @@ export async function validateAdminAPI(request: Request, cookies: any): Promise<
         return jsonResponse({ error: 'No autorizado' }, 401);
     }
 
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabaseUrl = import.meta.env.SUPABASE_URL || '';
-    const supabaseKey = import.meta.env.SUPABASE_ANON_KEY || '';
-    const authClient = createClient(supabaseUrl, supabaseKey, {
-        auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-            detectSessionInUrl: false
-        }
-    });
-
-    const { data: { user }, error } = await authClient.auth.getUser(accessToken);
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken);
     let resolvedUser = (!error && user) ? user : null;
 
     // Si el token expiró, intentar renovar con refresh token
@@ -125,7 +114,7 @@ export async function validateAdminAPI(request: Request, cookies: any): Promise<
             }
         }
         if (refreshToken) {
-            const { data: { session, user: rUser }, error: rErr } = await authClient.auth.refreshSession({ refresh_token: refreshToken });
+            const { data: { session, user: rUser }, error: rErr } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
             if (session && rUser && !rErr) {
                 const cookieOpts = { path: '/', httpOnly: true, secure: import.meta.env.PROD as boolean, sameSite: 'lax' as const, maxAge: 60 * 60 * 24 * 7 };
                 cookies.set('sb-access-token', session.access_token, cookieOpts);

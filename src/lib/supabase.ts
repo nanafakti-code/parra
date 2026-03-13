@@ -15,7 +15,18 @@ if (!supabaseServiceKey) {
     );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// SSR-safe options: disable session persistence and auto-refresh to prevent
+// state pollution between requests and background token rotation that would
+// consume browser refresh tokens without updating their cookies.
+const ssrAuthOptions = {
+    auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+    },
+} as const;
+
+export const supabase = createClient(supabaseUrl, supabaseKey, ssrAuthOptions);
 
 // Admin client for webhooks and background tasks (bypasses RLS)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, ssrAuthOptions);
