@@ -41,14 +41,22 @@ const drawSectionLabel = (doc: any, GREEN: string, label: string, x: number, y: 
 };
 
 export async function generateInvoicePdf(order: any, userProfile?: any): Promise<Buffer> {
-    // ── Color de marca desde configuración del admin ──────────────────
+    // ── Configuración de marca y contacto desde admin ─────────────────
     let brandPrimary = "#39FF14";
+    let contactEmail = "info@parragkgloves.es";
+    let contactPhone = "+34 91 000 00 00";
+    let contactAddress = "Calle Mayor 42, 28001 Madrid";
     try {
-        const { data: brandData } = await supabaseAdmin
-            .from("site_settings").select("value").eq("key", "brand").single();
-        const raw = (brandData?.value as any)?.primary_color;
+        const { data: settingsRows } = await supabaseAdmin
+            .from("site_settings").select("key, value").in("key", ["brand", "contact"]);
+        const sm: Record<string, any> = {};
+        (settingsRows || []).forEach((r: any) => { sm[r.key] = r.value; });
+        const raw = sm.brand?.primary_color;
         if (raw && /^#[0-9a-fA-F]{6}$/.test(raw)) brandPrimary = raw.toUpperCase();
-    } catch { /* mantener default */ }
+        if (sm.contact?.email) contactEmail = sm.contact.email;
+        if (sm.contact?.phone) contactPhone = sm.contact.phone;
+        if (sm.contact?.address) contactAddress = sm.contact.address;
+    } catch { /* mantener defaults */ }
 
     const items = (order.order_items || []).map((i: any) => ({
         name: i.products?.name || i.product_name || "Producto",
@@ -200,9 +208,9 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         const emisor = [
             ["Helvetica-Bold", 10, WHITE, "PARRA Sport S.L."],
             ["Helvetica", 7.5, LGRAY, "CIF: B-12345678"],
-            ["Helvetica", 7.5, LGRAY, "Calle Mayor 42, 28001 Madrid"],
-            ["Helvetica", 7.5, GRAY, "info@parragkgloves.es"],
-            ["Helvetica", 7.5, GRAY, "+34 91 000 00 00"],
+            ["Helvetica", 7.5, LGRAY, contactAddress],
+            ["Helvetica", 7.5, GRAY, contactEmail],
+            ["Helvetica", 7.5, GRAY, contactPhone],
         ] as const;
         let ey = IY + 25;
         emisor.forEach(([f, s, c, t]) => {
@@ -334,7 +342,7 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         doc.font("Helvetica").fontSize(7).fillColor(GRAY)
             .text(
                 "Documento válido conforme al RD 1619/2012. IVA incluido en los precios. " +
-                "PARRA Sport S.L. — CIF: B-12345678 — info@parragkgloves.es",
+                `PARRA Sport S.L. — CIF: B-12345678 — ${contactEmail}`,
                 M + 12, NY + 21, { width: CW - 24, lineBreak: false }
             );
 
@@ -350,7 +358,7 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         doc.font("Helvetica-Bold").fontSize(9).fillColor(WHITE)
             .text("PARRA SPORT S.L.", M, FY + 10, { lineBreak: false, characterSpacing: 2 });
         doc.font("Helvetica").fontSize(7).fillColor(GRAY)
-            .text("www.parragkgloves.es  ·  info@parragkgloves.es  ·  +34 91 000 00 00", M, FY + 24, { lineBreak: false });
+            .text(`www.parragkgloves.es  ·  ${contactEmail}  ·  ${contactPhone}`, M, FY + 24, { lineBreak: false });
         doc.font("Helvetica").fontSize(7).fillColor(GRAY)
             .text(`Generado el ${orderDate.toLocaleDateString("es-ES")}  ·  ${orderNumber}`, 0, FY + 24,
                 { align: "right", width: W - M, lineBreak: false });
