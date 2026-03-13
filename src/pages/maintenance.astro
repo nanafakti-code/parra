@@ -68,17 +68,6 @@ const brandRgb = hexToRgb(primaryColor);
 
         <div class="page">
 
-            <!-- Top bar -->
-            <header class="top-bar">
-                <div class="top-bar-inner">
-                    <div class="status-pill">
-                        <span class="status-dot"></span>
-                        SISTEMA EN ACTUALIZACIÓN
-                    </div>
-                    <div class="top-date" id="top-date"></div>
-                </div>
-            </header>
-
             <!-- Main content -->
             <main class="main">
 
@@ -233,39 +222,6 @@ const brandRgb = hexToRgb(primaryColor);
         padding: 0 1.5rem;
     }
 
-    /* ── Top bar ─────────────────────────────────────────────── */
-    .top-bar {
-        width: 100%; max-width: 860px;
-        padding: 1.25rem 0;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .top-bar-inner {
-        display: flex; align-items: center; justify-content: space-between;
-    }
-    .status-pill {
-        display: inline-flex; align-items: center; gap: 8px;
-        font-size: 10px; font-weight: 600; letter-spacing: 0.18em;
-        color: rgba(255,255,255,0.5);
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-        padding: 5px 14px; border-radius: 99px;
-    }
-    .status-dot {
-        width: 6px; height: 6px; border-radius: 50%;
-        background: var(--brand);
-        box-shadow: 0 0 6px rgba(var(--brand-rgb), 0.8);
-        animation: blink 2s ease-in-out infinite;
-    }
-    @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50%       { opacity: 0.2; }
-    }
-    .top-date {
-        font-size: 10px; letter-spacing: 0.12em;
-        color: rgba(255,255,255,0.25);
-        font-family: "Oswald", sans-serif;
-    }
-
     /* ── Main ────────────────────────────────────────────────── */
     .main {
         flex: 1; display: flex; flex-direction: column;
@@ -316,6 +272,10 @@ const brandRgb = hexToRgb(primaryColor);
     }
 
     /* ── Terminal ────────────────────────────────────────────── */
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0; }
+    }
     .terminal {
         width: 100%; max-width: 520px;
         background: rgba(255,255,255,0.025);
@@ -482,15 +442,6 @@ const brandRgb = hexToRgb(primaryColor);
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        // Date in top bar
-        const dateEl = document.getElementById("top-date");
-        if (dateEl) {
-            const now = new Date();
-            dateEl.textContent = now.toLocaleDateString("es-ES", {
-                weekday: "long", year: "numeric", month: "long", day: "numeric"
-            }).toUpperCase();
-        }
-
         // Year in footer
         const yearEl = document.getElementById("year");
         if (yearEl) yearEl.textContent = String(new Date().getFullYear());
