@@ -241,6 +241,27 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             return jsonResponse({ section: newSection, message: 'Sección creada' }, 201);
         }
 
+        // ── Delete (method override for proxies that block DELETE) ──
+        if (action === 'delete') {
+            const { id } = body;
+            if (!id) return jsonResponse({ error: 'id requerido' }, 400);
+
+            // Delete history records first to avoid foreign key constraint violations
+            await supabaseAdmin.from('section_history').delete().eq('section_id', id);
+
+            const { error } = await supabaseAdmin
+                .from('page_sections')
+                .delete()
+                .eq('id', id);
+
+            if (error) return jsonResponse({ error: 'Error al eliminar sección' }, 500);
+
+            await logAdminAction(admin.id, 'delete_section', 'page_sections', id,
+                {}, request.headers.get('x-forwarded-for') || undefined);
+
+            return jsonResponse({ message: 'Sección eliminada' });
+        }
+
         return jsonResponse({ error: 'Acción no reconocida' }, 400);
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);

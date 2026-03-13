@@ -2334,9 +2334,10 @@ try {
 
             async function deleteSection(id) {
                 try {
-                    var res = await fetch("/api/admin/sections?id=" + id, {
-                        method: "DELETE",
-                        credentials: "include",
+                    var res = await fetch("/api/admin/sections", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: "delete", id: id }),
                     });
                     if (res.ok) {
                         allSections = allSections.filter(function (s) {
