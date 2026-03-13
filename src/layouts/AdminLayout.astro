@@ -124,6 +124,10 @@ const navItems = [
             html {
                 font-size: 14px;
             }
+            /* Prevent iOS Safari/Chrome auto-zoom: inputs need ≥ 16px computed font-size */
+            input, select, textarea {
+                font-size: 16px !important;
+            }
             body {
                 font-family:
                     "Inter",
@@ -895,7 +899,7 @@ const navItems = [
                 border: 1px solid rgba(255, 255, 255, 0.08);
                 border-radius: 6px;
                 color: #fff;
-                font-size: 0.8rem;
+                font-size: 1rem;
                 font-family: inherit;
                 outline: none;
                 transition: border-color 0.2s;
