@@ -911,9 +911,14 @@ h1 {
   }
 
   /* Inputs: increase tap targets and prevent overflow */
+  /* font-size >= 16px prevents iOS Safari from auto-zooming on input focus */
   .input {
     padding: 12px 12px !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
+  }
+
+  input, select, textarea {
+    font-size: 16px !important;
   }
 
   /* Reduce large fixed spacings and ensure consistent container padding */
