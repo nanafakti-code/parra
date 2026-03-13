@@ -2318,6 +2318,7 @@ try {
                 try {
                     var res = await fetch("/api/admin/sections?id=" + id, {
                         method: "DELETE",
+                        credentials: "include",
                     });
                     if (res.ok) {
                         allSections = allSections.filter(function (s) {
@@ -2329,6 +2330,10 @@ try {
                         updatePublishBtn();
                         window.adminToast?.("Sección eliminada", "success");
                         refreshPreview();
+                    } else {
+                        var data = {};
+                        try { data = await res.json(); } catch (_) {}
+                        window.adminToast?.(data.error || "Error al eliminar (" + res.status + ")", "error");
                     }
                 } catch (e) {
                     window.adminToast?.("Error de conexión", "error");
@@ -2379,15 +2384,9 @@ try {
                     if (selectedId) {
                         var sec = findSection(selectedId);
                         var secLabel = sec ? sec.label : "esta sección";
-                        vbConfirm(
-                            "¿Eliminar bloque?",
-                            'Se eliminará "' +
-                                secLabel +
-                                '" permanentemente. Esta acción no se puede deshacer.',
-                            "Eliminar",
-                        ).then(function (ok) {
-                            if (ok) deleteSection(selectedId);
-                        });
+                        if (window.confirm('¿Eliminar "' + secLabel + '"? Esta acción no se puede deshacer.')) {
+                            deleteSection(selectedId);
+                        }
                     }
                 }
             });
