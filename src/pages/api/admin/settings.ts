@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { validateAdminAPI, jsonResponse, logAdminAction } from '../../../lib/admin';
+import { invalidateMaintenanceCache } from '../../../middleware';
+import { invalidateBrandCache } from '../../../lib/brand';
 
 // Reemplaza recursivamente un valor hex en cualquier JSONB anidado
 function replaceColorInContent(obj: unknown, oldHex: string, newHex: string): unknown {
@@ -97,6 +99,10 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             .single();
 
         if (error) return jsonResponse({ error: 'Error al guardar ajuste' }, 500);
+
+        // Invalidar cachés en memoria del servidor según la clave guardada
+        if (key === 'maintenance') invalidateMaintenanceCache();
+        if (key === 'brand') invalidateBrandCache();
 
         // Cascadar el nuevo color a todas las secciones que usaban el antiguo
         if (

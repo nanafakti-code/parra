@@ -7,6 +7,11 @@ import { supabase, supabaseAdmin } from "./lib/supabase";
 let _maintenanceCache: { value: boolean; ts: number } | null = null;
 const MAINTENANCE_TTL = 60_000;
 
+/** Invalida el caché de mantenimiento (llamar al guardar el ajuste desde el admin). */
+export function invalidateMaintenanceCache() {
+    _maintenanceCache = null;
+}
+
 async function getMaintenanceSetting(): Promise<boolean> {
     // Override de emergencia vía variable de entorno
     const envOverride =
