@@ -81,7 +81,7 @@ import Footer from "../components/Footer.astro";
                                 value: "Menos de 24 horas en días laborables",
                             },
                         ].map(item => (
-                            <div class="flex items-start gap-4 p-5" style="border: 1px solid var(--border-color); background-color: var(--bg-secondary);">
+                            <div class="flex items-start gap-4 p-5" style="border: 1px solid var(--border-color); background-color: #000;">
                                 <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center" style="border: 1px solid var(--border-color);">
                                     <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24" set:html={item.icon}></svg>
                                 </div>
@@ -92,7 +92,7 @@ import Footer from "../components/Footer.astro";
                             </div>
                         ))}
 
-                        <div class="p-5" style="border: 1px solid var(--border-color); background-color: var(--bg-secondary);">
+                        <div class="p-5" style="border: 1px solid var(--border-color); background-color: #000;">
                             <p class="text-xs uppercase tracking-widest mb-3" style="color: var(--text-muted);">También nos encuentras en</p>
                             <div class="flex gap-3">
                                 <a href="https://www.instagram.com/parragkgloves" target="_blank" rel="noopener noreferrer" class="text-sm font-bold uppercase tracking-widest hover:text-brand transition-colors" style="color: var(--text-secondary);">Instagram</a>

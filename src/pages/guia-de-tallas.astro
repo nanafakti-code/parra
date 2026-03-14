@@ -48,7 +48,7 @@ const tallas = [
                         { paso: "02", title: "Consulta la tabla", desc: "Busca tu medida en la tabla de tallas. Si estás entre dos tallas, elige la mayor para mayor comodidad o la menor para un ajuste más apretado de portero." },
                         { paso: "03", title: "Comprueba el resultado", desc: "Los guantes nuevos pueden parecer justos. Es normal. La espuma se adapta al uso y ofrece el agarre óptimo tras los primeros entrenamientos." },
                     ].map(p => (
-                        <div class="p-8 reveal" style="border: 1px solid var(--border-color); background-color: var(--bg-secondary);">
+                        <div class="p-8 reveal" style="border: 1px solid var(--border-color); background-color: #000;">
                             <span class="font-display text-5xl font-bold block mb-4" style="color: var(--brand); opacity: 0.25;">{p.paso}</span>
                             <h3 class="font-display text-lg font-bold uppercase tracking-tight mb-3">{p.title}</h3>
                             <p class="text-sm leading-relaxed" style="color: var(--text-muted);">{p.desc}</p>
@@ -62,7 +62,7 @@ const tallas = [
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr style="border-bottom: 2px solid var(--brand); background-color: var(--bg-secondary);">
+                                <tr style="border-bottom: 2px solid var(--brand); background-color: #000;">
                                     <th class="text-left p-4 font-display font-bold uppercase tracking-wider text-xs">Talla</th>
                                     <th class="text-left p-4 font-display font-bold uppercase tracking-wider text-xs">Perímetro palma</th>
                                     <th class="text-left p-4 font-display font-bold uppercase tracking-wider text-xs">Edad orientativa</th>
@@ -71,7 +71,7 @@ const tallas = [
                             </thead>
                             <tbody>
                                 {tallas.map((t, i) => (
-                                    <tr style={`border-bottom: 1px solid var(--border-color); background-color: ${i % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'};`}>
+                                    <tr style={`border-bottom: 1px solid var(--border-color); background-color: #000;`}>
                                         <td class="p-4 font-display font-bold text-brand text-lg">{t.talla}</td>
                                         <td class="p-4 font-semibold">{t.palma}</td>
                                         <td class="p-4" style="color: var(--text-secondary);">{t.edad}</td>
@@ -86,7 +86,7 @@ const tallas = [
         </section>
 
         <!-- Consejo adicional -->
-        <section class="section" style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color);">
+        <section class="section" style="background-color: #000; border-top: 1px solid var(--border-color);">
             <div class="container">
                 <div class="max-w-2xl mx-auto text-center reveal">
                     <p class="text-xs font-bold uppercase tracking-[0.25em] mb-3" style="color: var(--brand);">Consejo PARRA</p>

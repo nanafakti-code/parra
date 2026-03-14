@@ -37,7 +37,7 @@ import Footer from "../components/Footer.astro";
                         { title: "Envío Express", time: "24 – 48 horas", price: "Según configuración", free: "Disponible siempre, con coste reducido en pedidos grandes", highlight: true },
                         { title: "Seguimiento", time: "Incluido siempre", price: "—", free: "Recibirás número de tracking por email al confirmar el pedido", highlight: false },
                     ].map(opt => (
-                        <div class={`p-8 reveal ${opt.highlight ? 'border-brand/40' : ''}`} style={`border: 1px solid ${opt.highlight ? 'rgba(var(--brand-rgb),0.4)' : 'var(--border-color)'}; background-color: ${opt.highlight ? 'rgba(var(--brand-rgb),0.04)' : 'var(--bg-secondary)'};`}>
+                        <div class={`p-8 reveal ${opt.highlight ? 'border-brand/40' : ''}`} style={`border: 1px solid ${opt.highlight ? 'rgba(var(--brand-rgb),0.4)' : 'var(--border-color)'}; background-color: ${opt.highlight ? 'rgba(var(--brand-rgb),0.04)' : '#000'};`}>
                             {opt.highlight && <span class="text-[10px] font-bold uppercase tracking-widest mb-3 block" style="color: var(--brand);">Recomendado</span>}
                             <h3 class="font-display text-xl font-bold uppercase tracking-tight mb-2">{opt.title}</h3>
                             <p class="text-2xl font-bold mb-1" style="color: var(--brand);">{opt.price}</p>
@@ -47,7 +47,7 @@ import Footer from "../components/Footer.astro";
                     ))}
                 </div>
 
-                <div class="p-6 reveal" style="border: 1px solid var(--border-color); background-color: var(--bg-secondary);">
+                <div class="p-6 reveal" style="border: 1px solid var(--border-color); background-color: #000;">
                     <h3 class="font-display text-lg font-bold uppercase tracking-tight mb-4">Información adicional</h3>
                     <ul class="space-y-3 text-sm" style="color: var(--text-secondary);">
                         <li class="flex items-start gap-3">
@@ -68,19 +68,19 @@ import Footer from "../components/Footer.astro";
         </section>
 
         <!-- Devoluciones -->
-        <section class="section" style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color);">
+        <section class="section" style="background-color: #000; border-top: 1px solid var(--border-color);">
             <div class="container">
                 <div class="text-center mb-14 reveal">
                     <p class="text-xs font-bold uppercase tracking-[0.25em] mb-3" style="color: var(--brand);">Sin complicaciones</p>
                     <h2 class="section-title">Política de <span class="text-brand">Devoluciones</span></h2>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 reveal">
-                    <div class="p-6" style="border: 1px solid var(--border-color); background-color: var(--bg-primary);">
+                    <div class="p-6" style="border: 1px solid var(--border-color); background-color: #000;">
                         <h3 class="font-display text-lg font-bold uppercase tracking-tight mb-4 text-brand">¿Cuándo puedo devolver?</h3>
                         <p class="text-sm leading-relaxed mb-3" style="color: var(--text-secondary);">Tienes <strong class="text-white">30 días naturales</strong> desde la fecha de recepción para solicitar una devolución o cambio.</p>
                         <p class="text-sm leading-relaxed" style="color: var(--text-secondary);">El producto debe estar en su estado original, sin haber sido usado en partido o entrenamiento, con el embalaje original.</p>
                     </div>
-                    <div class="p-6" style="border: 1px solid var(--border-color); background-color: var(--bg-primary);">
+                    <div class="p-6" style="border: 1px solid var(--border-color); background-color: #000;">
                         <h3 class="font-display text-lg font-bold uppercase tracking-tight mb-4 text-brand">¿Cómo proceso la devolución?</h3>
                         <ol class="space-y-3 text-sm" style="color: var(--text-secondary);">
                             <li class="flex gap-3"><span class="font-display font-bold text-brand flex-shrink-0">1.</span> Escríbenos a info@parragkgloves.com con tu número de pedido.</li>
@@ -89,7 +89,7 @@ import Footer from "../components/Footer.astro";
                         </ol>
                     </div>
                 </div>
-                <div class="p-6 reveal" style="border: 1px solid var(--border-color); background-color: var(--bg-primary);">
+                <div class="p-6 reveal" style="border: 1px solid var(--border-color); background-color: #000;">
                     <h3 class="font-display text-lg font-bold uppercase tracking-tight mb-4">Productos no admitidos a devolución</h3>
                     <ul class="space-y-2 text-sm" style="color: var(--text-muted);">
                         <li class="flex items-start gap-3"><span class="mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background: #ef4444;"></span>Guantes que hayan sido usados en partido o entrenamiento.</li>
