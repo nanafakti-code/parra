@@ -101,11 +101,6 @@ function getOrderConfirmationHtml(order: any, items: any[], userProfile?: any): 
     const subtotal = parseFloat(order.subtotal) || 0;
     const shippingCost = parseFloat(order.shipping_cost) || 0;
     const total = parseFloat(order.total) || subtotal + shippingCost;
-    const shippingMethod: string = order.shipping_method || 'standard';
-    const shippingLabel = shippingMethod === 'express' ? 'Env\u00EDo Express' : 'Env\u00EDo Est\u00E1ndar';
-    const shippingDisplay = shippingCost === 0
-        ? '<span style="color:#39FF14;">Gratis</span>'
-        : fmt(shippingCost);
 
     return `<!DOCTYPE html>
 <html lang="es" xmlns="http://www.w3.org/1999/xhtml">
@@ -227,8 +222,8 @@ function getOrderConfirmationHtml(order: any, items: any[], userProfile?: any): 
                   <td style="padding-bottom:10px;">
                     <table width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
-                        <td style="font-size:13px;color:#9ca3af;font-family:Arial,sans-serif;">${shippingLabel}</td>
-                        <td align="right" style="font-size:13px;color:#ffffff;font-family:Arial,sans-serif;">${shippingDisplay}</td>
+                        <td style="font-size:13px;color:#9ca3af;font-family:Arial,sans-serif;">Env\u00EDo</td>
+                        <td align="right" style="font-size:13px;color:#ffffff;font-family:Arial,sans-serif;">${shippingCost === 0 ? '<span style="color:#39FF14;">Gratis</span>' : fmt(shippingCost)}</td>
                       </tr>
                     </table>
                   </td>

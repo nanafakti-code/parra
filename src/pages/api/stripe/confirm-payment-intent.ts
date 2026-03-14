@@ -65,7 +65,6 @@ export const POST: APIRoute = async ({ request }) => {
         const couponId       = piMetadata.coupon_id || null;
         const discountAmount = parseFloat(piMetadata.discount_amount ?? '0') || 0;
         const shippingCost   = parseFloat(piMetadata.shipping_cost   ?? '0') || 0;
-        const shippingMethod = piMetadata.shipping_method || 'standard';
 
         // ── 4b. Fraud signals evaluation ──────────────────────────────────────
         const fraud = evaluateFraudSignals(paymentIntent, items);
@@ -175,7 +174,7 @@ export const POST: APIRoute = async ({ request }) => {
                 if (rawOrderData) {
                     // Override shipping_cost and total from PI metadata / amount to guarantee
                     // correctness (avoids any race condition between the DB update and this select)
-                    const orderData = { ...rawOrderData, shipping_cost: shippingCost, total: amountTotal, shipping_method: shippingMethod };
+                    const orderData = { ...rawOrderData, shipping_cost: shippingCost, total: amountTotal };
                     try {
                         const pdfBuffer = await generateInvoicePdf(orderData);
                         const sent = await sendOrderConfirmationEmail(orderData, orderData.order_items, pdfBuffer);

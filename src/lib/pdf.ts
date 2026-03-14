@@ -301,9 +301,7 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
             { lbl: "Base imponible:", val: fmt(baseImponible) },
             { lbl: "IVA (21%):", val: fmt(ivaAmount) },
         ];
-        const shipMethodLabel = (order.shipping_method || 'standard') === 'express' ? 'Envío Express:' : 'Envío Estándar:';
-        const shipVal = shippingCost > 0 ? fmt(shippingCost) : 'Gratis';
-        totRows.push({ lbl: shipMethodLabel, val: shipVal });
+        if (shippingCost > 0) totRows.push({ lbl: "Gastos de env\u00EDo:", val: fmt(shippingCost) });
         totRows.push({ lbl: "TOTAL A PAGAR", val: fmt(total), accent: true });
 
         const totalH = (totRows.length - 1) * 22 + 44 + 12;
