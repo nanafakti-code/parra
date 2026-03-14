@@ -1541,6 +1541,65 @@ const navItems = [
                                 : "none";
                         });
                 });
+            // Global modal scroll lock
+            (function () {
+                var savedY = 0;
+
+                function lockBody() {
+                    savedY = window.scrollY;
+                    document.body.style.overflow = 'hidden';
+                    document.body.style.position = 'fixed';
+                    document.body.style.top = '-' + savedY + 'px';
+                    document.body.style.width = '100%';
+                }
+
+                function unlockBody() {
+                    document.body.style.overflow = '';
+                    document.body.style.position = '';
+                    document.body.style.top = '';
+                    document.body.style.width = '';
+                    window.scrollTo(0, savedY);
+                }
+
+                function anyModalOpen() {
+                    return Array.from(document.querySelectorAll('.modal-overlay')).some(function (el) {
+                        var d = el.style.display;
+                        return d && d !== 'none';
+                    });
+                }
+
+                function syncLock() {
+                    if (anyModalOpen()) {
+                        if (document.body.style.position !== 'fixed') lockBody();
+                    } else {
+                        if (document.body.style.position === 'fixed') unlockBody();
+                    }
+                }
+
+                var attrObserver = new MutationObserver(syncLock);
+
+                function watchModals() {
+                    document.querySelectorAll('.modal-overlay').forEach(function (el) {
+                        attrObserver.observe(el, { attributes: true, attributeFilter: ['style'] });
+                    });
+                }
+
+                watchModals();
+
+                // Catch any modals injected dynamically
+                new MutationObserver(function (muts) {
+                    var added = false;
+                    muts.forEach(function (m) {
+                        m.addedNodes.forEach(function (n) {
+                            if (n.nodeType === 1 && n.classList && n.classList.contains('modal-overlay')) {
+                                attrObserver.observe(n, { attributes: true, attributeFilter: ['style'] });
+                                added = true;
+                            }
+                        });
+                    });
+                    if (added) syncLock();
+                }).observe(document.body, { childList: true, subtree: true });
+            })();
         </script>
     </body>
 </html>
