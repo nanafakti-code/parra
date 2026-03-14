@@ -109,12 +109,25 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, red
     if (authResult) {
         locals.user = authResult;
         try {
-            const { data: profile } = await supabaseAdmin
+            // Busca por id primero; fallback a email si el UUID de auth difiere del de la tabla users
+            const { data: byId } = await supabaseAdmin
                 .from("users")
                 .select("id, role")
                 .eq("id", authResult.id)
                 .maybeSingle();
-            locals.role = profile?.role ?? "customer";
+
+            if (byId) {
+                locals.role = byId.role ?? "customer";
+            } else if (authResult.email) {
+                const { data: byEmail } = await supabaseAdmin
+                    .from("users")
+                    .select("id, role")
+                    .eq("email", authResult.email)
+                    .maybeSingle();
+                locals.role = byEmail?.role ?? "customer";
+            } else {
+                locals.role = "customer";
+            }
         } catch (e) {
             console.error("[middleware] role lookup error", e);
             locals.role = "customer";
