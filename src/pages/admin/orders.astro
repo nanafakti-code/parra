@@ -433,22 +433,27 @@ function statusBadge(s: string) {
                             html +=
                                 '<div style="border:1px solid rgba(255,255,255,0.06);border-radius:6px;overflow:hidden;margin-bottom:0.75rem;">';
                             order.items.forEach(function (item) {
+                                var imgUrl = item.products?.image || '';
+                                var imgHtml = imgUrl
+                                    ? '<img src="' + imgUrl + '" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:5px;background:rgba(255,255,255,0.04);flex-shrink:0;" loading="lazy" />'
+                                    : '<div style="width:44px;height:44px;border-radius:5px;background:rgba(255,255,255,0.05);flex-shrink:0;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>';
                                 html +=
-                                    '<div style="display:flex;justify-content:space-between;padding:0.5rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.75rem;">';
+                                    '<div style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.75rem;border-bottom:1px solid rgba(255,255,255,0.04);">';
+                                html += imgHtml;
                                 html +=
-                                    "<span>" +
-                                    (item.products?.name || "Producto") +
-                                    (item.size ? " (" + item.size + ")" : "") +
-                                    " x" +
-                                    item.quantity +
-                                    "</span>";
+                                    '<div style="flex:1;min-width:0;">' +
+                                    '<div style="font-size:0.75rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+                                    (item.products?.name || 'Producto') +
+                                    '</div>' +
+                                    '<div style="font-size:0.65rem;color:rgba(255,255,255,0.35);margin-top:2px;">' +
+                                    (item.size ? 'Talla ' + item.size + ' · ' : '') +
+                                    'x' + item.quantity +
+                                    '</div>' +
+                                    '</div>';
                                 html +=
-                                    '<span style="font-weight:600;">€' +
-                                    (
-                                        parseFloat(item.unit_price) *
-                                        item.quantity
-                                    ).toFixed(2) +
-                                    "</span>";
+                                    '<div style="font-size:0.8rem;font-weight:700;font-family:Oswald,sans-serif;flex-shrink:0;">€' +
+                                    (parseFloat(item.unit_price) * item.quantity).toFixed(2) +
+                                    '</div>';
                                 html += "</div>";
                             });
                             html += "</div>";
