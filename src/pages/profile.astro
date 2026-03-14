@@ -1566,6 +1566,16 @@ const tabs = [
                     <span class="text-xs">Otro motivo</span>
                 </label>
             </div>
+            <div id="return-other-reason-wrap" style="display:none;">
+                <textarea
+                    id="return-other-reason"
+                    class="w-full text-xs rounded p-3 resize-none"
+                    rows="3"
+                    maxlength="300"
+                    placeholder="Describe el motivo de tu devolución..."
+                    style="background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.2);color:inherit;outline:none;"
+                ></textarea>
+            </div>
             <div class="flex gap-3">
                 <button
                     id="return-modal-cancel"
@@ -1706,10 +1716,21 @@ const tabs = [
             const modal = document.getElementById("return-modal")!;
             const okBtn = document.getElementById("return-modal-ok")!;
             const cancelBtn = document.getElementById("return-modal-cancel")!;
+            const otherWrap = document.getElementById("return-other-reason-wrap")!;
+            const otherText = document.getElementById("return-other-reason") as HTMLTextAreaElement;
 
             modal.classList.remove("hidden");
             modal.classList.add("flex");
             document.body.style.overflow = "hidden";
+
+            // Mostrar/ocultar textarea según selección
+            const radios = modal.querySelectorAll<HTMLInputElement>('input[name="return-reason"]');
+            function onRadioChange() {
+                const selected = Array.from(radios).find(r => r.checked);
+                otherWrap.style.display = selected?.value === "Otro" ? "block" : "none";
+                if (selected?.value !== "Otro") otherText.value = "";
+            }
+            radios.forEach(r => r.addEventListener("change", onRadioChange));
 
             function close(reason: string | null) {
                 modal.classList.add("hidden");
@@ -1718,15 +1739,29 @@ const tabs = [
                 okBtn.removeEventListener("click", onOk);
                 cancelBtn.removeEventListener("click", onCancel);
                 modal.removeEventListener("click", onBackdrop);
-                const radios = modal.querySelectorAll<HTMLInputElement>('input[name="return-reason"]');
-                radios.forEach(r => r.checked = false);
+                radios.forEach(r => {
+                    r.checked = false;
+                    r.removeEventListener("change", onRadioChange);
+                });
+                otherWrap.style.display = "none";
+                otherText.value = "";
                 resolve(reason);
             }
 
             const onOk = () => {
-                const radios = modal.querySelectorAll<HTMLInputElement>('input[name="return-reason"]');
                 const selected = Array.from(radios).find(r => r.checked);
-                close(selected?.value || null);
+                if (!selected) return;
+                if (selected.value === "Otro") {
+                    const custom = otherText.value.trim();
+                    if (!custom) {
+                        otherText.style.borderColor = "rgba(239,68,68,0.5)";
+                        otherText.focus();
+                        return;
+                    }
+                    close(custom);
+                } else {
+                    close(selected.value);
+                }
             };
             const onCancel = () => close(null);
             const onBackdrop = (e: Event) => {
