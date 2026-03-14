@@ -114,15 +114,46 @@ import Footer from "../components/Footer.astro";
     const form = document.getElementById('contact-form') as HTMLFormElement;
     const feedback = document.getElementById('form-feedback') as HTMLElement;
     const btnText = document.getElementById('form-btn-text') as HTMLElement;
+    const submitBtn = form?.querySelector('button[type="submit"]') as HTMLButtonElement;
 
-    form?.addEventListener('submit', (e) => {
+    form?.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        const formData = new FormData(form);
+        const data = {
+            nombre: formData.get('nombre'),
+            email: formData.get('email'),
+            asunto: formData.get('asunto'),
+            mensaje: formData.get('mensaje'),
+        };
+
+        submitBtn.disabled = true;
         btnText.textContent = 'Enviando...';
-        setTimeout(() => {
-            btnText.textContent = 'Enviar mensaje';
-            feedback.textContent = 'Mensaje enviado. Te responderemos en menos de 24 h.';
+
+        try {
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                feedback.textContent = 'Mensaje enviado. Te responderemos en menos de 24 h.';
+                feedback.classList.remove('hidden');
+                form.reset();
+            } else {
+                feedback.textContent = result.error || 'Error al enviar el mensaje. Intenta de nuevo.';
+                feedback.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            feedback.textContent = 'Error de conexión. Intenta de nuevo.';
             feedback.classList.remove('hidden');
-            form.reset();
-        }, 800);
+        } finally {
+            submitBtn.disabled = false;
+            btnText.textContent = 'Enviar mensaje';
+        }
     });
 </script>

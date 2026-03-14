@@ -509,6 +509,88 @@ export async function sendPasswordReset(opts: SendPasswordResetOptions) {
   return data;
 }
 
+// ── 5. Contact Form ──────────────────────────────────────────────────────────
+
+export interface SendContactFormOptions {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+function buildContactFormHtml(opts: SendContactFormOptions): string {
+  const body = `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${c.card};">
+      <tr>
+        <td style="padding:40px 40px 0;text-align:center;">
+          <p style="margin:0 0 8px;font-size:26px;font-weight:900;color:${c.white};text-transform:uppercase;letter-spacing:1px;font-family:${fontStack};">
+            Nuevo <span style="color:${c.gold};">Mensaje</span>
+          </p>
+          <p style="margin:0 0 32px;font-size:15px;color:${c.muted};line-height:1.6;font-family:${fontStack};">
+            Has recibido un nuevo mensaje desde el formulario de contacto.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 32px;">
+          <div style="background-color:#0d0d10;border-left:3px solid ${c.gold};border-radius:4px;padding:20px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding-bottom:16px;">
+                  <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">NOMBRE</p>
+                  <p style="margin:0;font-size:14px;color:${c.white};font-family:${fontStack};">${esc(opts.name)}</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-bottom:16px;">
+                  <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">EMAIL</p>
+                  <p style="margin:0;font-size:14px;color:${c.white};font-family:${fontStack};"><a href="mailto:${esc(opts.email)}" style="color:${c.gold};text-decoration:none;">${esc(opts.email)}</a></p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">ASUNTO</p>
+                  <p style="margin:0;font-size:14px;color:${c.white};font-family:${fontStack};">${esc(opts.subject)}</p>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 32px;">
+          <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">MENSAJE</p>
+          <div style="background-color:#0d0d10;border-radius:4px;padding:20px 24px;">
+            <p style="margin:0;font-size:14px;color:${c.muted};line-height:1.8;white-space:pre-wrap;word-break:break-word;font-family:${fontStack};">${esc(opts.message)}</p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 40px;text-align:center;">
+          <a href="mailto:${esc(opts.email)}?subject=Re: ${esc(opts.subject)}" style="display:inline-block;background-color:${c.gold};color:#000;font-size:13px;font-weight:900;letter-spacing:2px;text-transform:uppercase;text-decoration:none;padding:14px 40px;border-radius:4px;font-family:${fontStack};">RESPONDER &rarr;</a>
+        </td>
+      </tr>
+    </table>`;
+
+  return layout(`Nuevo mensaje de ${opts.name}`, body);
+}
+
+export async function sendContactForm(opts: SendContactFormOptions) {
+  await loadBrandColors();
+  const resend = getResend();
+  const { data, error } = await resend.emails.send({
+    from: FROM,
+    to: ['info@parragkgloves.es'],
+    replyTo: opts.email,
+    subject: `Nuevo contacto: ${opts.subject}`,
+    html: buildContactFormHtml(opts),
+  });
+
+  if (error) throw new Error(`[email] Resend error: ${error.message}`);
+  console.log(`[email] Contacto recibido de ${opts.email} (asunto: ${opts.subject})`);
+  return data;
+}
+
 // ── Legacy shim ───────────────────────────────────────────────────────────────
 
 export async function sendOrderConfirmationEmail(
