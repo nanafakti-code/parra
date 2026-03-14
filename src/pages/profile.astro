@@ -346,6 +346,31 @@ const tabs = [
                                                     </p>
                                                 </div>
                                             </div>
+
+                                            {/* Tracking / Notas internas — solo cuando estado = enviado */}
+                                            {order.status === 'shipped' && (order.tracking_number || order.admin_notes) && (
+                                                <div class="mt-4 mb-1 rounded-lg px-4 py-3 flex flex-col gap-2" style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.18);">
+                                                    {order.tracking_number && (
+                                                        <div class="flex items-center gap-2">
+                                                            <svg class="w-3.5 h-3.5 flex-shrink-0" style="color:#3b82f6;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 1h8zM13 8h4l3 5v3h-7V8z"/>
+                                                            </svg>
+                                                            <span class="text-[10px] font-bold uppercase tracking-widest" style="color:#3b82f6;">Nº Seguimiento:</span>
+                                                            <span class="text-[11px] font-mono font-semibold" style="color:var(--text-primary);">{order.tracking_number}</span>
+                                                        </div>
+                                                    )}
+                                                    {order.admin_notes && (
+                                                        <div class="flex items-start gap-2">
+                                                            <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style="color:#3b82f6;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
+                                                            </svg>
+                                                            <span class="text-[11px]" style="color:var(--text-secondary);">{order.admin_notes}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
                                             <div
                                                 class="space-y-3 pt-4"
                                                 style="border-top: 1px solid var(--border-color);"

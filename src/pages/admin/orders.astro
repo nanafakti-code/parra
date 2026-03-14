@@ -17,7 +17,7 @@ const offset = (page - 1) * limit;
 let query = supabaseAdmin
     .from("orders")
     .select(
-        "*, order_items(id, quantity, unit_price, size, products(name)), users(name, email)",
+        "*, order_items(id, quantity, unit_price, size, products(name, image)), users(name, email)",
         { count: "exact" },
     )
     .order("created_at", { ascending: false })
