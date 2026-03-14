@@ -6,7 +6,7 @@
  */
 
 import type { APIRoute } from 'astro';
-import { supabaseAdmin, supabaseClient } from '../../../../../lib/supabase';
+import { supabaseAdmin } from '../../../../../lib/supabase';
 import { validateAdminAPI } from '../../../../../lib/admin';
 import { sendReturnApprovalConfirmation } from '../../../../../lib/email/index';
 import Stripe from 'stripe';

@@ -7,7 +7,7 @@
  */
 
 import type { APIRoute } from 'astro';
-import { supabaseAdmin, supabaseClient } from '../../../../lib/supabase';
+import { supabase, supabaseAdmin } from '../../../../lib/supabase';
 import Stripe from 'stripe';
 import { sendCancellationConfirmation } from '../../../../lib/email/index';
 
@@ -37,14 +37,15 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Get authenticated user
-    const authHeader = context.request.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '');
+    // Get authenticated user from cookies
+    const accessToken =
+      context.cookies.get('sb-access-token')?.value ||
+      context.cookies.get('auth_token')?.value;
 
     let userId: string | null = null;
-    if (token) {
-      const { data } = await supabaseClient.auth.getUser(token);
-      userId = data.user?.id || null;
+    if (accessToken) {
+      const { data: { user } } = await supabase.auth.getUser(accessToken);
+      userId = user?.id || null;
     }
 
     // Fetch order with ALL necessary data

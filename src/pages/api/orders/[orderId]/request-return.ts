@@ -6,7 +6,7 @@
  */
 
 import type { APIRoute } from 'astro';
-import { supabaseAdmin, supabaseClient } from '../../../../lib/supabase';
+import { supabase, supabaseAdmin } from '../../../../lib/supabase';
 
 interface APIError {
   code: string;
@@ -43,17 +43,23 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Get authenticated user
-    const authHeader = context.request.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '');
+    // Get authenticated user from cookies
+    const accessToken =
+      context.cookies.get('sb-access-token')?.value ||
+      context.cookies.get('auth_token')?.value;
 
-    let userId: string | null = null;
-    if (token) {
-      const { data } = await supabaseClient.auth.getUser(token);
-      userId = data.user?.id || null;
+    if (!accessToken) {
+      return errorResponse({
+        code: 'UNAUTHORIZED',
+        message: 'You must be logged in to request a return',
+        status: 401,
+      });
     }
 
-    if (!userId) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser(accessToken);
+    const userId = user?.id;
+
+    if (!userId || authError) {
       return errorResponse({
         code: 'UNAUTHORIZED',
         message: 'You must be logged in to request a return',
