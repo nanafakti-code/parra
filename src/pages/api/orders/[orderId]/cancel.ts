@@ -102,8 +102,25 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Process Stripe refund
-    const chargeId = order.stripe_charge_id;
+    // Get charge ID from order or retrieve from Stripe
+    let chargeId = order.stripe_charge_id;
+
+    if (!chargeId && order.stripe_session_id) {
+      // If not stored locally, retrieve from Stripe using session_id
+      try {
+        const session = await stripe.checkout.sessions.retrieve(order.stripe_session_id);
+        if (session.payment_intent) {
+          const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string);
+          if (paymentIntent.charges.data.length > 0) {
+            chargeId = paymentIntent.charges.data[0].id;
+          }
+        }
+      } catch (err: any) {
+        console.error('[cancel-order] Error retrieving charge from Stripe:', err.message);
+        // Continue - will fail on refund attempt below
+      }
+    }
+
     if (!chargeId) {
       return errorResponse({
         code: 'NO_CHARGE_ID',
