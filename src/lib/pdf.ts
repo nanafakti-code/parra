@@ -428,8 +428,6 @@ export async function generateReturnInvoicePdf(returnRecord: any, order: any): P
         const BG = "#07090d";
         const BLACK = "#0d0f14";
         const CARD = "#111520";
-        const GREEN = brandPrimary;
-        const GREEND = darkenHex(brandPrimary, 0.62);
         const WHITE = "#f0f4f8";
         const GRAY = "#6b7280";
         const LGRAY = "#9ca3af";
@@ -514,7 +512,7 @@ export async function generateReturnInvoicePdf(returnRecord: any, order: any): P
         bracket(M + 3, IY + IH - 14, 10, false);
         bracket(M + HW, IY + IH - 14, 10, true);
         sectionLabel("// EMISOR", M + 16, IY + 9);
-        doc.rect(M + 16, IY + 19, 30, 1).fill(GREEND);
+        doc.rect(M + 16, IY + 19, 30, 1).fill(REDD);
 
         let ey = IY + 25;
         ([
@@ -536,7 +534,7 @@ export async function generateReturnInvoicePdf(returnRecord: any, order: any): P
         bracket(RX + 3, IY + IH - 14, 10, false);
         bracket(RX + HW, IY + IH - 14, 10, true);
         sectionLabel("// CLIENTE", RX + 16, IY + 9);
-        doc.rect(RX + 16, IY + 19, 30, 1).fill(GREEND);
+        doc.rect(RX + 16, IY + 19, 30, 1).fill(REDD);
 
         const receptor: [string, number, string, string][] = [
             ["Helvetica-Bold", 10, WHITE, customerName],
@@ -590,10 +588,10 @@ export async function generateReturnInvoicePdf(returnRecord: any, order: any): P
         const BOTY = rowY + RH + 16;
         const BOTH = 66;
         doc.rect(M, BOTY, BOTW, BOTH).fill(CARD);
-        doc.rect(M, BOTY, 3, BOTH).fill(GREEN);
+        doc.rect(M, BOTY, 3, BOTH).fill(RED);
         bracket(M + 3, BOTY + 4, 8, false);
         bracket(M + BOTW, BOTY + 4, 8, true);
-        sectionLabel("// ID REEMBOLSO STRIPE", M + 14, BOTY + 9, GREEN);
+        sectionLabel("// ID REEMBOLSO STRIPE", M + 14, BOTY + 9);
         doc.font("Helvetica-Bold").fontSize(9).fillColor(LGRAY)
             .text(refundId || "N/A", M + 14, BOTY + 25, { width: BOTW - 28, lineBreak: false });
         if (returnRecord.reason) {
@@ -671,9 +669,9 @@ export async function generateReturnInvoicePdf(returnRecord: any, order: any): P
         doc.font("Helvetica").fontSize(7).fillColor(GRAY)
             .text(`Generado el ${refDate.toLocaleDateString("es-ES")}  \u00b7  ${returnNumber}`, 0, FY + 24,
                 { align: "right", width: W - M, lineBreak: false });
-        doc.font("Helvetica").fontSize(6.5).fillColor(GREEND)
+        doc.font("Helvetica").fontSize(6.5).fillColor(REDD)
             .text("DOCUMENTO FISCAL VERIFICADO", 0, FY + 36,
-                { align: "right", width: W - M, lineBreak: false, characterSpacing: 1 });
+                { align: "right", width: W - M, lineBreak: false, characterSpacing: 1});
 
         doc.end();
     });

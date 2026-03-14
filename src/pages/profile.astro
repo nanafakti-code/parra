@@ -1545,8 +1545,8 @@ const tabs = [
         style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);"
     >
         <div
-            class="card max-w-sm w-full p-8 space-y-6"
-            style="border-color: var(--border-color);"
+            class="card w-full p-8 space-y-5 overflow-y-auto"
+            style="border-color: var(--border-color); max-width: 420px; max-height: 90vh;"
         >
             <div>
                 <p
@@ -1592,6 +1592,22 @@ const tabs = [
                     placeholder="Describe el motivo de tu devolución..."
                     style="background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.2);color:inherit;outline:none;"
                 ></textarea>
+            </div>
+            <!-- ── Fotos del producto ── -->
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-[0.15em] mb-2" style="color:var(--text-muted);">
+                    Fotos del producto <span style="font-weight:400;text-transform:none;letter-spacing:0;">(opcional, máx. 5)</span>
+                </p>
+                <button
+                    id="return-upload-btn"
+                    type="button"
+                    class="w-full flex items-center justify-center gap-2 px-4 py-3 text-xs font-semibold uppercase tracking-widest rounded transition-colors cursor-pointer"
+                    style="background:rgba(59,130,246,0.05);border:1px dashed rgba(59,130,246,0.35);color:#3b82f6;"
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                    Subir imágenes
+                </button>
+                <div id="return-images-preview" class="mt-3 flex flex-wrap gap-2"></div>
             </div>
             <div class="flex gap-3">
                 <button
@@ -1690,6 +1706,8 @@ const tabs = [
     }
 </style>
 
+<script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+
 <script>
     // ── Modal de confirmación (Promise-based) ─────────────────────────────────
     function customConfirm(title: string, body: string): Promise<boolean> {
@@ -1727,18 +1745,79 @@ const tabs = [
         });
     }
 
-    // ── Modal para solicitar devolución (retorna el motivo seleccionado o null) ─
-    function showReturnReasonModal(): Promise<string | null> {
+    // ── Modal para solicitar devolución (retorna motivo + imágenes o null) ─
+    function showReturnReasonModal(): Promise<{ reason: string; images: string[] } | null> {
         return new Promise((resolve) => {
             const modal = document.getElementById("return-modal")!;
             const okBtn = document.getElementById("return-modal-ok")!;
             const cancelBtn = document.getElementById("return-modal-cancel")!;
             const otherWrap = document.getElementById("return-other-reason-wrap")!;
             const otherText = document.getElementById("return-other-reason") as HTMLTextAreaElement;
+            const uploadBtn = document.getElementById("return-upload-btn")!;
+            const previewContainer = document.getElementById("return-images-preview")!;
+
+            let returnImages: string[] = [];
+            let clWidget: any = null;
 
             modal.classList.remove("hidden");
             modal.classList.add("flex");
             document.body.style.overflow = "hidden";
+
+            function getWidget() {
+                if (clWidget) return clWidget;
+                const cl = (window as any).cloudinary;
+                if (!cl) return null;
+                clWidget = cl.createUploadWidget(
+                    {
+                        cloudName: "djvj32zic",
+                        uploadPreset: "parragk",
+                        multiple: true,
+                        maxFiles: 5,
+                        sources: ["local", "camera"],
+                        folder: "parra/returns",
+                        resourceType: "image",
+                        clientAllowedFormats: ["jpg", "jpeg", "png", "webp"],
+                        maxImageFileSize: 5000000,
+                        cropping: false,
+                        styles: { palette: { window: "#0d0f14", windowBorder: "#1e2433", tabIcon: "#3b82f6", menuIcons: "#9ca3af", textDark: "#f0f4f8", textLight: "#0d0f14", link: "#3b82f6", action: "#3b82f6", inactiveTabIcon: "#6b7280", error: "#ef4444", inProgress: "#3b82f6", complete: "#22c55e", sourceBg: "#111520" } },
+                    },
+                    (error: any, result: any) => {
+                        if (error) { console.error("[cloudinary]", error); return; }
+                        if (result?.event === "success" && returnImages.length < 5) {
+                            const url = result.info.secure_url;
+                            returnImages.push(url);
+                            addThumbnail(url);
+                        }
+                    }
+                );
+                return clWidget;
+            }
+
+            function addThumbnail(url: string) {
+                const wrap = document.createElement("div");
+                wrap.style.cssText = "position:relative;width:56px;height:56px;flex-shrink:0;";
+                const img = document.createElement("img");
+                img.src = url;
+                img.style.cssText = "width:56px;height:56px;object-fit:cover;border-radius:4px;border:1px solid rgba(59,130,246,0.25);";
+                const del = document.createElement("button");
+                del.type = "button";
+                del.innerHTML = "&times;";
+                del.style.cssText = "position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;font-size:13px;line-height:18px;text-align:center;border:none;cursor:pointer;padding:0;";
+                del.addEventListener("click", () => {
+                    returnImages = returnImages.filter(u => u !== url);
+                    wrap.remove();
+                });
+                wrap.appendChild(img);
+                wrap.appendChild(del);
+                previewContainer.appendChild(wrap);
+            }
+
+            const onUpload = () => {
+                if (returnImages.length >= 5) return;
+                const w = getWidget();
+                if (w) w.open();
+            };
+            uploadBtn.addEventListener("click", onUpload);
 
             // Mostrar/ocultar textarea según selección
             const radios = modal.querySelectorAll<HTMLInputElement>('input[name="return-reason"]');
@@ -1749,20 +1828,24 @@ const tabs = [
             }
             radios.forEach(r => r.addEventListener("change", onRadioChange));
 
-            function close(reason: string | null) {
+            function close(result: { reason: string; images: string[] } | null) {
                 modal.classList.add("hidden");
                 modal.classList.remove("flex");
                 document.body.style.overflow = "";
                 okBtn.removeEventListener("click", onOk);
                 cancelBtn.removeEventListener("click", onCancel);
                 modal.removeEventListener("click", onBackdrop);
+                uploadBtn.removeEventListener("click", onUpload);
                 radios.forEach(r => {
                     r.checked = false;
                     r.removeEventListener("change", onRadioChange);
                 });
                 otherWrap.style.display = "none";
                 otherText.value = "";
-                resolve(reason);
+                returnImages = [];
+                previewContainer.innerHTML = "";
+                if (clWidget) { try { clWidget.destroy(); } catch {} clWidget = null; }
+                resolve(result);
             }
 
             const onOk = () => {
@@ -1775,9 +1858,9 @@ const tabs = [
                         otherText.focus();
                         return;
                     }
-                    close(custom);
+                    close({ reason: custom, images: [...returnImages] });
                 } else {
-                    close(selected.value);
+                    close({ reason: selected.value, images: [...returnImages] });
                 }
             };
             const onCancel = () => close(null);
@@ -2304,8 +2387,8 @@ const tabs = [
                         (now.getTime() - deliveryDate.getTime()) / (1000 * 60 * 60 * 24),
                     );
 
-                    const reason = await showReturnReasonModal();
-                    if (!reason?.trim()) return;
+                    const result = await showReturnReasonModal();
+                    if (!result?.reason?.trim()) return;
 
                     btn.disabled = true;
                     const originalText = btn.innerHTML;
@@ -2319,7 +2402,8 @@ const tabs = [
                                 headers: { "Content-Type": "application/json" },
                                 credentials: "include",
                                 body: JSON.stringify({
-                                    reason: reason.trim(),
+                                    reason: result.reason.trim(),
+                                    images: result.images,
                                     notes: `Días desde entrega: ${daysSinceDelivery}`,
                                 }),
                             },

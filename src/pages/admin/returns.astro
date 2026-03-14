@@ -187,6 +187,7 @@ function statusBadge(s: string) {
                                         data-order-id-short={ret.orders?.id?.slice(0, 8) || ""}
                                         data-customer-name={ret.users?.name || ""}
                                         data-customer-email={ret.users?.email || ""}
+                                        data-images={JSON.stringify(ret.images || [])}
                                     >
                                         Gestionar
                                     </button>
@@ -247,6 +248,12 @@ function statusBadge(s: string) {
             <div style="margin-bottom:1rem;">
                 <div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.35rem;">Motivo del cliente</div>
                 <div id="return-reason" style="font-size:0.8rem;color:rgba(255,255,255,0.6);padding:0.65rem 0.75rem;background:rgba(255,255,255,0.02);border-radius:6px;border:1px solid rgba(255,255,255,0.05);line-height:1.5;">—</div>
+            </div>
+
+            <!-- Customer images -->
+            <div id="return-images-section" style="display:none;margin-bottom:1rem;">
+                <div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">Fotos del cliente</div>
+                <div id="return-images-grid" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
             </div>
 
             <!-- Refund amount -->
@@ -327,6 +334,32 @@ function statusBadge(s: string) {
 
                     // Reason
                     document.getElementById("return-reason").textContent = reason;
+
+                    // Customer images
+                    var imagesRaw = this.getAttribute("data-images") || "[]";
+                    var images = [];
+                    try { images = JSON.parse(imagesRaw); } catch {}
+                    var imagesSection = document.getElementById("return-images-section");
+                    var imagesGrid = document.getElementById("return-images-grid");
+                    imagesGrid.innerHTML = "";
+                    if (Array.isArray(images) && images.length > 0) {
+                        images.forEach(function(url) {
+                            var a = document.createElement("a");
+                            a.href = url;
+                            a.target = "_blank";
+                            a.rel = "noopener";
+                            var img = document.createElement("img");
+                            img.src = url;
+                            img.style.cssText = "width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:opacity 0.15s;";
+                            img.onmouseover = function() { this.style.opacity = "0.75"; };
+                            img.onmouseout = function() { this.style.opacity = "1"; };
+                            a.appendChild(img);
+                            imagesGrid.appendChild(a);
+                        });
+                        imagesSection.style.display = "block";
+                    } else {
+                        imagesSection.style.display = "none";
+                    }
 
                     // Notes
                     document.getElementById("return-notes").value = notes;

@@ -34,7 +34,7 @@ export const POST: APIRoute = async (context) => {
     }
 
     const body = await context.request.json();
-    const { reason } = body;
+    const { reason, images } = body;
 
     if (!reason?.trim()) {
       return errorResponse({
@@ -43,6 +43,13 @@ export const POST: APIRoute = async (context) => {
         status: 400,
       });
     }
+
+    // Validate images: must be an array of Cloudinary secure_url strings (max 5)
+    const validImages: string[] = Array.isArray(images)
+      ? images
+          .filter((u: unknown) => typeof u === 'string' && u.startsWith('https://res.cloudinary.com/'))
+          .slice(0, 5)
+      : [];
 
     // Get authenticated user from cookies
     const accessToken =
@@ -152,6 +159,7 @@ export const POST: APIRoute = async (context) => {
           user_id: userId,
           reason: reason.trim(),
           status: 'pending',
+          ...(validImages.length > 0 ? { images: validImages } : {}),
         },
       ])
       .select()
