@@ -693,71 +693,86 @@ export interface SendReturnApprovalConfirmationOptions {
 
 function buildReturnApprovalHtml(opts: SendReturnApprovalConfirmationOptions): string {
   const firstName = opts.customerName.split(' ')[0];
+  const now = new Date();
+  const invoiceDate = now.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+  const invoiceNumber = `DEV-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${opts.refundId.slice(-6).toUpperCase()}`;
 
   const body = `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${c.card};">
       <tr>
-        <td style="padding:40px 40px 0;text-align:center;">
-          <p style="margin:0 0 12px;font-size:48px;">&#10003;</p>
+        <td style="padding:40px 40px 24px;text-align:center;">
+          <p style="margin:0 0 10px;font-size:44px;">&#10003;</p>
           <p style="margin:0 0 8px;font-size:26px;font-weight:900;color:${c.white};text-transform:uppercase;letter-spacing:1px;font-family:${fontStack};">
             Devoluci&oacute;n <span style="color:${c.gold};">Aprobada</span>
           </p>
-          <p style="margin:0 0 32px;font-size:15px;color:${c.muted};line-height:1.6;font-family:${fontStack};">
-            Hola <strong style="color:${c.white};">${esc(firstName)}</strong>, tu solicitud de devoluci&oacute;n ha sido aprobada. Procesaremos tu reembolso en los pr&oacute;ximos d&iacute;as.
+          <p style="margin:0;font-size:14px;color:${c.muted};line-height:1.6;font-family:${fontStack};">
+            Hola <strong style="color:${c.white};">${esc(firstName)}</strong>, hemos verificado el artículo y tu reembolso ha sido procesado.
           </p>
         </td>
       </tr>
       <tr>
-        <td style="padding:0 40px 32px;">
-          <div style="background-color:#0d0d10;border-left:3px solid ${c.gold};border-radius:4px;padding:20px 24px;">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="padding-bottom:12px;">
-                  <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">N&ordm; DE PEDIDO</p>
-                  <p style="margin:0;font-size:14px;color:${c.white};font-family:${fontStack};">${esc(opts.orderNumber)}</p>
-                </td>
-              </tr>
-              <tr>
-                <td style="padding-bottom:12px;">
-                  <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">ID DE REEMBOLSO</p>
-                  <p style="margin:0;font-size:14px;color:${c.goldLight};word-break:break-all;font-family:${fontStack};">${esc(opts.refundId)}</p>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">CANTIDAD A REEMBOLSAR</p>
-                  <p style="margin:0;font-size:18px;font-weight:900;color:${c.gold};font-family:${fontStack};">${fmt(opts.refundAmount)}</p>
-                </td>
-              </tr>
-            </table>
-          </div>
+        <td style="padding:0 40px 24px;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0d0d10;border-radius:6px;border:1px solid rgba(255,255,255,0.08);overflow:hidden;">
+            <tr>
+              <td style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);" colspan="2">
+                <p style="margin:0;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:2px;text-transform:uppercase;font-family:${fontStack};">Nota de Abono / Factura de Devolución</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:10px 20px;border-bottom:1px solid rgba(255,255,255,0.04);width:50%;vertical-align:top;">
+                <p style="margin:0 0 2px;font-size:10px;color:${c.subtle};text-transform:uppercase;letter-spacing:1px;font-family:${fontStack};">Nº Documento</p>
+                <p style="margin:0;font-size:12px;color:${c.white};font-family:monospace;">${esc(invoiceNumber)}</p>
+              </td>
+              <td style="padding:10px 20px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top;">
+                <p style="margin:0 0 2px;font-size:10px;color:${c.subtle};text-transform:uppercase;letter-spacing:1px;font-family:${fontStack};">Fecha</p>
+                <p style="margin:0;font-size:12px;color:${c.white};font-family:${fontStack};">${invoiceDate}</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:10px 20px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top;">
+                <p style="margin:0 0 2px;font-size:10px;color:${c.subtle};text-transform:uppercase;letter-spacing:1px;font-family:${fontStack};">Nº Pedido</p>
+                <p style="margin:0;font-size:12px;color:${c.white};font-family:${fontStack};">${esc(opts.orderNumber)}</p>
+              </td>
+              <td style="padding:10px 20px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top;">
+                <p style="margin:0 0 2px;font-size:10px;color:${c.subtle};text-transform:uppercase;letter-spacing:1px;font-family:${fontStack};">ID Reembolso Stripe</p>
+                <p style="margin:0;font-size:11px;color:${c.goldLight};word-break:break-all;font-family:monospace;">${esc(opts.refundId)}</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:10px 20px;border-bottom:1px solid rgba(255,255,255,0.04);" colspan="2">
+                <p style="margin:0 0 2px;font-size:10px;color:${c.subtle};text-transform:uppercase;letter-spacing:1px;font-family:${fontStack};">Concepto</p>
+                <p style="margin:0;font-size:12px;color:${c.white};font-family:${fontStack};">Devolución de producto — coste de envío no incluido</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 20px;" colspan="2">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="font-size:12px;color:${c.muted};font-family:${fontStack};">Importe a reembolsar (IVA incl.)</td>
+                    <td style="text-align:right;font-size:22px;font-weight:900;color:${c.gold};font-family:${fontStack};">${fmt(opts.refundAmount)}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         </td>
       </tr>
       <tr>
-        <td style="padding:0 40px 32px;">
-          <div style="background-color:#0d0d10;border-radius:4px;padding:16px 20px;">
-            <p style="margin:0 0 12px;font-size:13px;color:${c.muted};font-family:${fontStack};">
-              &#128336;&nbsp; Por favor, env&iacute;a el art&iacute;culo al siguiente domicilio con tr&aacute;fico registrado:
-            </p>
-            <p style="margin:0;font-size:13px;color:${c.white};font-weight:700;font-family:${fontStack};">
-              Parra GK Gloves<br/>
-              info@parragkgloves.es
-            </p>
-            <p style="margin:12px 0 0;font-size:12px;color:${c.muted};font-family:${fontStack};">
-              El reembolso se procesará una vez recibamos el art&iacute;culo (3-5 días h&aacute;biles adicionales).
-            </p>
+        <td style="padding:0 40px 24px;">
+          <div style="background-color:#0d0d10;border-radius:4px;padding:14px 18px;border:1px solid rgba(255,255,255,0.05);">
+            <p style="margin:0;font-size:12px;color:${c.muted};line-height:1.6;font-family:${fontStack};">&#128336;&nbsp; El importe puede tardar <strong style="color:${c.white};">3–5 días hábiles</strong> en aparecer en tu cuenta, dependiendo de tu banco o método de pago.</p>
           </div>
         </td>
       </tr>
       <tr>
         <td style="padding:0 40px 40px;text-align:center;">
-          <p style="margin:0 0 16px;font-size:14px;color:${c.muted};font-family:${fontStack};">&iquest;Preguntas sobre tu devoluci&oacute;n?</p>
+          <p style="margin:0 0 16px;font-size:14px;color:${c.muted};font-family:${fontStack};">¿Necesitas ayuda?</p>
           <a href="mailto:info@parragkgloves.es" style="display:inline-block;border:1px solid ${c.gold};color:${c.gold};font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;padding:12px 32px;border-radius:4px;font-family:${fontStack};">CONTACTAR SOPORTE</a>
         </td>
       </tr>
     </table>`;
 
-  return layout(`Devoluci\u00f3n aprobada para ${opts.orderNumber}`, body);
+  return layout(`Devolución aprobada — ${opts.orderNumber}`, body);
 }
 
 export async function sendReturnApprovalConfirmation(opts: SendReturnApprovalConfirmationOptions) {
@@ -860,49 +875,55 @@ function buildReturnRequestHtml(opts: SendReturnRequestConfirmationOptions): str
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${c.card};">
       <tr>
         <td style="padding:40px 40px 24px;text-align:center;">
-          <div style="width:56px;height:56px;border-radius:50%;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
-            <span style="font-size:24px;">&#128221;</span>
-          </div>
-          <h1 style="margin:0 0 8px;font-size:22px;font-weight:900;color:${c.white};letter-spacing:1px;text-transform:uppercase;font-family:${fontStack};">Solicitud Recibida</h1>
-          <p style="margin:0;font-size:14px;color:${c.muted};font-family:${fontStack};">Hola ${esc(firstName)}, hemos recibido tu solicitud de devolución.</p>
+          <p style="margin:0 0 12px;font-size:40px;">&#128230;</p>
+          <h1 style="margin:0 0 8px;font-size:22px;font-weight:900;color:${c.white};letter-spacing:1px;text-transform:uppercase;font-family:${fontStack};">Instrucciones de Devolución</h1>
+          <p style="margin:0;font-size:14px;color:${c.muted};font-family:${fontStack};">Hola ${esc(firstName)}, hemos recibido tu solicitud. Sigue estos pasos para enviarnos el producto.</p>
         </td>
       </tr>
       <tr>
         <td style="padding:0 40px 24px;">
-          <div style="background-color:#0d0d10;border-radius:6px;padding:20px 24px;border:1px solid rgba(255,255,255,0.06);">
-            <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">Pedido</p>
-            <p style="margin:0 0 16px;font-size:18px;font-weight:900;color:${c.white};font-family:${fontStack};">${esc(opts.orderNumber)}</p>
-            <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">Motivo indicado</p>
-            <p style="margin:0;font-size:14px;color:${c.muted};line-height:1.6;font-family:${fontStack};">${esc(opts.reason)}</p>
+          <div style="background-color:#0d0d10;border-radius:6px;padding:16px 20px;border:1px solid rgba(255,255,255,0.06);">
+            <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">Pedido</p>
+            <p style="margin:0 0 14px;font-size:16px;font-weight:900;color:${c.white};font-family:${fontStack};">${esc(opts.orderNumber)}</p>
+            <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">Motivo indicado</p>
+            <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.6;font-family:${fontStack};">${esc(opts.reason)}</p>
           </div>
         </td>
       </tr>
       <tr>
         <td style="padding:0 40px 24px;">
-          <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:${c.white};letter-spacing:0.5px;font-family:${fontStack};">¿Qué ocurre ahora?</p>
+          <p style="margin:0 0 14px;font-size:13px;font-weight:700;color:${c.white};letter-spacing:0.5px;font-family:${fontStack};">Cómo enviar tu devolución:</p>
           <table width="100%" cellpadding="0" cellspacing="0" border="0">
             <tr>
-              <td style="padding:8px 0;vertical-align:top;width:28px;">
-                <div style="width:22px;height:22px;border-radius:50%;background:${c.gold};display:inline-block;text-align:center;line-height:22px;font-size:11px;font-weight:900;color:#000;font-family:${fontStack};">1</div>
+              <td style="padding:8px 0;vertical-align:top;width:30px;">
+                <div style="width:24px;height:24px;border-radius:50%;background:${c.gold};display:inline-block;text-align:center;line-height:24px;font-size:11px;font-weight:900;color:#000;font-family:${fontStack};">1</div>
               </td>
-              <td style="padding:8px 0 8px 8px;vertical-align:top;">
-                <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.5;font-family:${fontStack};"><strong style="color:${c.white};">Revisamos tu solicitud</strong> — Nuestro equipo analizará los detalles en un plazo de <strong style="color:${c.white};">1–2 días hábiles</strong>.</p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:8px 0;vertical-align:top;width:28px;">
-                <div style="width:22px;height:22px;border-radius:50%;background:${c.gold};display:inline-block;text-align:center;line-height:22px;font-size:11px;font-weight:900;color:#000;font-family:${fontStack};">2</div>
-              </td>
-              <td style="padding:8px 0 8px 8px;vertical-align:top;">
-                <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.5;font-family:${fontStack};"><strong style="color:${c.white};">Te notificamos por email</strong> — Recibirás una respuesta con la resolución y, si es aprobada, las instrucciones de envío.</p>
+              <td style="padding:8px 0 8px 10px;vertical-align:top;">
+                <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.5;font-family:${fontStack};"><strong style="color:${c.white};">Empaqueta el artículo</strong> — Usa el embalaje original si es posible. El producto debe estar en el mismo estado en que lo recibiste.</p>
               </td>
             </tr>
             <tr>
-              <td style="padding:8px 0;vertical-align:top;width:28px;">
-                <div style="width:22px;height:22px;border-radius:50%;background:${c.gold};display:inline-block;text-align:center;line-height:22px;font-size:11px;font-weight:900;color:#000;font-family:${fontStack};">3</div>
+              <td style="padding:8px 0;vertical-align:top;width:30px;">
+                <div style="width:24px;height:24px;border-radius:50%;background:${c.gold};display:inline-block;text-align:center;line-height:24px;font-size:11px;font-weight:900;color:#000;font-family:${fontStack};">2</div>
               </td>
-              <td style="padding:8px 0 8px 8px;vertical-align:top;">
-                <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.5;font-family:${fontStack};"><strong style="color:${c.white};">Reembolso procesado</strong> — Una vez recibamos y verifiquemos el artículo, el reembolso se acreditará en tu método de pago original.</p>
+              <td style="padding:8px 0 8px 10px;vertical-align:top;">
+                <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.5;font-family:${fontStack};"><strong style="color:${c.white};">Incluye una nota dentro</strong> — Escribe tu número de pedido <strong style="color:${c.gold};">${esc(opts.orderNumber)}</strong> en un papel dentro del paquete para que podamos identificarlo.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0;vertical-align:top;width:30px;">
+                <div style="width:24px;height:24px;border-radius:50%;background:${c.gold};display:inline-block;text-align:center;line-height:24px;font-size:11px;font-weight:900;color:#000;font-family:${fontStack};">3</div>
+              </td>
+              <td style="padding:8px 0 8px 10px;vertical-align:top;">
+                <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.5;font-family:${fontStack};"><strong style="color:${c.white};">Envíalo a nuestra dirección</strong> — Usa un servicio con número de seguimiento (correo certificado o mensajería). Los gastos de envío de la devolución corren por tu cuenta.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0;vertical-align:top;width:30px;">
+                <div style="width:24px;height:24px;border-radius:50%;background:${c.gold};display:inline-block;text-align:center;line-height:24px;font-size:11px;font-weight:900;color:#000;font-family:${fontStack};">4</div>
+              </td>
+              <td style="padding:8px 0 8px 10px;vertical-align:top;">
+                <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.5;font-family:${fontStack};"><strong style="color:${c.white};">Guarda el justificante</strong> — Consérvalo hasta que hayamos procesado tu devolución. Puedes enviarnos el número de seguimiento respondiendo a este email.</p>
               </td>
             </tr>
           </table>
@@ -910,10 +931,16 @@ function buildReturnRequestHtml(opts: SendReturnRequestConfirmationOptions): str
       </tr>
       <tr>
         <td style="padding:0 40px 24px;">
-          <div style="background-color:#0d0d10;border-left:3px solid #f59e0b;border-radius:4px;padding:16px 20px;">
-            <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.6;font-family:${fontStack};">
-              <strong style="color:#f59e0b;">Importante:</strong> No envíes el artículo hasta recibir la confirmación de aprobación. El email de aprobación incluirá la dirección de envío y las instrucciones detalladas.
-            </p>
+          <div style="background-color:#0d0d10;border-left:3px solid ${c.gold};border-radius:4px;padding:20px 24px;">
+            <p style="margin:0 0 6px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">Dirección de envío</p>
+            <p style="margin:0;font-size:14px;font-weight:700;color:${c.white};line-height:1.8;font-family:${fontStack};">Parra GK Gloves<br/>info@parragkgloves.es</p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 24px;">
+          <div style="background-color:#0d0d10;border-radius:4px;padding:14px 18px;border:1px solid rgba(255,255,255,0.05);">
+            <p style="margin:0;font-size:12px;color:${c.muted};line-height:1.6;font-family:${fontStack};">&#128336;&nbsp; Una vez recibamos y verifiquemos el artículo te enviaremos la resolución. Si es aprobada, el reembolso se acreditará en tu método de pago original en <strong style="color:${c.white};">3–5 días hábiles</strong>.</p>
           </div>
         </td>
       </tr>
@@ -925,7 +952,7 @@ function buildReturnRequestHtml(opts: SendReturnRequestConfirmationOptions): str
       </tr>
     </table>`;
 
-  return layout(`Solicitud de devolución recibida — ${opts.orderNumber}`, body);
+  return layout(`Instrucciones de devolución — ${opts.orderNumber}`, body);
 }
 
 export async function sendReturnRequestConfirmation(opts: SendReturnRequestConfirmationOptions) {
