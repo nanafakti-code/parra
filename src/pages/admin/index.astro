@@ -268,10 +268,12 @@ const chartData = JSON.stringify({
         )}
     </div>
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" is:inline></script>
+    <!-- Chart.js: carga diferida para no bloquear el renderizado del dashboard -->
     <script is:inline define:vars={{ chartData }}>
-        document.addEventListener('DOMContentLoaded', function() {
+        (function() {
+            var s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js';
+            s.onload = function() {
             var data = JSON.parse(chartData);
 
             var styles = getComputedStyle(document.documentElement);
@@ -400,7 +402,9 @@ const chartData = JSON.stringify({
                     }),
                 });
             }
-        });
+            }; // end s.onload
+            document.head.appendChild(s);
+        })();
     </script>
 
     <style>

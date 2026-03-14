@@ -2,9 +2,9 @@
 import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
 import CartDrawer from "../components/CartDrawer.astro";
-import { supabaseAdmin } from "../lib/supabase";
+import { getBrandSettings } from "../lib/brand";
 
-// ── Brand color (from settings) ───────────────────────────────────────────
+// ── Brand color (from cached settings) ────────────────────────────────────
 function sanitizeColor(color: string): string {
 	return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : "#39FF14";
 }
@@ -26,20 +26,11 @@ function deriveSecondaryColor(hex: string): string {
 
 let primaryColor = "#39FF14";
 let brandLogoUrl = "/icons/icon-512.png";
-try {
-	const { data } = await supabaseAdmin
-		.from("site_settings")
-		.select("value")
-		.eq("key", "brand")
-		.single();
-	if (data?.value) {
-		const v = data.value as any;
-		primaryColor = sanitizeColor(v.primary_color || primaryColor);
-		if (typeof v.logo_url === "string" && v.logo_url.trim()) {
-			brandLogoUrl = v.logo_url.trim();
-		}
-	}
-} catch {}
+const brandSettings = await getBrandSettings();
+primaryColor = sanitizeColor((brandSettings.primary_color as string) || primaryColor);
+if (typeof brandSettings.logo_url === "string" && brandSettings.logo_url.trim()) {
+	brandLogoUrl = brandSettings.logo_url.trim();
+}
 
 const secondaryColor = deriveSecondaryColor(primaryColor);
 
@@ -176,6 +167,9 @@ const websiteSchema = JSON.stringify({
 		<link rel="dns-prefetch" href="https://res.cloudinary.com" />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<!-- Preconnect to Cloudinary (all product images) and Supabase -->
+		<link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+		<link rel="preconnect" href="https://jboxsbtfhkanvnhxuxdd.supabase.co" crossorigin />
 
 		<!-- Preload LCP hero image — evita el LCP penalty de 49s -->
 		<!-- La imagen hero se carga como CSS background-image, el browser no la descubre

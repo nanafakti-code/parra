@@ -13,24 +13,18 @@ export const GET: APIRoute = async ({ locals }) => {
         return new Response(JSON.stringify([]), { status: 200 });
     }
 
-    // 1. Buscar el carrito del usuario
+    // Obtener carrito + items + productos en una sola consulta
     const { data: cart } = await supabase
         .from('carts')
-        .select('*')
+        .select('id, cart_items(*, products(*))')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
     if (!cart) {
         return new Response(JSON.stringify([]), { status: 200 });
     }
 
-    // 2. Obtener items con info de producto
-    const { data: items } = await supabase
-        .from('cart_items')
-        .select('*, products(*)')
-        .eq('cart_id', cart.id);
-
-    const formatted = (items || []).map((item: any) => ({
+    const formatted = ((cart as any).cart_items || []).map((item: any) => ({
         ...item,
         product: item.products,
     }));

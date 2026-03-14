@@ -306,6 +306,8 @@ const seoDescription = product.short_description
                                 src={allImages[0]?.url}
                                 alt={product.name}
                                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                fetchpriority="high"
+                                loading="eager"
                             />
                             <!-- PRO badge removed -->
                             {
@@ -337,6 +339,7 @@ const seoDescription = product.short_description
                                                     img.alt_text || product.name
                                                 }
                                                 class="w-full h-full object-cover"
+                                                loading="lazy"
                                             />
                                         </button>
                                     ))}

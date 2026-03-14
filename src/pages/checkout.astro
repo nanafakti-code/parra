@@ -7,24 +7,25 @@ import { supabaseAdmin } from "../lib/supabase";
 // Pre-fill email if logged in
 const { user } = Astro.locals;
 
-// Cargar direcciones guardadas si hay sesión
+// Cargar direcciones + configuración de envío en paralelo
 let savedAddresses: any[] = [];
-if (user) {
-    const { data } = await supabaseAdmin
-        .from("addresses")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("is_default", { ascending: false });
-    savedAddresses = data ?? [];
-}
-
-// Cargar configuración de envío desde admin settings
 let shippingConfig = { free_threshold: 50, standard_cost: 4.99, express_cost: 9.99, express_cost_over_threshold: 5.00 };
-try {
-    const { data: ss } = await supabaseAdmin
-        .from("site_settings").select("value").eq("key", "shipping").single();
-    if (ss?.value) shippingConfig = { ...shippingConfig, ...(ss.value as any) };
-} catch {}
+
+const [addressesResult, shippingResult] = await Promise.all([
+    user
+        ? supabaseAdmin
+              .from("addresses")
+              .select("*")
+              .eq("user_id", user.id)
+              .order("is_default", { ascending: false })
+        : Promise.resolve({ data: [] as any[], error: null }),
+    supabaseAdmin.from("site_settings").select("value").eq("key", "shipping").maybeSingle(),
+]);
+
+savedAddresses = addressesResult.data ?? [];
+if (shippingResult.data?.value) {
+    shippingConfig = { ...shippingConfig, ...(shippingResult.data.value as any) };
+}
 
 const stripePubKey =
     import.meta.env.STRIPE_PUBLIC_KEY ||

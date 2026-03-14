@@ -17,64 +17,56 @@ Astro.response.headers.set(
 	"no-store, no-cache, must-revalidate, max-age=0",
 );
 
-// ── Fetch page sections from DB ──
+// ── Fetch page sections + featured products en paralelo ──────────────────
 let homeSections: Record<string, any> = {};
-try {
-	const { data: sectionsData } = await supabase
-		.from("page_sections")
-		.select("*")
-		.eq("page_name", "home")
-		.order("display_order", { ascending: true });
-
-	if (sectionsData) {
-		sectionsData.forEach((s: any) => {
-			homeSections[s.section_key] = s;
-		});
-	}
-} catch (e) {
-	console.error("Error loading page sections:", e);
-}
-
-// Helpers
-function isActive(key: string): boolean {
-	return homeSections[key]?.is_active !== false;
-}
-function getContent(key: string): Record<string, any> {
-	return homeSections[key]?.content || {};
-}
-
-// ── Products: load featured automatically ──
 let products: any[] = [];
 
 try {
-	const { data, error } = await supabase
-		.from("products")
-		.select("*, categories(name, slug)")
-		.eq("is_active", true)
-		.eq("is_featured", true)
-		.order("display_order", { ascending: true })
-		.order("created_at", { ascending: false })
-		.limit(4);
+	const [sectionsResult, productsResult] = await Promise.all([
+		supabase
+			.from("page_sections")
+			.select("*")
+			.eq("page_name", "home")
+			.order("display_order", { ascending: true }),
+		supabase
+			.from("products")
+			.select("*, categories(name, slug)")
+			.eq("is_active", true)
+			.eq("is_featured", true)
+			.order("display_order", { ascending: true })
+			.order("created_at", { ascending: false })
+			.limit(4),
+	]);
 
-	if (error) {
-		console.error("Error cargando productos destacados:", error.message);
+	if (sectionsResult.data) {
+		sectionsResult.data.forEach((s: any) => {
+			homeSections[s.section_key] = s;
+		});
 	}
+	if (sectionsResult.error) console.error("Error loading page sections:", sectionsResult.error.message);
 
-	products = data || [];
+	products = productsResult.data || [];
 
-	// Fallback si no hay destacados: cargar los 4 más recientes
+	// Fallback: si no hay destacados, cargar los 4 más recientes
 	if (products.length === 0) {
-		const { data: recentData, error: recentError } = await supabase
+		const { data: recentData } = await supabase
 			.from("products")
 			.select("*, categories(name, slug)")
 			.eq("is_active", true)
 			.order("created_at", { ascending: false })
 			.limit(4);
-
 		products = recentData || [];
 	}
 } catch (e) {
 	console.error("Error crítico en home SSR:", e);
+}
+
+// Section content helpers
+function isActive(key: string): boolean {
+	return homeSections[key]?.is_active !== false;
+}
+function getContent(key: string): Record<string, any> {
+	return homeSections[key]?.content || {};
 }
 
 // Section content objects

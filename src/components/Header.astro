@@ -4,30 +4,25 @@
  *
  * Componente de cabecera migrado a Supabase Auth.
  * Usa Astro.locals para detectar el estado del usuario de forma atómica.
+ * Los datos de marca se obtienen del caché de módulo (src/lib/brand.ts)
+ * para evitar una segunda consulta a la BD por cada carga de página.
  */
-import { supabaseAdmin } from "../lib/supabase";
+import { getBrandSettings } from "../lib/brand";
 
 // 1. Obtener usuario y rol desde locals (inyectado por el middleware)
 const { user, role } = Astro.locals;
 
 let brandLogoUrl = "/images/brand-mark.svg";
 let brandName = "PARRA";
-try {
-    const { data } = await supabaseAdmin
-        .from("site_settings")
-        .select("value")
-        .eq("key", "brand")
-        .single();
-
-    const candidate = (data?.value as any)?.logo_url;
-    if (typeof candidate === "string" && candidate.trim()) {
-        brandLogoUrl = candidate.trim();
-    }
-    const nameCandidate = (data?.value as any)?.name;
-    if (typeof nameCandidate === "string" && nameCandidate.trim()) {
-        brandName = nameCandidate.trim();
-    }
-} catch {}
+const brandSettings = await getBrandSettings();
+const logoCandidate = brandSettings?.logo_url;
+if (typeof logoCandidate === "string" && logoCandidate.trim()) {
+    brandLogoUrl = logoCandidate.trim();
+}
+const nameCandidate = brandSettings?.name;
+if (typeof nameCandidate === "string" && nameCandidate.trim()) {
+    brandName = nameCandidate.trim();
+}
 ---
 
 <header
