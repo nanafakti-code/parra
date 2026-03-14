@@ -1,0 +1,76 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Política de Privacidad" description="Política de privacidad y protección de datos de Parra GK Gloves." robots="index, follow">
+    <Header />
+    <main style="background-color: var(--bg-primary);">
+
+        <section class="relative pt-32 pb-12 overflow-hidden" style="background-color:#000;">
+            <div class="absolute left-0 top-0 bottom-0 w-[3px]" style="background: var(--brand);"></div>
+            <div class="container relative z-10">
+                <p class="text-xs font-bold uppercase tracking-[0.3em] mb-4" style="color: var(--brand);">Legal</p>
+                <h1 class="font-display text-5xl md:text-6xl font-bold uppercase tracking-tighter" style="color:#fff;">
+                    POLÍTICA DE <span style="color: var(--brand);">PRIVACIDAD</span>
+                </h1>
+                <p class="mt-4 text-sm" style="color: var(--text-muted);">Última actualización: marzo 2025</p>
+            </div>
+        </section>
+
+        <section class="section" style="border-top: 1px solid var(--border-color);">
+            <div class="container max-w-3xl">
+                <div class="prose-parra space-y-12">
+
+                    {[
+                        {
+                            title: "1. Responsable del tratamiento",
+                            content: `El responsable del tratamiento de los datos personales recogidos a través de este sitio web es Parra GK Gloves (en adelante, "PARRA"). Puedes contactar con nosotros en info@parragkgloves.com para cualquier consulta relacionada con el tratamiento de tus datos.`
+                        },
+                        {
+                            title: "2. Datos que recopilamos",
+                            content: `Recopilamos los datos que tú mismo nos proporcionas al realizar un pedido (nombre, dirección, email, teléfono), al crear una cuenta o al contactar con nosotros. También recopilamos datos de navegación de forma anónima a través de cookies técnicas necesarias para el funcionamiento del sitio.`
+                        },
+                        {
+                            title: "3. Finalidad del tratamiento",
+                            content: `Usamos tus datos para: (a) gestionar y procesar tus pedidos; (b) enviarte confirmaciones de compra y actualizaciones de envío; (c) responder a tus consultas; (d) mejorar la experiencia en la tienda. No usamos tus datos para publicidad de terceros ni los vendemos.`
+                        },
+                        {
+                            title: "4. Base legal",
+                            content: `El tratamiento se basa en la ejecución del contrato de compraventa (pedidos), tu consentimiento (newsletter) y nuestro interés legítimo en mejorar el servicio (datos de navegación anónimos).`
+                        },
+                        {
+                            title: "5. Conservación de datos",
+                            content: `Conservamos tus datos personales durante el tiempo necesario para cumplir con la finalidad para la que fueron recogidos y para cumplir con las obligaciones legales aplicables (normativa fiscal, etc.). Los datos de pedidos se conservan un mínimo de 5 años por obligación fiscal.`
+                        },
+                        {
+                            title: "6. Tus derechos",
+                            content: `Tienes derecho a acceder, rectificar, suprimir, limitar el tratamiento, portabilidad y oposición al tratamiento de tus datos personales. Para ejercer cualquiera de estos derechos, escríbenos a info@parragkgloves.com. También tienes derecho a presentar una reclamación ante la Agencia Española de Protección de Datos (aepd.es).`
+                        },
+                        {
+                            title: "7. Cookies",
+                            content: `Usamos cookies estrictamente necesarias para el funcionamiento del carrito y la sesión. No usamos cookies de seguimiento publicitario de terceros. Puedes configurar tu navegador para rechazar las cookies, aunque esto puede afectar a la funcionalidad de la tienda.`
+                        },
+                        {
+                            title: "8. Seguridad",
+                            content: `Aplicamos medidas técnicas y organizativas para proteger tus datos frente a accesos no autorizados, pérdida o alteración. Los pagos se procesan de forma segura a través de Stripe, que cuenta con certificación PCI DSS. No almacenamos datos de tarjetas de crédito en nuestros servidores.`
+                        },
+                        {
+                            title: "9. Modificaciones",
+                            content: `Podemos actualizar esta política de privacidad. Cualquier cambio relevante será comunicado en esta página con la fecha de actualización.`
+                        },
+                    ].map(sec => (
+                        <div class="reveal">
+                            <h2 class="font-display text-xl font-bold uppercase tracking-tight mb-4 text-brand">{sec.title}</h2>
+                            <p class="text-sm leading-relaxed" style="color: var(--text-secondary);">{sec.content}</p>
+                        </div>
+                    ))}
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+    <Footer />
+</Layout>

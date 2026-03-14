@@ -1,0 +1,104 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Envíos y Devoluciones" description="Toda la información sobre plazos de envío, costes y política de devoluciones de Parra GK Gloves." robots="index, follow">
+    <Header />
+    <main style="background-color: var(--bg-primary);">
+
+        <!-- Hero -->
+        <section class="relative pt-32 pb-16 overflow-hidden" style="background-color:#000;">
+            <div class="absolute inset-0" style="background: radial-gradient(ellipse at 60% 50%, rgba(var(--brand-rgb),0.07), transparent 70%);"></div>
+            <div class="absolute left-0 top-0 bottom-0 w-[3px]" style="background: var(--brand);"></div>
+            <div class="container relative z-10">
+                <p class="text-xs font-bold uppercase tracking-[0.3em] mb-4" style="color: var(--brand);">Logística</p>
+                <h1 class="font-display text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-4" style="color:#fff;">
+                    ENVÍOS Y <span style="color: var(--brand);">DEVOLUCIONES</span>
+                </h1>
+                <p class="text-lg max-w-xl leading-relaxed" style="color: rgba(255,255,255,0.6);">
+                    Entregamos rápido y devolver es sencillo. Sin letra pequeña.
+                </p>
+            </div>
+        </section>
+
+        <!-- Envíos -->
+        <section class="section" style="border-top: 1px solid var(--border-color);">
+            <div class="container">
+                <div class="text-center mb-14 reveal">
+                    <p class="text-xs font-bold uppercase tracking-[0.25em] mb-3" style="color: var(--brand);">Tiempos y tarifas</p>
+                    <h2 class="section-title">Opciones de <span class="text-brand">Envío</span></h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    {[
+                        { title: "Envío Estándar", time: "3 – 5 días hábiles", price: "4,99 €", free: "Gratis en pedidos superiores al umbral configurado", highlight: false },
+                        { title: "Envío Express", time: "24 – 48 horas", price: "Según configuración", free: "Disponible siempre, con coste reducido en pedidos grandes", highlight: true },
+                        { title: "Seguimiento", time: "Incluido siempre", price: "—", free: "Recibirás número de tracking por email al confirmar el pedido", highlight: false },
+                    ].map(opt => (
+                        <div class={`p-8 reveal ${opt.highlight ? 'border-brand/40' : ''}`} style={`border: 1px solid ${opt.highlight ? 'rgba(var(--brand-rgb),0.4)' : 'var(--border-color)'}; background-color: ${opt.highlight ? 'rgba(var(--brand-rgb),0.04)' : 'var(--bg-secondary)'};`}>
+                            {opt.highlight && <span class="text-[10px] font-bold uppercase tracking-widest mb-3 block" style="color: var(--brand);">Recomendado</span>}
+                            <h3 class="font-display text-xl font-bold uppercase tracking-tight mb-2">{opt.title}</h3>
+                            <p class="text-2xl font-bold mb-1" style="color: var(--brand);">{opt.price}</p>
+                            <p class="text-sm font-semibold mb-4" style="color: var(--text-secondary);">{opt.time}</p>
+                            <p class="text-xs leading-relaxed" style="color: var(--text-muted);">{opt.free}</p>
+                        </div>
+                    ))}
+                </div>
+
+                <div class="p-6 reveal" style="border: 1px solid var(--border-color); background-color: var(--bg-secondary);">
+                    <h3 class="font-display text-lg font-bold uppercase tracking-tight mb-4">Información adicional</h3>
+                    <ul class="space-y-3 text-sm" style="color: var(--text-secondary);">
+                        <li class="flex items-start gap-3">
+                            <span class="mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background: var(--brand);"></span>
+                            Los pedidos realizados antes de las 13:00 h en días laborables se procesan el mismo día.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background: var(--brand);"></span>
+                            Realizamos envíos a toda España peninsular, Baleares y Canarias. Para envíos internacionales, contáctanos.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background: var(--brand);"></span>
+                            El plazo de entrega puede verse afectado en fechas especiales como Black Friday o Navidad.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Devoluciones -->
+        <section class="section" style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color);">
+            <div class="container">
+                <div class="text-center mb-14 reveal">
+                    <p class="text-xs font-bold uppercase tracking-[0.25em] mb-3" style="color: var(--brand);">Sin complicaciones</p>
+                    <h2 class="section-title">Política de <span class="text-brand">Devoluciones</span></h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10 reveal">
+                    <div class="p-6" style="border: 1px solid var(--border-color); background-color: var(--bg-primary);">
+                        <h3 class="font-display text-lg font-bold uppercase tracking-tight mb-4 text-brand">¿Cuándo puedo devolver?</h3>
+                        <p class="text-sm leading-relaxed mb-3" style="color: var(--text-secondary);">Tienes <strong class="text-white">30 días naturales</strong> desde la fecha de recepción para solicitar una devolución o cambio.</p>
+                        <p class="text-sm leading-relaxed" style="color: var(--text-secondary);">El producto debe estar en su estado original, sin haber sido usado en partido o entrenamiento, con el embalaje original.</p>
+                    </div>
+                    <div class="p-6" style="border: 1px solid var(--border-color); background-color: var(--bg-primary);">
+                        <h3 class="font-display text-lg font-bold uppercase tracking-tight mb-4 text-brand">¿Cómo proceso la devolución?</h3>
+                        <ol class="space-y-3 text-sm" style="color: var(--text-secondary);">
+                            <li class="flex gap-3"><span class="font-display font-bold text-brand flex-shrink-0">1.</span> Escríbenos a info@parragkgloves.com con tu número de pedido.</li>
+                            <li class="flex gap-3"><span class="font-display font-bold text-brand flex-shrink-0">2.</span> Te enviamos las instrucciones y, si aplica, la etiqueta de devolución.</li>
+                            <li class="flex gap-3"><span class="font-display font-bold text-brand flex-shrink-0">3.</span> Envía el producto. Procesamos el reembolso en 3-5 días laborables.</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="p-6 reveal" style="border: 1px solid var(--border-color); background-color: var(--bg-primary);">
+                    <h3 class="font-display text-lg font-bold uppercase tracking-tight mb-4">Productos no admitidos a devolución</h3>
+                    <ul class="space-y-2 text-sm" style="color: var(--text-muted);">
+                        <li class="flex items-start gap-3"><span class="mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background: #ef4444;"></span>Guantes que hayan sido usados en partido o entrenamiento.</li>
+                        <li class="flex items-start gap-3"><span class="mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background: #ef4444;"></span>Productos personalizados o con grabado.</li>
+                        <li class="flex items-start gap-3"><span class="mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background: #ef4444;"></span>Artículos sin embalaje original.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    <Footer />
+</Layout>

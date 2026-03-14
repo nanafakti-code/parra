@@ -1,0 +1,108 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+const tallas = [
+    { talla: "5", palma: "15 – 16 cm", edad: "4 – 6 años", equivalent: "XS Infantil" },
+    { talla: "6", palma: "16 – 17 cm", edad: "6 – 8 años", equivalent: "S Infantil" },
+    { talla: "7", palma: "17 – 18 cm", edad: "8 – 10 años", equivalent: "M Infantil" },
+    { talla: "8", palma: "18 – 19 cm", edad: "10 – 13 años", equivalent: "L Infantil / XS Adulto" },
+    { talla: "9", palma: "19 – 20 cm", edad: "13 – 15 años / Adulto S", equivalent: "S Adulto" },
+    { talla: "10", palma: "20 – 21 cm", edad: "Adulto M", equivalent: "M Adulto" },
+    { talla: "11", palma: "21 – 22 cm", edad: "Adulto L", equivalent: "L Adulto" },
+    { talla: "11+", palma: "22+ cm", edad: "Adulto XL", equivalent: "XL Adulto" },
+];
+---
+
+<Layout title="Guía de Tallas" description="Encuentra tu talla perfecta de guantes de portero con la guía de tallas de Parra GK Gloves." robots="index, follow">
+    <Header />
+    <main style="background-color: var(--bg-primary);">
+
+        <!-- Hero -->
+        <section class="relative pt-32 pb-16 overflow-hidden" style="background-color:#000;">
+            <div class="absolute inset-0" style="background: radial-gradient(ellipse at 50% 50%, rgba(var(--brand-rgb),0.08), transparent 70%);"></div>
+            <div class="absolute left-0 top-0 bottom-0 w-[3px]" style="background: var(--brand);"></div>
+            <div class="container relative z-10">
+                <p class="text-xs font-bold uppercase tracking-[0.3em] mb-4" style="color: var(--brand);">El ajuste perfecto</p>
+                <h1 class="font-display text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-4" style="color:#fff;">
+                    GUÍA DE <span style="color: var(--brand);">TALLAS</span>
+                </h1>
+                <p class="text-lg max-w-xl leading-relaxed" style="color: rgba(255,255,255,0.6);">
+                    Un guante mal ajustado pierde agarre y aumenta el riesgo de lesión. Tómate 30 segundos para medir correctamente.
+                </p>
+            </div>
+        </section>
+
+        <!-- Cómo medir -->
+        <section class="section" style="border-top: 1px solid var(--border-color);">
+            <div class="container">
+                <div class="text-center mb-14 reveal">
+                    <p class="text-xs font-bold uppercase tracking-[0.25em] mb-3" style="color: var(--brand);">Paso a paso</p>
+                    <h2 class="section-title">Cómo <span class="text-brand">medirte</span></h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+                    {[
+                        { paso: "01", title: "Mide tu palma", desc: "Con una cinta métrica, rodea la parte más ancha de tu mano (a la altura de los nudillos, sin contar el pulgar). Anota la medida en centímetros." },
+                        { paso: "02", title: "Consulta la tabla", desc: "Busca tu medida en la tabla de tallas. Si estás entre dos tallas, elige la mayor para mayor comodidad o la menor para un ajuste más apretado de portero." },
+                        { paso: "03", title: "Comprueba el resultado", desc: "Los guantes nuevos pueden parecer justos. Es normal. La espuma se adapta al uso y ofrece el agarre óptimo tras los primeros entrenamientos." },
+                    ].map(p => (
+                        <div class="p-8 reveal" style="border: 1px solid var(--border-color); background-color: var(--bg-secondary);">
+                            <span class="font-display text-5xl font-bold block mb-4" style="color: var(--brand); opacity: 0.25;">{p.paso}</span>
+                            <h3 class="font-display text-lg font-bold uppercase tracking-tight mb-3">{p.title}</h3>
+                            <p class="text-sm leading-relaxed" style="color: var(--text-muted);">{p.desc}</p>
+                        </div>
+                    ))}
+                </div>
+
+                <!-- Tabla -->
+                <div class="reveal">
+                    <p class="text-xs font-bold uppercase tracking-[0.25em] mb-6" style="color: var(--brand);">Tabla de tallas</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--brand); background-color: var(--bg-secondary);">
+                                    <th class="text-left p-4 font-display font-bold uppercase tracking-wider text-xs">Talla</th>
+                                    <th class="text-left p-4 font-display font-bold uppercase tracking-wider text-xs">Perímetro palma</th>
+                                    <th class="text-left p-4 font-display font-bold uppercase tracking-wider text-xs">Edad orientativa</th>
+                                    <th class="text-left p-4 font-display font-bold uppercase tracking-wider text-xs">Equivalencia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {tallas.map((t, i) => (
+                                    <tr style={`border-bottom: 1px solid var(--border-color); background-color: ${i % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'};`}>
+                                        <td class="p-4 font-display font-bold text-brand text-lg">{t.talla}</td>
+                                        <td class="p-4 font-semibold">{t.palma}</td>
+                                        <td class="p-4" style="color: var(--text-secondary);">{t.edad}</td>
+                                        <td class="p-4 text-xs uppercase tracking-wider" style="color: var(--text-muted);">{t.equivalent}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Consejo adicional -->
+        <section class="section" style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color);">
+            <div class="container">
+                <div class="max-w-2xl mx-auto text-center reveal">
+                    <p class="text-xs font-bold uppercase tracking-[0.25em] mb-3" style="color: var(--brand);">Consejo PARRA</p>
+                    <h2 class="section-title mb-6">¿Dudas con la <span class="text-brand">talla</span>?</h2>
+                    <p class="text-base leading-relaxed mb-8" style="color: var(--text-secondary);">
+                        Escríbenos con la medida de tu palma y el modelo que te interesa. Te recomendamos la talla exacta en menos de 24 horas.
+                    </p>
+                    <a href="/contacto" class="btn-glow inline-flex items-center gap-2">
+                        Consultar talla
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    <Footer />
+</Layout>

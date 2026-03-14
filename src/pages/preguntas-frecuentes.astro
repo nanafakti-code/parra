@@ -1,0 +1,102 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+const faqs = [
+    {
+        cat: "Producto",
+        items: [
+            { q: "¿En qué se diferencia la Serie Elite del resto?", a: "La Serie Elite usa espuma alemana de latex natural de máxima adherencia, costura reforzada y un corte profesional pensado para porteros que juegan en competición. El resto de líneas están orientadas al entrenamiento y el uso recreativo, con más durabilidad aunque algo menos de agarre puro." },
+            { q: "¿Cuánto duran los guantes?", a: "Depende del uso. Un guante de entrenamiento de uso diario puede durar entre 3 y 6 meses. Uno de competición, jugando 1-2 partidos por semana, puede superar la temporada completa. Cuidarlos bien (limpiarlos y secarlos correctamente) alarga mucho su vida útil." },
+            { q: "¿Los guantes vienen con protección en los dedos?", a: "Algunos modelos incluyen ballenas de protección en los dedos. Lo indicamos claramente en la ficha de producto. Si buscas un modelo específico con o sin protección, consúltanos." },
+        ]
+    },
+    {
+        cat: "Pedidos y Pago",
+        items: [
+            { q: "¿Qué métodos de pago aceptáis?", a: "Aceptamos todas las tarjetas de crédito y débito (Visa, Mastercard, Amex), Apple Pay, Google Pay y PayPal. El pago está protegido con cifrado SSL y gestionado por Stripe." },
+            { q: "¿Puedo modificar o cancelar mi pedido?", a: "Si el pedido aún no ha sido enviado, podemos modificarlo o cancelarlo. Escríbenos cuanto antes a info@parragkgloves.com con tu número de pedido. Una vez enviado, tendrás que esperar a recibirlo y tramitar una devolución." },
+            { q: "¿Cómo sé que mi pedido se ha confirmado?", a: "Recibirás un email de confirmación con el resumen del pedido y la factura en PDF adjunta en cuanto el pago se procese correctamente." },
+        ]
+    },
+    {
+        cat: "Envíos",
+        items: [
+            { q: "¿Cuándo recibiré mi pedido?", a: "Con envío estándar, entre 3 y 5 días hábiles. Con express, 24–48 horas. Los pedidos realizados antes de las 13:00 h se procesan el mismo día." },
+            { q: "¿Enviáis fuera de España?", a: "De momento operamos principalmente en España. Para envíos internacionales, contáctanos y te informamos de opciones y tarifas." },
+            { q: "¿Cómo puedo seguir mi envío?", a: "Al enviar el paquete recibirás un email con el número de seguimiento y el enlace directo para rastrear tu pedido en tiempo real." },
+        ]
+    },
+    {
+        cat: "Tallas y Ajuste",
+        items: [
+            { q: "No estoy seguro de mi talla, ¿cómo lo saco?", a: "Mide el perímetro de tu mano por la parte más ancha (a la altura de los nudillos, sin el pulgar) y consulta nuestra guía de tallas. Si sigues con dudas, escríbenos con tu medida y te ayudamos." },
+            { q: "El guante me queda justo, ¿está bien así?", a: "Los guantes de portero están diseñados para un ajuste apretado. La espuma se adapta al calor de la mano tras los primeros usos. Si no puedes meter los dedos o interfiere con la circulación, sí habría que cambiar a una talla mayor." },
+        ]
+    },
+];
+---
+
+<Layout title="Preguntas Frecuentes" description="Resuelve tus dudas sobre productos, pedidos, envíos y tallas en las preguntas frecuentes de Parra GK Gloves." robots="index, follow">
+    <Header />
+    <main style="background-color: var(--bg-primary);">
+
+        <!-- Hero -->
+        <section class="relative pt-32 pb-16 overflow-hidden" style="background-color:#000;">
+            <div class="absolute inset-0" style="background: radial-gradient(ellipse at 60% 50%, rgba(var(--brand-rgb),0.07), transparent 70%);"></div>
+            <div class="absolute left-0 top-0 bottom-0 w-[3px]" style="background: var(--brand);"></div>
+            <div class="container relative z-10">
+                <p class="text-xs font-bold uppercase tracking-[0.3em] mb-4" style="color: var(--brand);">Respuestas</p>
+                <h1 class="font-display text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-4" style="color:#fff;">
+                    PREGUNTAS <span style="color: var(--brand);">FRECUENTES</span>
+                </h1>
+                <p class="text-lg max-w-xl leading-relaxed" style="color: rgba(255,255,255,0.6);">
+                    Si no encuentras lo que buscas, escríbenos directamente.
+                </p>
+            </div>
+        </section>
+
+        <!-- FAQs -->
+        <section class="section" style="border-top: 1px solid var(--border-color);">
+            <div class="container max-w-3xl">
+                {faqs.map(cat => (
+                    <div class="mb-14 reveal">
+                        <p class="text-xs font-bold uppercase tracking-[0.3em] mb-6" style="color: var(--brand);">{cat.cat}</p>
+                        <div class="space-y-0" style="border: 1px solid var(--border-color);">
+                            {cat.items.map((item, i) => (
+                                <details class="group" style={i > 0 ? "border-top: 1px solid var(--border-color);" : ""}>
+                                    <summary class="flex items-center justify-between p-6 cursor-pointer gap-4 hover:bg-white/5 transition-colors list-none">
+                                        <span class="font-semibold text-sm pr-4">{item.q}</span>
+                                        <span class="flex-shrink-0 w-5 h-5 flex items-center justify-center" style="color: var(--brand);">
+                                            <svg class="w-4 h-4 transition-transform group-open:rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                            </svg>
+                                        </span>
+                                    </summary>
+                                    <div class="px-6 pb-6 text-sm leading-relaxed" style="color: var(--text-secondary); border-top: 1px solid var(--border-color);">
+                                        <p class="pt-5">{item.a}</p>
+                                    </div>
+                                </details>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+
+                <!-- CTA contacto -->
+                <div class="p-8 text-center reveal" style="border: 1px solid var(--border-color); background-color: var(--bg-secondary);">
+                    <p class="text-xs uppercase tracking-widest mb-3" style="color: var(--brand);">¿Más dudas?</p>
+                    <h3 class="font-display text-xl font-bold uppercase tracking-tight mb-4">Contacta con nosotros</h3>
+                    <p class="text-sm mb-6" style="color: var(--text-muted);">Respondemos en menos de 24 horas en días laborables.</p>
+                    <a href="/contacto" class="btn-outline inline-flex">Ir a Contacto</a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    <Footer />
+</Layout>
+
+<style>
+    details summary::-webkit-details-marker { display: none; }
+</style>

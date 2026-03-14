@@ -1,0 +1,126 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Contacto" description="Contacta con Parra GK Gloves. Estamos aquí para ayudarte con tu pedido, dudas sobre productos o cualquier consulta." robots="index, follow">
+    <Header />
+    <main style="background-color: var(--bg-primary);">
+
+        <!-- Hero -->
+        <section class="relative pt-32 pb-16 overflow-hidden" style="background-color:#000;">
+            <div class="absolute inset-0" style="background: radial-gradient(ellipse at 40% 50%, rgba(var(--brand-rgb),0.07), transparent 70%);"></div>
+            <div class="absolute left-0 top-0 bottom-0 w-[3px]" style="background: var(--brand);"></div>
+            <div class="container relative z-10">
+                <p class="text-xs font-bold uppercase tracking-[0.3em] mb-4" style="color: var(--brand);">Habla con nosotros</p>
+                <h1 class="font-display text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-4" style="color:#fff;">
+                    CON<span style="color: var(--brand);">TACTO</span>
+                </h1>
+                <p class="text-lg max-w-xl leading-relaxed" style="color: rgba(255,255,255,0.6);">
+                    Responderemos a tu mensaje en menos de 24 horas en días laborables.
+                </p>
+            </div>
+        </section>
+
+        <!-- Contenido -->
+        <section class="section" style="border-top: 1px solid var(--border-color);">
+            <div class="container">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+
+                    <!-- Formulario -->
+                    <div class="reveal">
+                        <h2 class="font-display text-2xl font-bold uppercase tracking-tight mb-8">Envíanos un <span class="text-brand">mensaje</span></h2>
+                        <form id="contact-form" class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs uppercase tracking-widest mb-2 block" style="color: var(--text-muted);">Nombre</label>
+                                    <input type="text" name="nombre" required class="input w-full" placeholder="Tu nombre" />
+                                </div>
+                                <div>
+                                    <label class="text-xs uppercase tracking-widest mb-2 block" style="color: var(--text-muted);">Email</label>
+                                    <input type="email" name="email" required class="input w-full" placeholder="tu@email.com" />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs uppercase tracking-widest mb-2 block" style="color: var(--text-muted);">Asunto</label>
+                                <input type="text" name="asunto" required class="input w-full" placeholder="¿En qué podemos ayudarte?" />
+                            </div>
+                            <div>
+                                <label class="text-xs uppercase tracking-widest mb-2 block" style="color: var(--text-muted);">Mensaje</label>
+                                <textarea name="mensaje" required rows="5" class="input w-full resize-none" placeholder="Cuéntanos tu consulta..."></textarea>
+                            </div>
+                            <button type="submit" class="btn-glow w-full h-12 flex items-center justify-center gap-2">
+                                <span id="form-btn-text">Enviar mensaje</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                                </svg>
+                            </button>
+                            <p id="form-feedback" class="text-sm text-center hidden" style="color: var(--brand);"></p>
+                        </form>
+                    </div>
+
+                    <!-- Info -->
+                    <div class="space-y-8 reveal">
+                        <h2 class="font-display text-2xl font-bold uppercase tracking-tight mb-8">Información de <span class="text-brand">contacto</span></h2>
+                        {[
+                            {
+                                icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>`,
+                                label: "Email",
+                                value: "info@parragkgloves.com",
+                            },
+                            {
+                                icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>`,
+                                label: "Horario de atención",
+                                value: "Lunes a Viernes, 9:00 – 18:00 h",
+                            },
+                            {
+                                icon: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>`,
+                                label: "Tiempo de respuesta",
+                                value: "Menos de 24 horas en días laborables",
+                            },
+                        ].map(item => (
+                            <div class="flex items-start gap-4 p-5" style="border: 1px solid var(--border-color); background-color: var(--bg-secondary);">
+                                <div class="w-10 h-10 flex-shrink-0 flex items-center justify-center" style="border: 1px solid var(--border-color);">
+                                    <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24" set:html={item.icon}></svg>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase tracking-widest mb-1" style="color: var(--text-muted);">{item.label}</p>
+                                    <p class="font-semibold text-sm">{item.value}</p>
+                                </div>
+                            </div>
+                        ))}
+
+                        <div class="p-5" style="border: 1px solid var(--border-color); background-color: var(--bg-secondary);">
+                            <p class="text-xs uppercase tracking-widest mb-3" style="color: var(--text-muted);">También nos encuentras en</p>
+                            <div class="flex gap-3">
+                                <a href="https://www.instagram.com/parragkgloves" target="_blank" rel="noopener noreferrer" class="text-sm font-bold uppercase tracking-widest hover:text-brand transition-colors" style="color: var(--text-secondary);">Instagram</a>
+                                <span style="color: var(--border-color);">|</span>
+                                <a href="https://www.tiktok.com/@andleko" target="_blank" rel="noopener noreferrer" class="text-sm font-bold uppercase tracking-widest hover:text-brand transition-colors" style="color: var(--text-secondary);">TikTok</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    <Footer />
+</Layout>
+
+<script>
+    const form = document.getElementById('contact-form') as HTMLFormElement;
+    const feedback = document.getElementById('form-feedback') as HTMLElement;
+    const btnText = document.getElementById('form-btn-text') as HTMLElement;
+
+    form?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        btnText.textContent = 'Enviando...';
+        setTimeout(() => {
+            btnText.textContent = 'Enviar mensaje';
+            feedback.textContent = 'Mensaje enviado. Te responderemos en menos de 24 h.';
+            feedback.classList.remove('hidden');
+            form.reset();
+        }, 800);
+    });
+</script>

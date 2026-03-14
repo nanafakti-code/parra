@@ -1,0 +1,86 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Sobre Nosotros" description="Conoce la historia de Parra GK Gloves, la marca española de guantes de portero con tecnología alemana." robots="index, follow">
+    <Header />
+    <main style="background-color: var(--bg-primary);">
+
+        <!-- Hero -->
+        <section class="relative min-h-[55vh] flex items-center overflow-hidden" style="background-color:#000;">
+            <div class="absolute inset-0" style="background: radial-gradient(ellipse at 60% 50%, rgba(var(--brand-rgb),0.07), transparent 70%);"></div>
+            <div class="absolute left-0 top-0 bottom-0 w-[3px]" style="background: var(--brand);"></div>
+            <div class="container relative z-10 py-24">
+                <p class="text-xs font-bold uppercase tracking-[0.3em] mb-4" style="color: var(--brand);">Nuestra Historia</p>
+                <h1 class="font-display text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-6" style="color:#fff;">
+                    NACIDOS PARA <span style="color: var(--brand);">PARAR</span>
+                </h1>
+                <p class="text-lg max-w-2xl leading-relaxed" style="color: rgba(255,255,255,0.65);">
+                    Parra GK Gloves nació de la obsesión por el detalle y el respeto por el portero. Cada par de guantes que fabricamos lleva el mismo compromiso: agarre extremo, durabilidad real y tecnología que no falla cuando más importa.
+                </p>
+            </div>
+        </section>
+
+        <!-- Historia -->
+        <section class="section" style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color);">
+            <div class="container">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                    <div class="reveal">
+                        <p class="text-xs font-bold uppercase tracking-[0.25em] mb-3" style="color: var(--brand);">El Origen</p>
+                        <h2 class="section-title mb-6">De la <span class="text-brand">pasión</span> al producto</h2>
+                        <div class="space-y-4 text-base leading-relaxed" style="color: var(--text-secondary);">
+                            <p>Todo empezó bajo los palos. Andrés Parra llevaba años probando guantes de portero y siempre encontraba el mismo problema: o el agarre fallaba, o el material no aguantaba. Decidió que si quería el guante perfecto, tendría que crearlo él mismo.</p>
+                            <p>Tras meses de investigación y colaboración con fabricantes especializados, nació la primera colección de Parra GK Gloves. Un guante sin concesiones, diseñado por un portero para porteros.</p>
+                        </div>
+                    </div>
+                    <div class="reveal">
+                        <div class="p-8 h-64 flex items-center justify-center" style="border: 1px solid var(--border-color); background-color: var(--bg-primary);">
+                            <span class="font-display text-7xl font-bold uppercase tracking-tighter" style="color: var(--brand); opacity: 0.15;">PARRA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Valores -->
+        <section class="section" style="background-color: var(--bg-primary); border-top: 1px solid var(--border-color);">
+            <div class="container">
+                <div class="text-center mb-14 reveal">
+                    <p class="text-xs font-bold uppercase tracking-[0.25em] mb-3" style="color: var(--brand);">Lo que nos mueve</p>
+                    <h2 class="section-title">Nuestros <span class="text-brand">Valores</span></h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[
+                        { num: "01", title: "Rendimiento", desc: "Cada material está seleccionado para ofrecer el máximo agarre en cualquier condición. Sin compromisos." },
+                        { num: "02", title: "Durabilidad", desc: "Un buen guante tiene que sobrevivir a los entrenamientos más duros. Construimos para que duren." },
+                        { num: "03", title: "Honestidad", desc: "Precio justo, calidad real. No inflamos nombres ni márgenes. Lo que ves es lo que recibes." },
+                    ].map(v => (
+                        <div class="p-8 reveal" style="border: 1px solid var(--border-color); background-color: var(--bg-secondary);">
+                            <span class="font-display text-4xl font-bold" style="color: var(--brand); opacity: 0.3;">{v.num}</span>
+                            <h3 class="font-display text-xl font-bold uppercase tracking-tight mt-4 mb-3">{v.title}</h3>
+                            <p class="text-sm leading-relaxed" style="color: var(--text-muted);">{v.desc}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="section" style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color);">
+            <div class="container text-center reveal">
+                <p class="text-xs font-bold uppercase tracking-[0.25em] mb-4" style="color: var(--brand);">Únete</p>
+                <h2 class="section-title mb-6">Encuentra tus <span class="text-brand">guantes</span></h2>
+                <a href="/shop" class="btn-glow inline-flex items-center gap-2">
+                    Ver colección
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
+                </a>
+            </div>
+        </section>
+
+    </main>
+    <Footer />
+</Layout>

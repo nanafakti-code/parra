@@ -1,0 +1,84 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Términos y Condiciones" description="Términos y condiciones de uso y compra de Parra GK Gloves." robots="index, follow">
+    <Header />
+    <main style="background-color: var(--bg-primary);">
+
+        <section class="relative pt-32 pb-12 overflow-hidden" style="background-color:#000;">
+            <div class="absolute left-0 top-0 bottom-0 w-[3px]" style="background: var(--brand);"></div>
+            <div class="container relative z-10">
+                <p class="text-xs font-bold uppercase tracking-[0.3em] mb-4" style="color: var(--brand);">Legal</p>
+                <h1 class="font-display text-5xl md:text-6xl font-bold uppercase tracking-tighter" style="color:#fff;">
+                    TÉRMINOS Y <span style="color: var(--brand);">CONDICIONES</span>
+                </h1>
+                <p class="mt-4 text-sm" style="color: var(--text-muted);">Última actualización: marzo 2025</p>
+            </div>
+        </section>
+
+        <section class="section" style="border-top: 1px solid var(--border-color);">
+            <div class="container max-w-3xl">
+                <div class="space-y-12">
+
+                    {[
+                        {
+                            title: "1. Identificación",
+                            content: `Estos términos y condiciones regulan el uso del sitio web y la tienda online de Parra GK Gloves ("PARRA"). Al realizar una compra o utilizar este sitio, aceptas los presentes términos en su totalidad.`
+                        },
+                        {
+                            title: "2. Proceso de compra",
+                            content: `Para realizar un pedido debes seleccionar los productos, añadirlos al carrito y completar el proceso de pago. Recibirás un email de confirmación una vez que el pedido haya sido procesado correctamente. La recepción de dicho email constituye la aceptación del contrato de compraventa.`
+                        },
+                        {
+                            title: "3. Precios y pagos",
+                            content: `Todos los precios mostrados incluyen el IVA aplicable. Los gastos de envío se muestran y calculan antes de confirmar el pago. Nos reservamos el derecho de modificar precios en cualquier momento, aunque siempre respetaremos el precio mostrado en el momento de la compra. El pago se realiza de forma segura a través de Stripe.`
+                        },
+                        {
+                            title: "4. Disponibilidad de productos",
+                            content: `Todos los productos están sujetos a disponibilidad de stock. En el caso excepcional de que un producto se agote tras la confirmación del pedido, te lo comunicaremos de inmediato y procederemos al reembolso completo.`
+                        },
+                        {
+                            title: "5. Envíos",
+                            content: `Los plazos de entrega son orientativos y pueden verse afectados por causas externas (incidencias de transporte, festivos, etc.). PARRA no asume responsabilidad por retrasos debidos al transportista una vez que el paquete haya sido entregado a la empresa de mensajería. Consulta nuestra página de Envíos para más información.`
+                        },
+                        {
+                            title: "6. Derecho de desistimiento",
+                            content: `Tienes derecho a desistir del contrato en un plazo de 14 días naturales desde la recepción del pedido, sin necesidad de justificación, de acuerdo con la normativa europea vigente. Para ejercer este derecho, contáctanos en info@parragkgloves.com. El producto debe devolverse en su estado original.`
+                        },
+                        {
+                            title: "7. Garantías",
+                            content: `Todos nuestros productos disponen de la garantía legal de conformidad de 2 años. Si recibes un producto defectuoso o diferente al pedido, contáctanos en un plazo de 48 horas desde la recepción con fotos del defecto y te gestionamos la reposición o reembolso sin coste adicional.`
+                        },
+                        {
+                            title: "8. Propiedad intelectual",
+                            content: `Todos los contenidos de este sitio web (textos, imágenes, diseños, logos, marca) son propiedad de PARRA o de sus respectivos titulares. Queda prohibida su reproducción, distribución o uso comercial sin autorización expresa por escrito.`
+                        },
+                        {
+                            title: "9. Limitación de responsabilidad",
+                            content: `PARRA no se hace responsable de los daños indirectos derivados del uso de los productos más allá de los límites establecidos por la normativa de protección al consumidor vigente. El uso de los guantes en competición es responsabilidad del usuario.`
+                        },
+                        {
+                            title: "10. Ley aplicable y jurisdicción",
+                            content: `Estos términos se rigen por la legislación española. Para cualquier disputa, las partes se someten a los tribunales competentes del domicilio del consumidor, de acuerdo con la normativa de defensa del consumidor.`
+                        },
+                        {
+                            title: "11. Contacto",
+                            content: `Para cualquier consulta relacionada con estos términos, puedes contactarnos en info@parragkgloves.com.`
+                        },
+                    ].map(sec => (
+                        <div class="reveal">
+                            <h2 class="font-display text-xl font-bold uppercase tracking-tight mb-4 text-brand">{sec.title}</h2>
+                            <p class="text-sm leading-relaxed" style="color: var(--text-secondary);">{sec.content}</p>
+                        </div>
+                    ))}
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+    <Footer />
+</Layout>
