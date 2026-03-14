@@ -38,14 +38,9 @@ export const PATCH: APIRoute = async (context) => {
     }
 
     // Validate admin
-    const admin = await validateAdminAPI(context);
-    if (!admin) {
-      return errorResponse({
-        code: 'UNAUTHORIZED',
-        message: 'You must be logged in as admin',
-        status: 403,
-      });
-    }
+    const adminResult = await validateAdminAPI(context.request, context.cookies);
+    if (adminResult instanceof Response) return adminResult;
+    const admin = adminResult.admin;
 
     const body = await context.request.json();
     const { adminNotes } = body;
