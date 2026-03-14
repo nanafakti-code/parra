@@ -100,8 +100,8 @@ export const PATCH: APIRoute = async (context) => {
       });
     }
 
-    // Retrieve payment_intent ID from Stripe session
-    if (!order.stripe_session_id) {
+    // Need at least one Stripe identifier
+    if (!order.stripe_payment_intent_id && !order.stripe_session_id) {
       return errorResponse({
         code: 'NO_PAYMENT_DATA',
         message: 'Unable to process refund: No payment information found',
@@ -109,16 +109,20 @@ export const PATCH: APIRoute = async (context) => {
       });
     }
 
-    let paymentIntentId: string | null = null;
-    try {
-      const session = await stripe.checkout.sessions.retrieve(order.stripe_session_id);
-      if (session.payment_intent) {
-        paymentIntentId = typeof session.payment_intent === 'string'
-          ? session.payment_intent
-          : session.payment_intent.id;
+    // Resolve payment intent ID — try direct field first, then via session
+    let paymentIntentId: string | null = order.stripe_payment_intent_id || null;
+
+    if (!paymentIntentId && order.stripe_session_id) {
+      try {
+        const session = await stripe.checkout.sessions.retrieve(order.stripe_session_id);
+        if (session.payment_intent) {
+          paymentIntentId = typeof session.payment_intent === 'string'
+            ? session.payment_intent
+            : session.payment_intent.id;
+        }
+      } catch (err: any) {
+        console.error('[approve-return] Error retrieving session:', err.message);
       }
-    } catch (err: any) {
-      console.error('[approve-return] Error retrieving session:', err.message);
     }
 
     if (!paymentIntentId) {
