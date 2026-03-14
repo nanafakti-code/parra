@@ -37,7 +37,6 @@ const returnedOrderIds = (returns || []).map(r => r.order_id);
 const { data: ordersRaw, count } = await query;
 const orders = (ordersRaw || []).filter(o => !returnedOrderIds.includes(o.id));
 const totalPages = Math.ceil((count || 0) / limit);
-const totalPages = Math.ceil((count || 0) / limit);
 
 // Status counts for filter chips
 const { data: allStatusOrders } = await supabaseAdmin
