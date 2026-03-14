@@ -177,13 +177,16 @@ function statusBadge(s: string) {
                                     <button
                                         class="btn btn-secondary btn-sm btn-return-manage"
                                         data-id={ret.id}
+                                        data-id-short={ret.id?.slice(0, 8)}
                                         data-status={ret.status}
                                         data-reason={ret.reason || ""}
                                         data-notes={ret.admin_notes || ""}
                                         data-amount={ret.refund_amount || ""}
-                                        data-order-total={ret.orders?.total || "0"}
                                         data-order-subtotal={ret.orders?.subtotal || "0"}
                                         data-order-discount={ret.orders?.discount || "0"}
+                                        data-order-id-short={ret.orders?.id?.slice(0, 8) || ""}
+                                        data-customer-name={ret.users?.name || ""}
+                                        data-customer-email={ret.users?.email || ""}
                                     >
                                         Gestionar
                                     </button>
@@ -198,61 +201,88 @@ function statusBadge(s: string) {
 
     <!-- Return Management Modal -->
     <div id="return-modal" class="modal-overlay" style="display:none;">
-        <div class="modal" style="max-width:500px;">
+        <div class="modal" style="max-width:480px;">
+
+            <!-- Header -->
             <div class="modal-header">
-                <div class="modal-title">Gestionar Devolución</div>
-                <button
-                    class="modal-close"
-                    onclick="document.getElementById('return-modal').style.display='none'"
-                >
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        ><line x1="18" y1="6" x2="6" y2="18"></line><line
-                            x1="6"
-                            y1="6"
-                            x2="18"
-                            y2="18"></line></svg
-                    >
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                    <div style="width:32px;height:32px;border-radius:8px;background:rgba(255,164,0,0.1);border:1px solid rgba(255,164,0,0.2);display:flex;align-items:center;justify-content:center;color:#FFA400;flex-shrink:0;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <path d="M3.51 15a9 9 0 1 0 .49-3.51"></path>
+                        </svg>
+                    </div>
+                    <div class="modal-title">Gestionar Devolución</div>
+                </div>
+                <button class="modal-close" onclick="document.getElementById('return-modal').style.display='none'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
                 </button>
             </div>
-            <div
-                id="return-reason"
-                style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-bottom:1rem;padding:0.6rem;background:rgba(255,255,255,0.02);border-radius:6px;border:1px solid rgba(255,255,255,0.04);"
-            >
+
+            <!-- Metadata grid -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:1rem;padding:0.75rem;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.05);">
+                <div>
+                    <div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.2rem;">ID Devolución</div>
+                    <div id="modal-return-id-display" style="font-family:monospace;font-size:0.75rem;color:rgba(255,255,255,0.7);">—</div>
+                </div>
+                <div>
+                    <div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.2rem;">Estado</div>
+                    <div id="modal-return-status-display" style="font-size:0.75rem;">—</div>
+                </div>
+                <div>
+                    <div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.25rem;">Cliente</div>
+                    <div id="modal-customer-name" style="font-size:0.8rem;font-weight:500;">—</div>
+                    <div id="modal-customer-email" style="font-size:0.65rem;color:rgba(255,255,255,0.3);">—</div>
+                </div>
+                <div>
+                    <div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.2rem;">Pedido</div>
+                    <div id="modal-order-id-display" style="font-family:monospace;font-size:0.75rem;color:#60a5fa;">—</div>
+                </div>
             </div>
-            <div id="return-amount-display" style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:1rem;padding:0.8rem;background:rgba(57,255,20,0.08);border-radius:6px;border-left:3px solid #39FF14;">
-                <strong>Monto a reembolsar (solo producto):</strong>
-                <div id="return-amount-text" style="font-size:1.1rem;font-weight:700;color:#39FF14;margin-top:0.3rem;">€0.00</div>
+
+            <!-- Reason -->
+            <div style="margin-bottom:1rem;">
+                <div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.35rem;">Motivo del cliente</div>
+                <div id="return-reason" style="font-size:0.8rem;color:rgba(255,255,255,0.6);padding:0.65rem 0.75rem;background:rgba(255,255,255,0.02);border-radius:6px;border:1px solid rgba(255,255,255,0.05);line-height:1.5;">—</div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Notas Admin (Motivo del rechazo si aplica)</label>
-                <textarea
-                    class="form-textarea"
-                    id="return-notes"
-                    placeholder="Notas internas..."></textarea>
+
+            <!-- Refund amount -->
+            <div id="return-amount-display" style="display:none;margin-bottom:1rem;">
+                <div id="return-amount-label" style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.35rem;">Monto a reembolsar (solo producto)</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:0.85rem 1rem;background:rgba(57,255,20,0.05);border-radius:8px;border:1px solid rgba(57,255,20,0.15);">
+                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.35);">Subtotal sin envío</div>
+                    <div id="return-amount-text" style="font-size:1.3rem;font-weight:700;font-family:'Oswald',sans-serif;color:#39FF14;letter-spacing:0.02em;">€0.00</div>
+                </div>
             </div>
-            <div class="modal-actions">
-                <button
-                    type="button"
-                    class="btn btn-secondary"
-                    onclick="document.getElementById('return-modal').style.display='none'"
-                    >Cancelar</button
-                >
+
+            <!-- Admin notes -->
+            <div id="return-notes-section" class="form-group">
+                <label class="form-label">Notas admin</label>
+                <textarea class="form-textarea" id="return-notes" rows="2" placeholder="Notas internas o motivo del rechazo..."></textarea>
+            </div>
+
+            <!-- Actions -->
+            <div class="modal-actions" style="padding-top:0.25rem;border-top:1px solid rgba(255,255,255,0.05);margin-top:1rem;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('return-modal').style.display='none'">Cancelar</button>
                 <button type="button" class="btn" id="return-reject-btn"
-                    style="background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.3);color:#ef4444;"
-                    >Rechazar</button
-                >
-                <button type="button" class="btn btn-primary" id="return-approve-btn"
-                    >Aprobar & Reembolsar</button
-                >
+                    style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:#f87171;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.3rem;">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Rechazar
+                </button>
+                <button type="button" class="btn btn-primary" id="return-approve-btn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:0.3rem;">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Aprobar &amp; Reembolsar
+                </button>
             </div>
+
             <input type="hidden" id="return-id" />
             <input type="hidden" id="return-order-id" />
         </div>
@@ -260,112 +290,159 @@ function statusBadge(s: string) {
 
     <script is:inline>
         (function () {
-            document
-                .querySelectorAll(".btn-return-manage")
-                .forEach(function (btn) {
-                    btn.addEventListener("click", function () {
-                        const returnId = this.getAttribute("data-id");
-                        const orderSubtotal = this.getAttribute("data-order-subtotal");
-                        const orderDiscount = this.getAttribute("data-order-discount");
-                        const status = this.getAttribute("data-status");
+            var statusConfig = {
+                pending:  { label: "Pendiente",    color: "#fbbf24", bg: "rgba(251,191,36,0.1)",  border: "rgba(251,191,36,0.2)"  },
+                approved: { label: "Aprobada",     color: "#4ade80", bg: "rgba(74,222,128,0.1)",  border: "rgba(74,222,128,0.2)"  },
+                rejected: { label: "Rechazada",    color: "#f87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.2)" },
+                refunded: { label: "Reembolsada",  color: "#60a5fa", bg: "rgba(96,165,250,0.1)",  border: "rgba(96,165,250,0.2)"  },
+            };
 
-                        document.getElementById("return-id").value = returnId;
-                        document.getElementById("return-notes").value = this.getAttribute("data-notes") || "";
-                        document.getElementById("return-reason").textContent = "Motivo: " + (this.getAttribute("data-reason") || "Sin especificar");
+            document.querySelectorAll(".btn-return-manage").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    var returnId      = this.getAttribute("data-id");
+                    var idShort       = this.getAttribute("data-id-short");
+                    var status        = this.getAttribute("data-status");
+                    var reason        = this.getAttribute("data-reason") || "Sin especificar";
+                    var notes         = this.getAttribute("data-notes") || "";
+                    var amount        = this.getAttribute("data-amount");
+                    var subtotal      = this.getAttribute("data-order-subtotal");
+                    var discount      = this.getAttribute("data-order-discount");
+                    var orderIdShort  = this.getAttribute("data-order-id-short");
+                    var customerName  = this.getAttribute("data-customer-name");
+                    var customerEmail = this.getAttribute("data-customer-email");
 
-                        // Mostrar el monto de reembolso (solo para pending)
-                        if (status === "pending") {
-                            const refundAmount = parseFloat(orderSubtotal || "0") - parseFloat(orderDiscount || "0");
-                            document.getElementById("return-amount-text").textContent = "€" + refundAmount.toFixed(2);
-                            document.getElementById("return-amount-display").style.display = "block";
-                            document.getElementById("return-approve-btn").style.display = "inline-block";
-                            document.getElementById("return-reject-btn").style.display = "inline-block";
-                        } else {
-                            document.getElementById("return-amount-display").style.display = "none";
-                            document.getElementById("return-approve-btn").style.display = "none";
-                            document.getElementById("return-reject-btn").style.display = "none";
-                        }
+                    // Hidden fields
+                    document.getElementById("return-id").value = returnId;
 
-                        document.getElementById("return-modal").style.display = "flex";
-                    });
+                    // Metadata grid
+                    document.getElementById("modal-return-id-display").textContent = "#" + idShort;
+                    document.getElementById("modal-order-id-display").textContent  = "#" + orderIdShort;
+                    document.getElementById("modal-customer-name").textContent     = customerName || "—";
+                    document.getElementById("modal-customer-email").textContent    = customerEmail || "—";
+
+                    var sc = statusConfig[status] || { label: status, color: "rgba(255,255,255,0.6)", bg: "rgba(255,255,255,0.05)", border: "rgba(255,255,255,0.1)" };
+                    var statusEl = document.getElementById("modal-return-status-display");
+                    statusEl.textContent = sc.label;
+                    statusEl.style.cssText = "display:inline-block;font-size:0.7rem;font-weight:600;padding:0.2rem 0.5rem;border-radius:4px;background:" + sc.bg + ";color:" + sc.color + ";border:1px solid " + sc.border + ";";
+
+                    // Reason
+                    document.getElementById("return-reason").textContent = reason;
+
+                    // Notes
+                    document.getElementById("return-notes").value = notes;
+
+                    // Refund amount & buttons
+                    var approveBtn = document.getElementById("return-approve-btn");
+                    var rejectBtn  = document.getElementById("return-reject-btn");
+                    var amountBox  = document.getElementById("return-amount-display");
+                    var amountLabel = document.getElementById("return-amount-label");
+                    var amountText = document.getElementById("return-amount-text");
+
+                    if (status === "pending") {
+                        var refundAmount = parseFloat(subtotal || "0") - parseFloat(discount || "0");
+                        amountLabel.textContent = "Monto a reembolsar (solo producto)";
+                        amountText.textContent  = "€" + refundAmount.toFixed(2);
+                        amountBox.style.display = "block";
+                        approveBtn.style.display = "inline-flex";
+                        rejectBtn.style.display  = "inline-flex";
+                    } else if (status === "refunded" && amount) {
+                        amountLabel.textContent = "Monto reembolsado";
+                        amountText.textContent  = "€" + parseFloat(amount).toFixed(2);
+                        amountBox.style.display = "block";
+                        approveBtn.style.display = "none";
+                        rejectBtn.style.display  = "none";
+                    } else {
+                        amountBox.style.display  = "none";
+                        approveBtn.style.display = "none";
+                        rejectBtn.style.display  = "none";
+                    }
+
+                    document.getElementById("return-modal").style.display = "flex";
                 });
+            });
 
             // Botón Aprobar
             document.getElementById("return-approve-btn").addEventListener("click", async function () {
-                const returnId = document.getElementById("return-id").value;
-                const notes = document.getElementById("return-notes").value;
+                var returnId = document.getElementById("return-id").value;
+                var notes    = document.getElementById("return-notes").value;
 
-                if (!confirm("¿Confirmas que deseas aprobar esta devolución y procesar el reembolso?")) {
-                    return;
+                if (typeof window.adminConfirm === "function") {
+                    window.adminConfirm("¿Aprobar esta devolución y procesar el reembolso?", async () => { await doApprove(returnId, notes, this); });
+                } else {
+                    if (!confirm("¿Confirmas que deseas aprobar esta devolución y procesar el reembolso?")) return;
+                    await doApprove(returnId, notes, this);
                 }
+            });
 
-                this.disabled = true;
-                const originalText = this.textContent;
-                this.textContent = "Procesando...";
-
+            async function doApprove(returnId, notes, btn) {
+                btn.disabled = true;
+                var orig = btn.innerHTML;
+                btn.innerHTML = "Procesando...";
                 try {
-                    const res = await fetch(`/api/admin/returns/${returnId}/approve`, {
+                    var res = await fetch("/api/admin/returns/" + returnId + "/approve", {
                         method: "PATCH",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ adminNotes: notes || undefined }),
                     });
-
                     if (res.ok) {
                         window.adminToast("✓ Devolución aprobada. Reembolso procesado.", "success");
                         document.getElementById("return-modal").style.display = "none";
                         setTimeout(() => window.location.reload(), 1000);
                     } else {
-                        const data = await res.json();
+                        var data = await res.json();
                         window.adminToast(data.message || "Error al aprobar", "error");
                     }
                 } catch (err) {
                     window.adminToast("Error de conexión", "error");
                 } finally {
-                    this.disabled = false;
-                    this.textContent = originalText;
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
                 }
-            });
+            }
 
             // Botón Rechazar
             document.getElementById("return-reject-btn").addEventListener("click", async function () {
-                const returnId = document.getElementById("return-id").value;
-                const notes = document.getElementById("return-notes").value;
+                var returnId = document.getElementById("return-id").value;
+                var notes    = document.getElementById("return-notes").value;
 
                 if (!notes.trim()) {
                     window.adminToast("Por favor indica la razón del rechazo en las notas", "error");
                     return;
                 }
 
-                if (!confirm("¿Confirmas que deseas rechazar esta devolución?")) {
-                    return;
+                if (typeof window.adminConfirm === "function") {
+                    window.adminConfirm("¿Rechazar esta devolución?", async () => { await doReject(returnId, notes, this); });
+                } else {
+                    if (!confirm("¿Confirmas que deseas rechazar esta devolución?")) return;
+                    await doReject(returnId, notes, this);
                 }
+            });
 
-                this.disabled = true;
-                const originalText = this.textContent;
-                this.textContent = "Procesando...";
-
+            async function doReject(returnId, notes, btn) {
+                btn.disabled = true;
+                var orig = btn.innerHTML;
+                btn.innerHTML = "Procesando...";
                 try {
-                    const res = await fetch(`/api/admin/returns/${returnId}/reject`, {
+                    var res = await fetch("/api/admin/returns/" + returnId + "/reject", {
                         method: "PATCH",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ adminNotes: notes }),
                     });
-
                     if (res.ok) {
                         window.adminToast("✓ Devolución rechazada. Se notificó al cliente.", "success");
                         document.getElementById("return-modal").style.display = "none";
                         setTimeout(() => window.location.reload(), 1000);
                     } else {
-                        const data = await res.json();
+                        var data = await res.json();
                         window.adminToast(data.message || "Error al rechazar", "error");
                     }
                 } catch (err) {
                     window.adminToast("Error de conexión", "error");
                 } finally {
-                    this.disabled = false;
-                    this.textContent = originalText;
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
                 }
-            });
+            }
         })();
     </script>
 </AdminLayout>
