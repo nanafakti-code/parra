@@ -12,7 +12,7 @@ const statusFilter = url.searchParams.get("status") || "all";
 
 let query = supabaseAdmin
     .from("returns")
-    .select("*, orders(id, total), users(name, email)")
+    .select("*, orders(id, total, subtotal, discount), users(name, email)")
     .order("created_at", { ascending: false });
 
 if (statusFilter !== "all") {
@@ -151,7 +151,9 @@ function statusBadge(s: string) {
                                 >
                                     {ret.refund_amount
                                         ? `€${parseFloat(ret.refund_amount).toFixed(2)}`
-                                        : "—"}
+                                        : ret.orders?.subtotal != null
+                                            ? `€${(parseFloat(ret.orders.subtotal) - parseFloat(ret.orders?.discount || 0)).toFixed(2)}`
+                                            : "—"}
                                 </td>
                                 <td data-label="Estado">
                                     <span
@@ -179,9 +181,9 @@ function statusBadge(s: string) {
                                         data-reason={ret.reason || ""}
                                         data-notes={ret.admin_notes || ""}
                                         data-amount={ret.refund_amount || ""}
-                                        data-order-total={
-                                            ret.orders?.total || "0"
-                                        }
+                                        data-order-total={ret.orders?.total || "0"}
+                                        data-order-subtotal={ret.orders?.subtotal || "0"}
+                                        data-order-discount={ret.orders?.discount || "0"}
                                     >
                                         Gestionar
                                     </button>
@@ -263,7 +265,8 @@ function statusBadge(s: string) {
                 .forEach(function (btn) {
                     btn.addEventListener("click", function () {
                         const returnId = this.getAttribute("data-id");
-                        const orderTotal = this.getAttribute("data-order-total");
+                        const orderSubtotal = this.getAttribute("data-order-subtotal");
+                        const orderDiscount = this.getAttribute("data-order-discount");
                         const status = this.getAttribute("data-status");
 
                         document.getElementById("return-id").value = returnId;
@@ -272,7 +275,8 @@ function statusBadge(s: string) {
 
                         // Mostrar el monto de reembolso (solo para pending)
                         if (status === "pending") {
-                            document.getElementById("return-amount-text").textContent = "€" + parseFloat(orderTotal || "0").toFixed(2);
+                            const refundAmount = parseFloat(orderSubtotal || "0") - parseFloat(orderDiscount || "0");
+                            document.getElementById("return-amount-text").textContent = "€" + refundAmount.toFixed(2);
                             document.getElementById("return-amount-display").style.display = "block";
                             document.getElementById("return-approve-btn").style.display = "inline-block";
                             document.getElementById("return-reject-btn").style.display = "inline-block";
