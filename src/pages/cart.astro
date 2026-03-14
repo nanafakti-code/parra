@@ -214,6 +214,10 @@ try {
     <Footer />
 </Layout>
 
+<script define:vars={{ shippingConfig }}>
+    window.__shippingConfig = shippingConfig;
+</script>
+
 <script>
     import { getCart, removeItem, updateQty, cartTotal } from "../lib/cart";
     import type { CartItem } from "../lib/cart";
@@ -238,7 +242,10 @@ try {
         const empty       = document.getElementById("empty-cart");
         const subtotalEl  = document.getElementById("subtotal");
         const totalEl     = document.getElementById("total");
+        const shippingEl  = document.getElementById("cart-shipping");
         const cartContainer = document.getElementById("cart-container");
+
+        const cfg = (window as any).__shippingConfig ?? { free_threshold: 50 };
 
         function render() {
             const items = getCart();
@@ -255,7 +262,21 @@ try {
 
             const total = cartTotal();
             subtotalEl.textContent = fmt(total);
-            totalEl.textContent    = fmt(total);
+
+            // Update shipping display based on free threshold
+            if (shippingEl) {
+                if (total >= cfg.free_threshold) {
+                    shippingEl.textContent = 'Gratis';
+                    shippingEl.className = 'font-semibold text-brand';
+                    shippingEl.removeAttribute('style');
+                } else {
+                    shippingEl.textContent = 'Pendiente';
+                    shippingEl.className = 'font-semibold';
+                    shippingEl.style.color = 'var(--text-muted)';
+                }
+            }
+
+            totalEl.textContent = fmt(total);
 
             list.innerHTML = items.map(item => {
                 const key  = ikey(item);

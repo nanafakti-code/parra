@@ -24,6 +24,7 @@ const shipping = settings.shipping || {
     free_threshold: 50,
     standard_cost: 4.99,
     express_cost: 9.99,
+    express_cost_over_threshold: 5.00,
 };
 const taxes = settings.taxes || { iva_rate: 21, included_in_price: true };
 const returns_policy = settings.returns_policy || {
@@ -171,7 +172,7 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
             >
                 <i data-feather="truck" class="w-5 h-5 text-[var(--brand)]"></i> Envío
             </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="form-group">
                     <label class="form-label">Envío gratis desde (€)</label>
                     <input
@@ -201,6 +202,17 @@ const maintenance = settings.maintenance || { enabled: false, message: "" };
                         value={shipping.express_cost}
                         class="form-input"
                     />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Express al superar envío gratis (€)</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="express_cost_over_threshold"
+                        value={shipping.express_cost_over_threshold ?? 5.00}
+                        class="form-input"
+                    />
+                    <p class="text-xs text-gray-400 mt-1">Coste express cuando el pedido supera el umbral de envío gratis.</p>
                 </div>
             </div>
         </form>

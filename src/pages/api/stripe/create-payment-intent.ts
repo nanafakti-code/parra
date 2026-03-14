@@ -92,7 +92,12 @@ export const POST: APIRoute = async ({ request }) => {
             const cfg = (ss?.value as any) || {};
             const freeThreshold = Number(cfg.free_threshold ?? 50);
             const subtotalEuros = subtotalCents / 100;
-            if (subtotalEuros < freeThreshold) {
+            if (subtotalEuros >= freeThreshold) {
+                // Standard is free; express has a configurable cost
+                if (method === 'express') {
+                    shippingCostCents = Math.round(Number(cfg.express_cost_over_threshold ?? 5.00) * 100);
+                }
+            } else {
                 const cost = method === 'express'
                     ? Number(cfg.express_cost ?? 9.99)
                     : Number(cfg.standard_cost ?? 4.99);
