@@ -593,6 +593,257 @@ export async function sendContactForm(opts: SendContactFormOptions) {
   return data;
 }
 
+// ── 6. Order Cancellation ──────────────────────────────────────────────────
+
+export interface SendCancellationConfirmationOptions {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: string;
+  refundAmount: number;
+  refundId: string;
+}
+
+function buildCancellationConfirmationHtml(opts: SendCancellationConfirmationOptions): string {
+  const firstName = opts.customerName.split(' ')[0];
+
+  const body = `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${c.card};">
+      <tr>
+        <td style="padding:40px 40px 0;text-align:center;">
+          <p style="margin:0 0 12px;font-size:48px;">&#9888;</p>
+          <p style="margin:0 0 8px;font-size:26px;font-weight:900;color:${c.white};text-transform:uppercase;letter-spacing:1px;font-family:${fontStack};">
+            Pedido <span style="color:${c.gold};">Cancelado</span>
+          </p>
+          <p style="margin:0 0 32px;font-size:15px;color:${c.muted};line-height:1.6;font-family:${fontStack};">
+            Hola <strong style="color:${c.white};">${esc(firstName)}</strong>, tu pedido ha sido cancelado y hemos iniciado el reembolso.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 32px;">
+          <div style="background-color:#0d0d10;border-left:3px solid ${c.gold};border-radius:4px;padding:20px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding-bottom:12px;">
+                  <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">N&ordm; DE PEDIDO</p>
+                  <p style="margin:0;font-size:14px;color:${c.white};font-family:${fontStack};">${esc(opts.orderNumber)}</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-bottom:12px;">
+                  <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">ID DE REEMBOLSO</p>
+                  <p style="margin:0;font-size:14px;color:${c.goldLight};word-break:break-all;font-family:${fontStack};">${esc(opts.refundId)}</p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">CANTIDAD REEMBOLSADA</p>
+                  <p style="margin:0;font-size:18px;font-weight:900;color:${c.gold};font-family:${fontStack};">${fmt(opts.refundAmount)}</p>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 32px;">
+          <div style="background-color:#0d0d10;border-radius:4px;padding:16px 20px;">
+            <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.6;font-family:${fontStack};">
+              &#128336;&nbsp; El reembolso puede tardar 3-5 d&iacute;as h&aacute;biles en aparecer en tu cuenta, dependiendo de tu banco.
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 40px;text-align:center;">
+          <p style="margin:0 0 16px;font-size:14px;color:${c.muted};font-family:${fontStack};">&iquest;Necesitas ayuda?</p>
+          <a href="mailto:info@parragkgloves.es" style="display:inline-block;border:1px solid ${c.gold};color:${c.gold};font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;padding:12px 32px;border-radius:4px;font-family:${fontStack};">CONTACTAR SOPORTE</a>
+        </td>
+      </tr>
+    </table>`;
+
+  return layout(`Tu pedido ${opts.orderNumber} ha sido cancelado`, body);
+}
+
+export async function sendCancellationConfirmation(opts: SendCancellationConfirmationOptions) {
+  await loadBrandColors();
+  const resend = getResend();
+  const { data, error } = await resend.emails.send({
+    from: FROM,
+    to: [opts.customerEmail],
+    replyTo: REPLY_TO,
+    subject: `Pedido ${opts.orderNumber} cancelado \u2014 Parra GK Gloves`,
+    html: buildCancellationConfirmationHtml(opts),
+  });
+
+  if (error) throw new Error(`[email] Resend error: ${error.message}`);
+  console.log(`[email] Cancelación enviada a ${opts.customerEmail}`);
+  return data;
+}
+
+// ── 7. Return Approval ─────────────────────────────────────────────────────
+
+export interface SendReturnApprovalConfirmationOptions {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: string;
+  refundAmount: number;
+  refundId: string;
+}
+
+function buildReturnApprovalHtml(opts: SendReturnApprovalConfirmationOptions): string {
+  const firstName = opts.customerName.split(' ')[0];
+
+  const body = `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${c.card};">
+      <tr>
+        <td style="padding:40px 40px 0;text-align:center;">
+          <p style="margin:0 0 12px;font-size:48px;">&#10003;</p>
+          <p style="margin:0 0 8px;font-size:26px;font-weight:900;color:${c.white};text-transform:uppercase;letter-spacing:1px;font-family:${fontStack};">
+            Devoluci&oacute;n <span style="color:${c.gold};">Aprobada</span>
+          </p>
+          <p style="margin:0 0 32px;font-size:15px;color:${c.muted};line-height:1.6;font-family:${fontStack};">
+            Hola <strong style="color:${c.white};">${esc(firstName)}</strong>, tu solicitud de devoluci&oacute;n ha sido aprobada. Procesaremos tu reembolso en los pr&oacute;ximos d&iacute;as.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 32px;">
+          <div style="background-color:#0d0d10;border-left:3px solid ${c.gold};border-radius:4px;padding:20px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding-bottom:12px;">
+                  <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">N&ordm; DE PEDIDO</p>
+                  <p style="margin:0;font-size:14px;color:${c.white};font-family:${fontStack};">${esc(opts.orderNumber)}</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding-bottom:12px;">
+                  <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">ID DE REEMBOLSO</p>
+                  <p style="margin:0;font-size:14px;color:${c.goldLight};word-break:break-all;font-family:${fontStack};">${esc(opts.refundId)}</p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p style="margin:0 0 4px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">CANTIDAD A REEMBOLSAR</p>
+                  <p style="margin:0;font-size:18px;font-weight:900;color:${c.gold};font-family:${fontStack};">${fmt(opts.refundAmount)}</p>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 32px;">
+          <div style="background-color:#0d0d10;border-radius:4px;padding:16px 20px;">
+            <p style="margin:0 0 12px;font-size:13px;color:${c.muted};font-family:${fontStack};">
+              &#128336;&nbsp; Por favor, env&iacute;a el art&iacute;culo al siguiente domicilio con tr&aacute;fico registrado:
+            </p>
+            <p style="margin:0;font-size:13px;color:${c.white};font-weight:700;font-family:${fontStack};">
+              Parra GK Gloves<br/>
+              info@parragkgloves.es
+            </p>
+            <p style="margin:12px 0 0;font-size:12px;color:${c.muted};font-family:${fontStack};">
+              El reembolso se procesará una vez recibamos el art&iacute;culo (3-5 días h&aacute;biles adicionales).
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 40px;text-align:center;">
+          <p style="margin:0 0 16px;font-size:14px;color:${c.muted};font-family:${fontStack};">&iquest;Preguntas sobre tu devoluci&oacute;n?</p>
+          <a href="mailto:info@parragkgloves.es" style="display:inline-block;border:1px solid ${c.gold};color:${c.gold};font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;padding:12px 32px;border-radius:4px;font-family:${fontStack};">CONTACTAR SOPORTE</a>
+        </td>
+      </tr>
+    </table>`;
+
+  return layout(`Devoluci\u00f3n aprobada para ${opts.orderNumber}`, body);
+}
+
+export async function sendReturnApprovalConfirmation(opts: SendReturnApprovalConfirmationOptions) {
+  await loadBrandColors();
+  const resend = getResend();
+  const { data, error } = await resend.emails.send({
+    from: FROM,
+    to: [opts.customerEmail],
+    replyTo: REPLY_TO,
+    subject: `Devoluci\u00f3n aprobada \u2014 Pedido ${opts.orderNumber} \u2014 Parra GK Gloves`,
+    html: buildReturnApprovalHtml(opts),
+  });
+
+  if (error) throw new Error(`[email] Resend error: ${error.message}`);
+  console.log(`[email] Aprobación de devolución enviada a ${opts.customerEmail}`);
+  return data;
+}
+
+// ── 8. Return Rejection ────────────────────────────────────────────────────
+
+export interface SendReturnRejectionNotificationOptions {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: string;
+  reason: string;
+}
+
+function buildReturnRejectionHtml(opts: SendReturnRejectionNotificationOptions): string {
+  const firstName = opts.customerName.split(' ')[0];
+
+  const body = `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${c.card};">
+      <tr>
+        <td style="padding:40px 40px 0;text-align:center;">
+          <p style="margin:0 0 12px;font-size:48px;">&#10005;</p>
+          <p style="margin:0 0 8px;font-size:26px;font-weight:900;color:${c.white};text-transform:uppercase;letter-spacing:1px;font-family:${fontStack};">
+            Devoluci&oacute;n <span style="color:#ef4444;">Rechazada</span>
+          </p>
+          <p style="margin:0 0 32px;font-size:15px;color:${c.muted};line-height:1.6;font-family:${fontStack};">
+            Hola <strong style="color:${c.white};">${esc(firstName)}</strong>, lamentablemente tu solicitud de devoluci&oacute;n no ha sido aprobada.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 32px;">
+          <div style="background-color:#0d0d10;border-left:3px solid #ef4444;border-radius:4px;padding:20px 24px;">
+            <p style="margin:0 0 8px;font-size:11px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">RAZON</p>
+            <p style="margin:0;font-size:14px;color:${c.muted};line-height:1.6;font-family:${fontStack};">${esc(opts.reason)}</p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 32px;">
+          <div style="background-color:#0d0d10;border-radius:4px;padding:16px 20px;">
+            <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.6;font-family:${fontStack};">
+              Si crees que esto es un error o tienes preguntas, no dudes en ponerte en contacto con nuestro equipo de soporte.
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 40px;text-align:center;">
+          <a href="mailto:info@parragkgloves.es" style="display:inline-block;background-color:${c.gold};color:#000;font-size:13px;font-weight:900;letter-spacing:2px;text-transform:uppercase;text-decoration:none;padding:14px 40px;border-radius:4px;font-family:${fontStack};">CONTACTAR SOPORTE &rarr;</a>
+        </td>
+      </tr>
+    </table>`;
+
+  return layout(`Devoluci\u00f3n no aprobada para ${opts.orderNumber}`, body);
+}
+
+export async function sendReturnRejectionNotification(opts: SendReturnRejectionNotificationOptions) {
+  await loadBrandColors();
+  const resend = getResend();
+  const { data, error } = await resend.emails.send({
+    from: FROM,
+    to: [opts.customerEmail],
+    replyTo: REPLY_TO,
+    subject: `Devoluci\u00f3n no aprobada \u2014 Pedido ${opts.orderNumber} \u2014 Parra GK Gloves`,
+    html: buildReturnRejectionHtml(opts),
+  });
+
+  if (error) throw new Error(`[email] Resend error: ${error.message}`);
+  console.log(`[email] Rechazo de devolución enviado a ${opts.customerEmail}`);
+  return data;
+}
+
 // ── Legacy shim ───────────────────────────────────────────────────────────────
 
 export async function sendOrderConfirmationEmail(
