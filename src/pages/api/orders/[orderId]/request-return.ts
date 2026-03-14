@@ -33,7 +33,7 @@ export const POST: APIRoute = async (context) => {
     }
 
     const body = await context.request.json();
-    const { reason, notes } = body;
+    const { reason } = body;
 
     if (!reason?.trim()) {
       return errorResponse({
@@ -150,7 +150,6 @@ export const POST: APIRoute = async (context) => {
           order_id: orderId,
           user_id: userId,
           reason: reason.trim(),
-          notes: notes?.trim() || null,
           status: 'pending',
         },
       ])
