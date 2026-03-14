@@ -271,6 +271,8 @@ const tabs = [
                                 <div class="space-y-5">
                                     {pedidosOrders.map((order: any) => (
                                         <div class="card p-6">
+                                            <div class="flex flex-col md:flex-row md:gap-6">
+                                            <div class="flex-1 min-w-0">
                                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
                                                 <div>
                                                     <p
@@ -398,9 +400,10 @@ const tabs = [
                                                         </div>
                                                     ),
                                                 )}
-                                            </div>
+                                            </div>{/* end items */}
+                                            </div>{/* end left col */}
                                             {/* ── Acciones del pedido ── */}
-                                            <div class="flex flex-wrap justify-center items-center gap-3 pt-3 mt-3" style="border-top: 1px solid var(--border-color);">
+                                            <div class="flex flex-row flex-wrap md:flex-col gap-2 pt-4 mt-4 md:pt-0 md:mt-0 items-center md:items-stretch justify-center md:justify-start md:min-w-[160px] border-t md:border-t-0 md:border-l md:pl-6" style="border-color: var(--border-color);">
                                                 {/* Botón Descargar Factura */}
                                                 <button
                                                     type="button"
@@ -451,7 +454,8 @@ const tabs = [
                                                         Solicitar Devolución
                                                     </button>
                                                 )}
-                                            </div>
+                                            </div>{/* end buttons */}
+                                            </div>{/* end flex wrapper */}
                                         </div>
                                     ))}
                                 </div>
@@ -1650,6 +1654,12 @@ const tabs = [
         .cancel-order-btn { flex: 1; justify-content: center; min-width: 120px; }
         .request-return-btn { flex: 1; justify-content: center; min-width: 120px; }
         #profile-nav a { display: flex; flex-direction: row; }
+    }
+    @media (min-width: 768px) {
+        .invoice-dl-btn, .cancel-order-btn, .request-return-btn {
+            width: 100%;
+            justify-content: center;
+        }
     }
 </style>
 
