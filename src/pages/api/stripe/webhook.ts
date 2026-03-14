@@ -173,9 +173,13 @@ export const POST: APIRoute = async ({ request }) => {
         let stripeChargeId: string | null = null;
         if (session.payment_intent) {
             try {
-                const paymentIntent = await getStripe().paymentIntents.retrieve(session.payment_intent as string);
-                if (paymentIntent.charges.data.length > 0) {
-                    stripeChargeId = paymentIntent.charges.data[0].id;
+                const paymentIntent = await getStripe().paymentIntents.retrieve(
+                    session.payment_intent as string,
+                    { expand: ['latest_charge'] }
+                );
+                const latestCharge = paymentIntent.latest_charge;
+                if (latestCharge) {
+                    stripeChargeId = typeof latestCharge === 'string' ? latestCharge : latestCharge.id;
                     console.log(`[webhook] Extracted charge ID: ${stripeChargeId}`);
                 }
             } catch (err: any) {
