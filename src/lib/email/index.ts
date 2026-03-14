@@ -4,6 +4,8 @@
  * Servicio de emails transaccionales con Resend.
  * Genera HTML puro (sin React/JSX) para evitar conflictos con Preact.
  * Dominio verificado: parragkgloves.es
+ *
+ * Exports: sendOrderConfirmation, sendShippingUpdate, sendOrderDelivered, sendPasswordReset, sendContactForm
  */
 
 import { Resend } from 'resend';
