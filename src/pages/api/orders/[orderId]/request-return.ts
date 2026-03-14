@@ -160,7 +160,7 @@ export const POST: APIRoute = async (context) => {
       console.error('[request-return] Database error:', insertError);
       return errorResponse({
         code: 'DATABASE_ERROR',
-        message: 'Failed to create return request',
+        message: insertError?.message || insertError?.details || 'Failed to create return request',
         status: 500,
       });
     }
