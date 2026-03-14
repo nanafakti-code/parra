@@ -7,9 +7,20 @@
 
 import type { APIRoute } from 'astro';
 import { sendContactForm } from '../../lib/email/index';
+import { contactLimiter } from '../../lib/security/rateLimiter';
+import { getClientIp } from '../../lib/security/getClientIp';
 
 export const POST: APIRoute = async (context) => {
   try {
+    const ip = getClientIp(context.request);
+    const { success } = await contactLimiter.limit(ip);
+    if (!success) {
+      return new Response(JSON.stringify({ error: 'Demasiadas solicitudes. Por favor, espera antes de enviar otro mensaje.' }), {
+        status: 429,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const body = await context.request.json();
     const { nombre, email, asunto, mensaje } = body;
 
@@ -57,7 +68,7 @@ export const POST: APIRoute = async (context) => {
   } catch (error) {
     console.error('[contact] Error:', error);
     return new Response(JSON.stringify({
-      error: error instanceof Error ? error.message : 'Error al enviar el mensaje'
+      error: 'Error al enviar el mensaje'
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

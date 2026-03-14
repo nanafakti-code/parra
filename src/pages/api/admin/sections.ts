@@ -5,9 +5,13 @@ import { validateAdminAPI, jsonResponse, logAdminAction } from '../../../lib/adm
 // Sanitize HTML to prevent XSS
 function sanitize(val: unknown): unknown {
     if (typeof val === 'string') {
-        return val.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        return val
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
             .replace(/on\w+\s*=/gi, '')
-            .replace(/javascript:/gi, '');
+            .replace(/javascript\s*:/gi, '')
+            .replace(/vbscript\s*:/gi, '')
+            .replace(/data\s*:\s*text\s*\/\s*(html|xml)/gi, '')
+            .replace(/&#(x[0-9a-f]+|[0-9]+)\s*;?/gi, ''); // strip HTML numeric entities
     }
     if (Array.isArray(val)) return val.map(sanitize);
     if (val && typeof val === 'object') {

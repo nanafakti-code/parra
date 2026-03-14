@@ -60,7 +60,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const { error: updateErr } = await supabaseAdmin
         .from("addresses")
         .update({ is_default: true })
-        .eq("id", address_id);
+        .eq("id", address_id)
+        .eq("user_id", user.id);
 
     if (updateErr) {
         return new Response(JSON.stringify({ error: updateErr.message }), {

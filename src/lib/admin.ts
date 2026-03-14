@@ -12,24 +12,11 @@ export async function requireAdmin(Astro: AstroGlobal) {
         return Astro.redirect('/admin/login');
     }
 
-    // Double-check: verify is_active in DB (defense in depth)
-    // Use email fallback in case auth UUID differs from public.users UUID (manual user creation)
-    let dbUser: any = null;
-    const { data: byId } = await supabaseAdmin
+    const { data: dbUser } = await supabaseAdmin
         .from('users')
         .select('id, name, email, role, is_active, avatar_url')
         .eq('id', user.id)
         .maybeSingle();
-    if (byId) {
-        dbUser = byId;
-    } else {
-        const { data: byEmail } = await supabaseAdmin
-            .from('users')
-            .select('id, name, email, role, is_active, avatar_url')
-            .eq('email', user.email)
-            .maybeSingle();
-        dbUser = byEmail;
-    }
 
     if (!dbUser || dbUser.role !== 'admin' || !dbUser.is_active) {
         return Astro.redirect('/admin/login');
@@ -91,7 +78,7 @@ export async function validateAdminAPI(request: Request, cookies: any): Promise<
     }
 
     if (!accessToken) {
-        console.error('[validateAdminAPI] error: No autorizado, no accessToken provided in cookies.', cookies);
+        console.error('[validateAdminAPI] error: No autorizado, no accessToken provided.');
         return jsonResponse({ error: 'No autorizado' }, 401);
     }
 
@@ -126,26 +113,15 @@ export async function validateAdminAPI(request: Request, cookies: any): Promise<
     }
 
     if (!resolvedUser) {
-        console.error('[validateAdminAPI] error: Token inválido.', error);
-        return jsonResponse({ error: `Token inválido: ${error?.message || 'Desconocido'}` }, 401);
+        console.error('[validateAdminAPI] error: Token inválido.');
+        return jsonResponse({ error: 'No autorizado' }, 401);
     }
 
-    let dbUser: any = null;
-    const { data: byId } = await supabaseAdmin
+    const { data: dbUser } = await supabaseAdmin
         .from('users')
         .select('id, name, email, role, is_active')
         .eq('id', resolvedUser.id)
         .maybeSingle();
-    if (byId) {
-        dbUser = byId;
-    } else {
-        const { data: byEmail } = await supabaseAdmin
-            .from('users')
-            .select('id, name, email, role, is_active')
-            .eq('email', resolvedUser.email)
-            .maybeSingle();
-        dbUser = byEmail;
-    }
 
     if (!dbUser || dbUser.role !== 'admin' || !dbUser.is_active) {
         return jsonResponse({ error: 'Acceso denegado' }, 403);

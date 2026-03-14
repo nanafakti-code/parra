@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getStripe } from '../../../lib/stripe';
-import { supabaseAdmin } from '../../../lib/supabase';
+import { supabase, supabaseAdmin } from '../../../lib/supabase';
 
 function jsonResponse(data: Record<string, unknown>, status: number): Response {
     return new Response(JSON.stringify(data), {
@@ -9,8 +9,16 @@ function jsonResponse(data: Record<string, unknown>, status: number): Response {
     });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
     try {
+        // Verificar identidad del usuario (opcional — solo para validar propiedad del PI)
+        const accessToken = cookies.get('sb-access-token')?.value || cookies.get('auth_token')?.value;
+        let authenticatedUserId: string | null = null;
+        if (accessToken) {
+            const { data: { user } } = await supabase.auth.getUser(accessToken);
+            authenticatedUserId = user?.id || null;
+        }
+
         const { paymentIntentId, shippingMethod } = await request.json();
 
         if (!paymentIntentId || !shippingMethod) {
@@ -22,6 +30,12 @@ export const POST: APIRoute = async ({ request }) => {
         // Retrieve current PI to get stored subtotal/discount
         const stripe = getStripe();
         const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+        // Verificar propiedad: si el PI pertenece a un usuario autenticado, validar que sea el mismo
+        const piUserId = pi.metadata?.user_id;
+        if (piUserId && piUserId !== authenticatedUserId) {
+            return jsonResponse({ error: 'No autorizado' }, 403);
+        }
 
         const subtotalCents = parseInt(pi.metadata?.subtotal_cents ?? '0') || 0;
         const discountCents = parseInt(pi.metadata?.discount_cents ?? '0') || 0;

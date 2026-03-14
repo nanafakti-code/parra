@@ -3,7 +3,9 @@ import AdminLayout from "../../layouts/AdminLayout.astro";
 import { requireAdmin } from "../../lib/admin";
 import { supabaseAdmin } from "../../lib/supabase";
 
-const admin = await requireAdmin(Astro);
+const adminResult = await requireAdmin(Astro);
+if (adminResult instanceof Response) return adminResult;
+const admin = adminResult;
 
 const { data: rows } = await supabaseAdmin
     .from("site_settings")

@@ -49,6 +49,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         );
     }
 
+    // Limitar número de direcciones por usuario (máximo 10)
+    const { count: addressCount } = await supabaseAdmin
+        .from('addresses')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+    if (addressCount !== null && addressCount >= 10) {
+        return json({ message: 'Has alcanzado el límite máximo de direcciones (10).' }, 400);
+    }
+
     // Si es default, quitar el flag de la dirección predeterminada anterior
     if (is_default) {
         await supabaseAdmin

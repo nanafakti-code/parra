@@ -52,11 +52,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
         return new Response(JSON.stringify({ message: 'No autorizado' }), { status: 401 });
     }
 
-    const { productId, quantity } = await request.json();
+    const { productId, quantity: rawQuantity } = await request.json();
 
-    if (!productId || !quantity) {
+    if (!productId || !rawQuantity) {
         return new Response(JSON.stringify({ message: 'Faltan campos' }), { status: 400 });
     }
+
+    const MAX_QUANTITY = 99;
+    const quantity = Math.min(Math.max(1, parseInt(rawQuantity) || 1), MAX_QUANTITY);
 
     // 1. Buscar o crear el carrito del usuario
     let { data: cart } = await supabase

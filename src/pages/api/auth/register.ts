@@ -88,8 +88,7 @@ export const POST: APIRoute = async ({ request }) => {
             }
 
             return jsonResponse({
-                message: 'Error de Supabase Auth: ' + authError.message,
-                debug: authError
+                message: 'Error al completar el registro.',
             }, 500);
         }
 
@@ -122,8 +121,7 @@ export const POST: APIRoute = async ({ request }) => {
             }
 
             return jsonResponse({
-                message: 'Error al crear el perfil: ' + profileError.message,
-                debug: profileError
+                message: 'Error al completar el registro.',
             }, 500);
         }
 

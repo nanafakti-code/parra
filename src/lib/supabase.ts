@@ -5,7 +5,7 @@ const supabaseKey = import.meta.env.SUPABASE_ANON_KEY || "";
 const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 if (!supabaseUrl || !supabaseKey) {
-    console.error('CRITICAL: SUPABASE_URL or SUPABASE_ANON_KEY is missing!');
+    throw new Error('CRITICAL: SUPABASE_URL or SUPABASE_ANON_KEY is missing!');
 }
 
 if (!supabaseServiceKey) {

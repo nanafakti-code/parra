@@ -26,20 +26,26 @@ export const GET: APIRoute = async ({ params, locals }) => {
         const userEmail = (authUser.email || userProfile?.email || "").toLowerCase().trim();
 
         /* ───── 3. Obtener pedido CON verificación de propiedad en una sola query ───── */
-        // Misma lógica .or() que profile.astro usa para listar pedidos
-        let query = supabaseAdmin
+        // Intentar por user_id primero (más seguro, sin interpolación de strings)
+        let { data: order, error } = await supabaseAdmin
             .from("orders")
             .select("*, order_items(*, products(name, image))")
-            .eq("id", orderId);
+            .eq("id", orderId)
+            .eq("user_id", authUser.id)
+            .maybeSingle();
 
-        // Construir filtro OR igual que profile.astro
-        if (userEmail) {
-            query = query.or(`user_id.eq.${authUser.id},email.ilike.${userEmail}`);
-        } else {
-            query = query.eq("user_id", authUser.id);
+        // Si no se encontró por user_id, buscar por email (pedidos de invitado)
+        // Se usan parámetros separados para evitar inyección de filtros PostgREST
+        if (!order && userEmail) {
+            const result = await supabaseAdmin
+                .from("orders")
+                .select("*, order_items(*, products(name, image))")
+                .eq("id", orderId)
+                .eq("email", userEmail)
+                .maybeSingle();
+            order = result.data;
+            error = result.error;
         }
-
-        const { data: order, error } = await query.maybeSingle();
 
         console.log("[Invoice] userId:", authUser.id, "userEmail:", userEmail, "orderId:", orderId, "found:", !!order, "err:", error?.message);
 

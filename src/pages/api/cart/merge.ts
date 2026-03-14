@@ -5,10 +5,20 @@
  */
 
 import type { APIRoute } from 'astro';
-import { supabaseAdmin } from '../../../lib/supabase';
+import { supabase, supabaseAdmin } from '../../../lib/supabase';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
     try {
+        // Require authentication — merge only makes sense after login
+        const accessToken = cookies.get('sb-access-token')?.value || cookies.get('auth_token')?.value;
+        if (!accessToken) {
+            return new Response(JSON.stringify({ error: 'Autenticación requerida' }), { status: 401 });
+        }
+        const { data: { user } } = await supabase.auth.getUser(accessToken);
+        if (!user?.id) {
+            return new Response(JSON.stringify({ error: 'Sesión inválida' }), { status: 401 });
+        }
+
         const body = await request.json().catch(() => null);
         if (!body) {
             return new Response(JSON.stringify({ error: 'Cuerpo inválido' }), { status: 400 });

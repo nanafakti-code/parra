@@ -45,3 +45,6 @@ export const registerLimiter = buildLimiter(3,  '10 s', 'rl:register');
 
 // 10 intentos por ventana de 10 segundos — creación de pagos
 export const paymentLimiter  = buildLimiter(10, '10 s', 'rl:payment');
+
+// 3 mensajes por hora — formulario de contacto
+export const contactLimiter  = buildLimiter(3,  '1 h',  'rl:contact');

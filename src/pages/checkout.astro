@@ -29,7 +29,7 @@ try {
 const stripePubKey =
     import.meta.env.STRIPE_PUBLIC_KEY ||
     process.env.STRIPE_PUBLIC_KEY ||
-    "pk_test_"; // Se espera estar en .env
+    ""; // Sin fallback inválido — si falta la variable, Stripe fallará de forma explícita
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 ---
 

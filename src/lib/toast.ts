@@ -86,7 +86,13 @@ export function showToast(message: string, options: ToastOptions = {}): void {
         wordBreak:      'break-word',
     });
 
-    el.innerHTML = `<span style="color:${c.accent}">${ICONS[type]}</span><span>${message}</span>`;
+    const iconSpan = document.createElement('span');
+    iconSpan.style.color = c.accent;
+    iconSpan.innerHTML = ICONS[type]; // ICONS are static SVG strings, safe
+    const msgSpan = document.createElement('span');
+    msgSpan.textContent = message; // textContent escapes HTML — prevents XSS
+    el.appendChild(iconSpan);
+    el.appendChild(msgSpan);
     getOrCreateContainer().appendChild(el);
 
     // Animate in (double rAF to ensure transition fires)

@@ -10,9 +10,7 @@ import { supabaseAdmin } from '../../../../../lib/supabase';
 import { validateAdminAPI } from '../../../../../lib/admin';
 import { sendReturnApprovalConfirmation } from '../../../../../lib/email/index';
 import { generateReturnInvoicePdf } from '../../../../../lib/pdf';
-import Stripe from 'stripe';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+import { getStripe } from '../../../../../lib/stripe';
 
 interface APIError {
   code: string;
@@ -107,6 +105,7 @@ export const PATCH: APIRoute = async (context) => {
 
     // Resolve payment intent ID — try direct field first, then via session
     let paymentIntentId: string | null = order.stripe_payment_intent_id || null;
+    const stripe = getStripe();
 
     if (!paymentIntentId && order.stripe_session_id) {
       try {
@@ -266,7 +265,7 @@ export const PATCH: APIRoute = async (context) => {
     console.error('[approve-return] Unexpected error:', error);
     return errorResponse({
       code: 'INTERNAL_ERROR',
-      message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      message: 'Error interno del servidor',
       status: 500,
     });
   }

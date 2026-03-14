@@ -8,10 +8,8 @@
 
 import type { APIRoute } from 'astro';
 import { supabase, supabaseAdmin } from '../../../../lib/supabase';
-import Stripe from 'stripe';
+import { getStripe } from '../../../../lib/stripe';
 import { sendCancellationConfirmation } from '../../../../lib/email/index';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
 interface APIError {
   code: string;
@@ -37,16 +35,28 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Get authenticated user from cookies
+    // Require authentication — reject immediately if no token
     const accessToken =
       context.cookies.get('sb-access-token')?.value ||
       context.cookies.get('auth_token')?.value;
 
-    let userId: string | null = null;
-    if (accessToken) {
-      const { data: { user } } = await supabase.auth.getUser(accessToken);
-      userId = user?.id || null;
+    if (!accessToken) {
+      return errorResponse({
+        code: 'UNAUTHORIZED',
+        message: 'Autenticación requerida',
+        status: 401,
+      });
     }
+
+    const { data: { user } } = await supabase.auth.getUser(accessToken);
+    if (!user?.id) {
+      return errorResponse({
+        code: 'UNAUTHORIZED',
+        message: 'Sesión inválida',
+        status: 401,
+      });
+    }
+    const userId = user.id;
 
     // Fetch order
     const { data: order, error: orderError } = await supabaseAdmin
@@ -63,8 +73,8 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Validate order belongs to user
-    if (userId && order.user_id !== userId) {
+    // Validate order belongs to user (userId is guaranteed non-null from auth check above)
+    if (order.user_id !== userId) {
       return errorResponse({
         code: 'UNAUTHORIZED',
         message: 'You do not have permission to cancel this order',
@@ -104,6 +114,7 @@ export const POST: APIRoute = async (context) => {
 
     // Resolve payment intent ID — try direct field first, then via session
     let paymentIntentId: string | null = order.stripe_payment_intent_id || null;
+    const stripe = getStripe();
 
     if (!paymentIntentId && order.stripe_session_id) {
       try {
@@ -222,7 +233,7 @@ export const POST: APIRoute = async (context) => {
     console.error('[cancel-order] Unexpected error:', error);
     return errorResponse({
       code: 'INTERNAL_ERROR',
-      message: error instanceof Error ? error.message : 'An unexpected error occurred',
+      message: 'Error interno del servidor',
       status: 500,
     });
   }
