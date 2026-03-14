@@ -169,6 +169,20 @@ export const POST: APIRoute = async ({ request }) => {
         }
         const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
 
+        // 7b. Extraer charge ID desde payment intent
+        let stripeChargeId: string | null = null;
+        if (session.payment_intent) {
+            try {
+                const paymentIntent = await getStripe().paymentIntents.retrieve(session.payment_intent as string);
+                if (paymentIntent.charges.data.length > 0) {
+                    stripeChargeId = paymentIntent.charges.data[0].id;
+                    console.log(`[webhook] Extracted charge ID: ${stripeChargeId}`);
+                }
+            } catch (err: any) {
+                console.warn(`[webhook] Error retrieving payment intent: ${err.message}`);
+            }
+        }
+
         // 8. Buscar usuario por email (puede no existir si es invitado)
         let userId: string | null = null;
         if (email) {
@@ -188,6 +202,7 @@ export const POST: APIRoute = async ({ request }) => {
                 user_id: userId,
                 email: email,
                 stripe_session_id: stripeSessionId,
+                stripe_charge_id: stripeChargeId,
                 status: 'pending',
                 subtotal: amountTotal,
                 total: amountTotal,

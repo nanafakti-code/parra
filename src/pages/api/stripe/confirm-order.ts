@@ -113,6 +113,20 @@ export const POST: APIRoute = async ({ request }) => {
         const email = session.customer_details?.email ?? metadata.email ?? '';
         const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
 
+        // Extract charge ID from payment intent
+        let stripeChargeId: string | null = null;
+        if (session.payment_intent) {
+            try {
+                const paymentIntent = await getStripe().paymentIntents.retrieve(session.payment_intent as string);
+                if (paymentIntent.charges.data.length > 0) {
+                    stripeChargeId = paymentIntent.charges.data[0].id;
+                    console.log(`[confirm-order] Extracted charge ID: ${stripeChargeId}`);
+                }
+            } catch (err: any) {
+                console.warn(`[confirm-order] Error retrieving payment intent: ${err.message}`);
+            }
+        }
+
         // Buscar usuario por email
         let userId: string | null = null;
         if (email) {
@@ -131,6 +145,7 @@ export const POST: APIRoute = async ({ request }) => {
                 user_id: userId,
                 email,
                 stripe_session_id: sessionId,
+                stripe_charge_id: stripeChargeId,
                 status: 'pending',
                 subtotal: amountTotal,
                 total: amountTotal,
