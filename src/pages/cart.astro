@@ -2,6 +2,22 @@
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import { supabaseAdmin } from "../lib/supabase";
+
+// Fetch shipping config from admin settings
+let shippingConfig = { free_threshold: 50, standard_cost: 4.99, express_cost: 9.99 };
+try {
+    const { data: ss } = await supabaseAdmin
+        .from("site_settings").select("value").eq("key", "shipping").single();
+    if (ss?.value) {
+        const v = ss.value as any;
+        shippingConfig = {
+            free_threshold: Number(v.free_threshold ?? 50),
+            standard_cost:  Number(v.standard_cost  ?? 4.99),
+            express_cost:   Number(v.express_cost   ?? 9.99),
+        };
+    }
+} catch { /* use defaults */ }
 ---
 
 <Layout title="Mi Carrito" robots="noindex, nofollow">
@@ -121,8 +137,8 @@ import Footer from "../components/Footer.astro";
                                 <span class="uppercase tracking-wider"
                                     >Envío</span
                                 >
-                                <span class="text-brand font-semibold"
-                                    >Gratis</span
+                                <span id="cart-shipping" class="font-semibold" style="color: var(--text-muted);"
+                                    >Pendiente</span
                                 >
                             </div>
                             <div
