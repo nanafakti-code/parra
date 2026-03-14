@@ -48,3 +48,6 @@ export const paymentLimiter  = buildLimiter(10, '10 s', 'rl:payment');
 
 // 3 mensajes por hora — formulario de contacto
 export const contactLimiter  = buildLimiter(3,  '1 h',  'rl:contact');
+
+// 10 llamadas por hora — confirmación de pedido de respaldo (success page)
+export const confirmOrderLimiter = buildLimiter(10, '1 h', 'rl:confirm-order');

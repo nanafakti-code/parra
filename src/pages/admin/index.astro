@@ -42,14 +42,14 @@ const avgTicket = totalOrderCount > 0 ? (totalRevenue / totalOrderCount) : 0;
 const { count: totalCustomers } = await supabaseAdmin
     .from('users')
     .select('*', { count: 'exact', head: true })
-    .eq('role', 'user');
+    .eq('role', 'customer');
 
 // New customers this month
 const { count: newCustomersMonth } = await supabaseAdmin
     .from('users')
     .select('*', { count: 'exact', head: true })
     .gte('created_at', firstOfMonth)
-    .eq('role', 'user');
+    .eq('role', 'customer');
 
 // Pending orders
 const pendingOrders = (allOrders || []).filter(o => o.status === 'pending' || o.status === 'processing');

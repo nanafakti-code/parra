@@ -65,7 +65,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
                 action: 'login',
                 entity_type: 'auth',
                 details: { email: email.trim() },
-                ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null,
+                ip_address: ip,
             });
         } catch (_) { /* non-critical */ }
 

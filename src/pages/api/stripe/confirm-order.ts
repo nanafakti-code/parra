@@ -19,6 +19,8 @@ import { getStripe } from '../../../lib/stripe';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { generateInvoicePdf } from '../../../lib/pdf';
 import { sendOrderConfirmationEmail } from '../../../lib/email/index';
+import { confirmOrderLimiter } from '../../../lib/security/rateLimiter';
+import { getClientIp } from '../../../lib/security/getClientIp';
 
 interface ExpandedProduct {
     name: string;
@@ -42,6 +44,12 @@ function jsonResponse(data: Record<string, unknown>, status: number): Response {
 }
 
 export const POST: APIRoute = async ({ request }) => {
+    const ip = getClientIp(request);
+    const { success: rateLimitOk } = await confirmOrderLimiter.limit(ip);
+    if (!rateLimitOk) {
+        return jsonResponse({ error: 'Demasiadas solicitudes.' }, 429);
+    }
+
     let sessionId: string;
 
     try {

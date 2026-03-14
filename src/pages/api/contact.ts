@@ -32,7 +32,7 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    if (!email?.trim() || !email.includes('@')) {
+    if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       return new Response(JSON.stringify({ error: 'El email es inválido' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
