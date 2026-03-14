@@ -35,6 +35,7 @@ const [
     { data: reviews },
     { data: addresses },
     { data: couponUsages },
+    { data: rawReturns },
 ] = await Promise.all([
     // Pedidos + items + producto en una sola query anidada (sin N+1)
     supabaseAdmin
@@ -60,6 +61,11 @@ const [
         .select("*, coupons(*)")
         .eq("user_id", authUser.id)
         .order("used_at", { ascending: false }),
+    supabaseAdmin
+        .from("returns")
+        .select("*, orders(order_number, total, created_at, order_items(*, products(name, image)))")
+        .eq("user_id", authUser.id)
+        .order("created_at", { ascending: false }),
 ]);
 
 // Normalizar items para que el template funcione igual
@@ -71,10 +77,24 @@ const ordersWithItems: any[] = (rawOrders || []).map((o: any) => ({
     })),
 }));
 
-// Devoluciones = pedidos cancelados o reembolsados
-const returns = ordersWithItems.filter((o: any) =>
-    ["cancelled", "refunded"].includes(o.status),
-);
+// Solicitudes de devolución reales desde la tabla returns
+const returnRequests: any[] = (rawReturns || []).map((r: any) => ({
+    ...r,
+    order: r.orders ? {
+        ...r.orders,
+        items: (r.orders.order_items || []).map((i: any) => ({
+            ...i,
+            product: i.products,
+        })),
+    } : null,
+}));
+
+const returnStatusMap: Record<string, string> = {
+    pending: "Pendiente revisión",
+    approved: "Aprobada",
+    rejected: "Rechazada",
+    refunded: "Reembolsada",
+};
 
 const statusMap: Record<string, string> = {
     pending: "Pendiente",
@@ -471,9 +491,9 @@ const tabs = [
                             Mis <span class="text-brand">Devoluciones</span>
                         </h2>
                         {
-                            returns.length > 0 ? (
+                            returnRequests.length > 0 ? (
                                 <div class="space-y-5">
-                                    {returns.map((order: any) => (
+                                    {returnRequests.map((ret: any) => (
                                         <div class="card p-6">
                                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
                                                 <div>
@@ -484,8 +504,8 @@ const tabs = [
                                                         Pedido
                                                     </p>
                                                     <p class="text-sm font-mono text-brand">
-                                                        {order.order_number ||
-                                                            `#${order.id.slice(-8).toUpperCase()}`}
+                                                        {ret.order?.order_number ||
+                                                            `#${ret.order_id.slice(-8).toUpperCase()}`}
                                                     </p>
                                                 </div>
                                                 <div>
@@ -493,14 +513,14 @@ const tabs = [
                                                         class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1"
                                                         style="color: var(--text-muted);"
                                                     >
-                                                        Fecha
+                                                        Solicitud
                                                     </p>
                                                     <p
                                                         class="text-sm"
                                                         style="color: var(--text-secondary);"
                                                     >
                                                         {new Date(
-                                                            order.created_at,
+                                                            ret.created_at,
                                                         ).toLocaleDateString(
                                                             "es-ES",
                                                         )}
@@ -516,15 +536,16 @@ const tabs = [
                                                     <span
                                                         class:list={[
                                                             "inline-block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
-                                                            order.status ===
-                                                            "refunded"
+                                                            ret.status === "refunded"
                                                                 ? "bg-brand/10 text-brand"
-                                                                : "bg-red-500/10 text-red-500",
+                                                                : ret.status === "approved"
+                                                                ? "bg-green-500/10 text-green-500"
+                                                                : ret.status === "rejected"
+                                                                ? "bg-red-500/10 text-red-500"
+                                                                : "bg-amber-500/10 text-amber-500",
                                                         ]}
                                                     >
-                                                        {statusMap[
-                                                            order.status
-                                                        ] || order.status}
+                                                        {returnStatusMap[ret.status] || ret.status}
                                                     </span>
                                                 </div>
                                                 <div>
@@ -532,71 +553,87 @@ const tabs = [
                                                         class="text-[10px] font-semibold uppercase tracking-[0.2em] mb-1"
                                                         style="color: var(--text-muted);"
                                                     >
-                                                        Total
+                                                        {ret.refund_amount ? "Reembolso" : "Total pedido"}
                                                     </p>
                                                     <p class="text-lg font-bold">
-                                                        €
-                                                        {parseFloat(
-                                                            order.total,
+                                                        €{parseFloat(
+                                                            ret.refund_amount || ret.order?.total || 0,
                                                         ).toFixed(2)}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div
-                                                class="space-y-3 pt-4"
-                                                style="border-top: 1px solid var(--border-color);"
+                                                class="mb-4 px-3 py-2.5 text-xs"
+                                                style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.18);border-radius:6px;color:var(--text-secondary);"
                                             >
-                                                {order.items.map(
-                                                    (item: any) => (
-                                                        <div class="flex items-center gap-4">
-                                                            <div
-                                                                class="w-12 h-12 overflow-hidden flex-shrink-0"
-                                                                style="background-color: var(--bg-secondary);"
-                                                            >
-                                                                <img
-                                                                    src={
-                                                                        item
-                                                                            .product
-                                                                            ?.image ||
-                                                                        item.product_image
-                                                                    }
-                                                                    alt={
-                                                                        item
-                                                                            .product
-                                                                            ?.name ||
-                                                                        item.product_name
-                                                                    }
-                                                                    class="w-full h-full object-cover"
-                                                                />
-                                                            </div>
-                                                            <div class="flex-1 min-w-0">
-                                                                <p class="text-sm font-semibold uppercase truncate">
-                                                                    {item
-                                                                        .product
-                                                                        ?.name ||
-                                                                        item.product_name}
-                                                                </p>
-                                                                <p
-                                                                    class="text-xs uppercase tracking-wider"
-                                                                    style="color: var(--text-muted);"
-                                                                >
-                                                                    {
-                                                                        item.quantity
-                                                                    }{" "}
-                                                                    x €
-                                                                    {parseFloat(
-                                                                        item.unit_price,
-                                                                    ).toFixed(
-                                                                        2,
-                                                                    )}
-                                                                    {item.size &&
-                                                                        ` · Talla ${item.size}`}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    ),
-                                                )}
+                                                <span
+                                                    class="font-semibold uppercase tracking-wider text-[10px]"
+                                                    style="color:var(--text-muted);"
+                                                >
+                                                    Motivo:{" "}
+                                                </span>
+                                                {ret.reason}
                                             </div>
+                                            {ret.admin_notes && (
+                                                <div
+                                                    class="mb-4 px-3 py-2.5 text-xs"
+                                                    style="background:rgba(255,255,255,0.04);border:1px solid var(--border-color);border-radius:6px;color:var(--text-secondary);"
+                                                >
+                                                    <span
+                                                        class="font-semibold uppercase tracking-wider text-[10px]"
+                                                        style="color:var(--text-muted);"
+                                                    >
+                                                        Nota del equipo:{" "}
+                                                    </span>
+                                                    {ret.admin_notes}
+                                                </div>
+                                            )}
+                                            {ret.order?.items && ret.order.items.length > 0 && (
+                                                <div
+                                                    class="space-y-3 pt-4"
+                                                    style="border-top: 1px solid var(--border-color);"
+                                                >
+                                                    {ret.order.items.map(
+                                                        (item: any) => (
+                                                            <div class="flex items-center gap-4">
+                                                                <div
+                                                                    class="w-12 h-12 overflow-hidden flex-shrink-0"
+                                                                    style="background-color: var(--bg-secondary);"
+                                                                >
+                                                                    <img
+                                                                        src={
+                                                                            item.product?.image ||
+                                                                            item.product_image
+                                                                        }
+                                                                        alt={
+                                                                            item.product?.name ||
+                                                                            item.product_name
+                                                                        }
+                                                                        class="w-full h-full object-cover"
+                                                                    />
+                                                                </div>
+                                                                <div class="flex-1 min-w-0">
+                                                                    <p class="text-sm font-semibold uppercase truncate">
+                                                                        {item.product?.name ||
+                                                                            item.product_name}
+                                                                    </p>
+                                                                    <p
+                                                                        class="text-xs uppercase tracking-wider"
+                                                                        style="color: var(--text-muted);"
+                                                                    >
+                                                                        {item.quantity}{" "}x €
+                                                                        {parseFloat(
+                                                                            item.unit_price,
+                                                                        ).toFixed(2)}
+                                                                        {item.size &&
+                                                                            ` · Talla ${item.size}`}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
