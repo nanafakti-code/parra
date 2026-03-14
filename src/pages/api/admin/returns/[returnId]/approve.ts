@@ -100,43 +100,42 @@ export const PATCH: APIRoute = async (context) => {
       });
     }
 
-    // Get charge ID from order or retrieve from Stripe
-    let chargeId = order.stripe_charge_id;
-
-    if (!chargeId && order.stripe_session_id) {
-      try {
-        const session = await stripe.checkout.sessions.retrieve(order.stripe_session_id);
-        if (session.payment_intent) {
-          const paymentIntent = await stripe.paymentIntents.retrieve(
-            session.payment_intent as string,
-            { expand: ['latest_charge'] }
-          );
-          const latestCharge = paymentIntent.latest_charge;
-          if (latestCharge) {
-            chargeId = typeof latestCharge === 'string' ? latestCharge : latestCharge.id;
-            console.log('[approve-return] Retrieved charge ID:', chargeId);
-          }
-        }
-      } catch (err: any) {
-        console.error('[approve-return] Error retrieving charge from Stripe:', err.message);
-      }
-    }
-
-    if (!chargeId) {
+    // Retrieve payment_intent ID from Stripe session
+    if (!order.stripe_session_id) {
       return errorResponse({
-        code: 'NO_CHARGE_ID',
-        message: 'Unable to process refund: No charge ID found',
+        code: 'NO_PAYMENT_DATA',
+        message: 'Unable to process refund: No payment information found',
         status: 400,
       });
     }
 
-    // Process Stripe refund with idempotency key
+    let paymentIntentId: string | null = null;
+    try {
+      const session = await stripe.checkout.sessions.retrieve(order.stripe_session_id);
+      if (session.payment_intent) {
+        paymentIntentId = typeof session.payment_intent === 'string'
+          ? session.payment_intent
+          : session.payment_intent.id;
+      }
+    } catch (err: any) {
+      console.error('[approve-return] Error retrieving session:', err.message);
+    }
+
+    if (!paymentIntentId) {
+      return errorResponse({
+        code: 'NO_PAYMENT_INTENT',
+        message: 'Unable to process refund: No payment intent found',
+        status: 400,
+      });
+    }
+
+    // Process Stripe refund using payment_intent with idempotency key
     let refund;
     const idempotencyKey = `return-${returnId}-${order.id}`;
     try {
       refund = await stripe.refunds.create(
         {
-          charge: chargeId,
+          payment_intent: paymentIntentId,
           amount: refundAmount,
           metadata: {
             return_id: returnId,
@@ -145,12 +144,10 @@ export const PATCH: APIRoute = async (context) => {
             refund_type: 'product_only',
           },
         },
-        {
-          idempotencyKey,
-        }
+        { idempotencyKey }
       );
 
-      if (!refund || refund.status !== 'succeeded') {
+      if (!refund || refund.status === 'failed') {
         throw new Error(`Refund failed with status: ${refund?.status}`);
       }
     } catch (stripeError: any) {

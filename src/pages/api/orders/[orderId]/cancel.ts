@@ -48,7 +48,7 @@ export const POST: APIRoute = async (context) => {
       userId = user?.id || null;
     }
 
-    // Fetch order with ALL necessary data
+    // Fetch order
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .select('*')
@@ -63,7 +63,7 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Validate order belongs to user (if authenticated) or is guest order
+    // Validate order belongs to user
     if (userId && order.user_id !== userId) {
       return errorResponse({
         code: 'UNAUTHORIZED',
@@ -82,8 +82,8 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Validate order has payment info for refund
-    if (!order.stripe_payment_intent_id && !order.stripe_session_id) {
+    // Need session to find payment intent
+    if (!order.stripe_session_id) {
       return errorResponse({
         code: 'NO_PAYMENT_DATA',
         message: 'Unable to process refund: No payment information found',
@@ -92,7 +92,7 @@ export const POST: APIRoute = async (context) => {
     }
 
     // Calculate refund amount (product only, exclude shipping)
-    const refundAmount = Math.round((order.subtotal - (order.discount || 0)) * 100); // Convert to cents
+    const refundAmount = Math.round((order.subtotal - (order.discount || 0)) * 100);
 
     if (refundAmount <= 0) {
       return errorResponse({
@@ -102,40 +102,32 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Get charge ID from order or retrieve from Stripe
-    let chargeId = order.stripe_charge_id;
-
-    if (!chargeId && order.stripe_session_id) {
-      try {
-        const session = await stripe.checkout.sessions.retrieve(order.stripe_session_id);
-        if (session.payment_intent) {
-          const paymentIntent = await stripe.paymentIntents.retrieve(
-            session.payment_intent as string,
-            { expand: ['latest_charge'] }
-          );
-          const latestCharge = paymentIntent.latest_charge;
-          if (latestCharge) {
-            chargeId = typeof latestCharge === 'string' ? latestCharge : latestCharge.id;
-            console.log('[cancel-order] Retrieved charge ID:', chargeId);
-          }
-        }
-      } catch (err: any) {
-        console.error('[cancel-order] Error retrieving charge from Stripe:', err.message);
+    // Retrieve payment_intent ID from Stripe session
+    let paymentIntentId: string | null = null;
+    try {
+      const session = await stripe.checkout.sessions.retrieve(order.stripe_session_id);
+      if (session.payment_intent) {
+        paymentIntentId = typeof session.payment_intent === 'string'
+          ? session.payment_intent
+          : session.payment_intent.id;
       }
+    } catch (err: any) {
+      console.error('[cancel-order] Error retrieving session:', err.message);
     }
 
-    if (!chargeId) {
+    if (!paymentIntentId) {
       return errorResponse({
-        code: 'NO_CHARGE_ID',
-        message: 'Unable to process refund: No charge ID found',
+        code: 'NO_PAYMENT_INTENT',
+        message: 'Unable to process refund: No payment intent found',
         status: 400,
       });
     }
 
+    // Process Stripe refund using payment_intent (no charge ID needed)
     let refund;
     try {
       refund = await stripe.refunds.create({
-        charge: chargeId,
+        payment_intent: paymentIntentId,
         amount: refundAmount,
         metadata: {
           order_id: orderId,
@@ -144,7 +136,7 @@ export const POST: APIRoute = async (context) => {
         },
       });
 
-      if (!refund || refund.status !== 'succeeded') {
+      if (!refund || refund.status === 'failed') {
         throw new Error(`Refund failed with status: ${refund?.status}`);
       }
     } catch (stripeError: any) {
@@ -185,7 +177,6 @@ export const POST: APIRoute = async (context) => {
       });
     } catch (emailError) {
       console.error('[cancel-order] Email error:', emailError);
-      // Don't fail the request if email fails
     }
 
     // Log admin action
@@ -203,7 +194,6 @@ export const POST: APIRoute = async (context) => {
       });
     } catch (logError) {
       console.error('[cancel-order] Logging error:', logError);
-      // Don't fail the request if logging fails
     }
 
     return new Response(
