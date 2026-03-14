@@ -96,6 +96,12 @@ const returnStatusMap: Record<string, string> = {
     refunded: "Reembolsada",
 };
 
+// IDs de pedidos que ya tienen una solicitud de devolución activa
+const ordersWithReturn = new Set(returnRequests.map((r: any) => r.order_id));
+
+// Pedidos que se muestran en el tab "pedidos" (excluye los que tienen devolución)
+const pedidosOrders = ordersWithItems.filter((o: any) => !ordersWithReturn.has(o.id));
+
 const statusMap: Record<string, string> = {
     pending: "Pendiente",
     confirmed: "Confirmado",
@@ -261,9 +267,9 @@ const tabs = [
                             Mis <span class="text-brand">Pedidos</span>
                         </h2>
                         {
-                            ordersWithItems.length > 0 ? (
+                            pedidosOrders.length > 0 ? (
                                 <div class="space-y-5">
-                                    {ordersWithItems.map((order: any) => (
+                                    {pedidosOrders.map((order: any) => (
                                         <div class="card p-6">
                                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
                                                 <div>
@@ -428,8 +434,8 @@ const tabs = [
                                                     </button>
                                                 )}
 
-                                                {/* Botón Solicitar Devolución (delivered, dentro del plazo) */}
-                                                {order.status === 'delivered' && (
+                                                {/* Botón Solicitar Devolución (delivered, dentro del plazo, sin devolución previa) */}
+                                                {order.status === 'delivered' && !ordersWithReturn.has(order.id) && (
                                                     <button
                                                         type="button"
                                                         data-order-id={order.id}
