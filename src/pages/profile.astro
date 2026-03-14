@@ -1474,6 +1474,67 @@ const tabs = [
         </div>
     </div>
 
+    <!-- ── Modal para solicitar devolución ── -->
+    <div
+        id="return-modal"
+        class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+        style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);"
+    >
+        <div
+            class="card max-w-sm w-full p-8 space-y-6"
+            style="border-color: var(--border-color);"
+        >
+            <div>
+                <p
+                    class="font-display font-bold uppercase tracking-tight text-base mb-1"
+                >
+                    Motivo de la Devolución
+                </p>
+                <p
+                    class="text-xs"
+                    style="color: var(--text-muted);"
+                >
+                    Selecciona el motivo de tu devolución
+                </p>
+            </div>
+            <div class="space-y-2">
+                <label class="flex items-center gap-3 p-3 rounded cursor-pointer transition-colors" style="background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2);">
+                    <input type="radio" name="return-reason" value="Talla incorrecta" class="cursor-pointer" />
+                    <span class="text-xs">Talla incorrecta</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 rounded cursor-pointer transition-colors" style="background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2);">
+                    <input type="radio" name="return-reason" value="No me gustó" class="cursor-pointer" />
+                    <span class="text-xs">No me gustó</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 rounded cursor-pointer transition-colors" style="background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2);">
+                    <input type="radio" name="return-reason" value="Defecto de fabricación" class="cursor-pointer" />
+                    <span class="text-xs">Defecto de fabricación</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 rounded cursor-pointer transition-colors" style="background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2);">
+                    <input type="radio" name="return-reason" value="Color diferente" class="cursor-pointer" />
+                    <span class="text-xs">Color diferente al esperado</span>
+                </label>
+                <label class="flex items-center gap-3 p-3 rounded cursor-pointer transition-colors" style="background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.2);">
+                    <input type="radio" name="return-reason" value="Otro" class="cursor-pointer" />
+                    <span class="text-xs">Otro motivo</span>
+                </label>
+            </div>
+            <div class="flex gap-3">
+                <button
+                    id="return-modal-cancel"
+                    class="btn-outline flex-1 h-10 text-xs uppercase tracking-widest"
+                    >Cancelar</button
+                >
+                <button
+                    id="return-modal-ok"
+                    class="flex-1 h-10 text-xs font-bold uppercase tracking-widest transition-colors"
+                    style="background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #3b82f6;"
+                    >Continuar</button
+                >
+            </div>
+        </div>
+    </div>
+
     <Footer />
 </Layout>
 
@@ -1516,6 +1577,45 @@ const tabs = [
             const onCancel = () => close(false);
             const onBackdrop = (e: Event) => {
                 if (e.target === modal) close(false);
+            };
+
+            okBtn.addEventListener("click", onOk);
+            cancelBtn.addEventListener("click", onCancel);
+            modal.addEventListener("click", onBackdrop);
+        });
+    }
+
+    // ── Modal para solicitar devolución (retorna el motivo seleccionado o null) ─
+    function showReturnReasonModal(): Promise<string | null> {
+        return new Promise((resolve) => {
+            const modal = document.getElementById("return-modal")!;
+            const okBtn = document.getElementById("return-modal-ok")!;
+            const cancelBtn = document.getElementById("return-modal-cancel")!;
+
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            document.body.style.overflow = "hidden";
+
+            function close(reason: string | null) {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+                document.body.style.overflow = "";
+                okBtn.removeEventListener("click", onOk);
+                cancelBtn.removeEventListener("click", onCancel);
+                modal.removeEventListener("click", onBackdrop);
+                const radios = modal.querySelectorAll<HTMLInputElement>('input[name="return-reason"]');
+                radios.forEach(r => r.checked = false);
+                resolve(reason);
+            }
+
+            const onOk = () => {
+                const radios = modal.querySelectorAll<HTMLInputElement>('input[name="return-reason"]');
+                const selected = Array.from(radios).find(r => r.checked);
+                close(selected?.value || null);
+            };
+            const onCancel = () => close(null);
+            const onBackdrop = (e: Event) => {
+                if (e.target === modal) close(null);
             };
 
             okBtn.addEventListener("click", onOk);
@@ -1918,9 +2018,9 @@ const tabs = [
                     const orderId = btn.dataset.orderId;
                     if (!orderId) return;
 
-                    const confirmed = confirm(
-                        "¿Estás seguro de que deseas cancelar este pedido?\n\n" +
-                        "Recibirás un reembolso del costo del producto, pero no del envío.",
+                    const confirmed = await customConfirm(
+                        "¿Cancelar Pedido?",
+                        "Se reembolsará el costo del producto, pero no los gastos de envío. Esta acción es irreversible.",
                     );
                     if (!confirmed) return;
 
@@ -1970,13 +2070,7 @@ const tabs = [
                         (now.getTime() - deliveryDate.getTime()) / (1000 * 60 * 60 * 24),
                     );
 
-                    // Por ahora mostrar modal simple con prompt
-                    const reason = prompt(
-                        "¿Cuál es el motivo de la devolución?\n\n" +
-                        "Ejemplos: Talla incorrecta, No me gustó, Defecto de fabricación, etc.",
-                        "Talla incorrecta",
-                    );
-
+                    const reason = await showReturnReasonModal();
                     if (!reason?.trim()) return;
 
                     btn.disabled = true;
