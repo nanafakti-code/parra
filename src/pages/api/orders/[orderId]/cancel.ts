@@ -108,11 +108,17 @@ export const POST: APIRoute = async (context) => {
     if (!chargeId && order.stripe_session_id) {
       // If not stored locally, retrieve from Stripe using session_id
       try {
+        console.log('[cancel-order] Retrieving charge from Stripe for session:', order.stripe_session_id);
         const session = await stripe.checkout.sessions.retrieve(order.stripe_session_id);
+        console.log('[cancel-order] Session payment_intent:', session.payment_intent);
+
         if (session.payment_intent) {
           const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string);
+          console.log('[cancel-order] PaymentIntent charges count:', paymentIntent.charges.data.length);
+
           if (paymentIntent.charges.data.length > 0) {
             chargeId = paymentIntent.charges.data[0].id;
+            console.log('[cancel-order] Retrieved charge ID:', chargeId);
           }
         }
       } catch (err: any) {

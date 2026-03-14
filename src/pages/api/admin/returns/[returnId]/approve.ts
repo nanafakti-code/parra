@@ -106,11 +106,17 @@ export const PATCH: APIRoute = async (context) => {
     if (!chargeId && order.stripe_session_id) {
       // If not stored locally, retrieve from Stripe using session_id
       try {
+        console.log('[approve-return] Retrieving charge from Stripe for session:', order.stripe_session_id);
         const session = await stripe.checkout.sessions.retrieve(order.stripe_session_id);
+        console.log('[approve-return] Session payment_intent:', session.payment_intent);
+
         if (session.payment_intent) {
           const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string);
+          console.log('[approve-return] PaymentIntent charges count:', paymentIntent.charges.data.length);
+
           if (paymentIntent.charges.data.length > 0) {
             chargeId = paymentIntent.charges.data[0].id;
+            console.log('[approve-return] Retrieved charge ID:', chargeId);
           }
         }
       } catch (err: any) {

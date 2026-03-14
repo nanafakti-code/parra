@@ -1535,6 +1535,66 @@ const tabs = [
         </div>
     </div>
 
+    <!-- ── Modal para cancelar pedido ── -->
+    <div
+        id="cancel-order-modal"
+        class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+        style="background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);"
+    >
+        <div
+            class="card max-w-sm w-full p-8 space-y-6 text-center"
+            style="border-color: var(--border-color);"
+        >
+            <div
+                class="w-12 h-12 mx-auto flex items-center justify-center"
+                style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);"
+            >
+                <svg
+                    class="w-6 h-6"
+                    style="color: #ef4444;"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M6 18L18 6M6 6l12 12"
+                    ></path>
+                </svg>
+            </div>
+            <div>
+                <p
+                    id="cancel-modal-title"
+                    class="font-display font-bold uppercase tracking-tight text-base mb-1"
+                >
+                    ¿Cancelar Pedido?
+                </p>
+                <p
+                    id="cancel-modal-body"
+                    class="text-xs"
+                    style="color: var(--text-muted);"
+                >
+                    Se reembolsará el costo del producto, pero no los gastos de envío. Esta acción es irreversible.
+                </p>
+            </div>
+            <div class="flex gap-3">
+                <button
+                    id="cancel-modal-cancel"
+                    class="btn-outline flex-1 h-10 text-xs uppercase tracking-widest"
+                    >Volver Atrás</button
+                >
+                <button
+                    id="cancel-modal-ok"
+                    class="flex-1 h-10 text-xs font-bold uppercase tracking-widest transition-colors"
+                    style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #ef4444;"
+                    >Cancelar Pedido</button
+                >
+            </div>
+        </div>
+    </div>
+
     <Footer />
 </Layout>
 
@@ -1616,6 +1676,39 @@ const tabs = [
             const onCancel = () => close(null);
             const onBackdrop = (e: Event) => {
                 if (e.target === modal) close(null);
+            };
+
+            okBtn.addEventListener("click", onOk);
+            cancelBtn.addEventListener("click", onCancel);
+            modal.addEventListener("click", onBackdrop);
+        });
+    }
+
+    // ── Modal para cancelar pedido (Promise-based) ───────────────────────────────
+    function showCancelOrderModal(): Promise<boolean> {
+        return new Promise((resolve) => {
+            const modal = document.getElementById("cancel-order-modal")!;
+            const okBtn = document.getElementById("cancel-modal-ok")!;
+            const cancelBtn = document.getElementById("cancel-modal-cancel")!;
+
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            document.body.style.overflow = "hidden";
+
+            function close(result: boolean) {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+                document.body.style.overflow = "";
+                okBtn.removeEventListener("click", onOk);
+                cancelBtn.removeEventListener("click", onCancel);
+                modal.removeEventListener("click", onBackdrop);
+                resolve(result);
+            }
+
+            const onOk = () => close(true);
+            const onCancel = () => close(false);
+            const onBackdrop = (e: Event) => {
+                if (e.target === modal) close(false);
             };
 
             okBtn.addEventListener("click", onOk);
@@ -2018,10 +2111,7 @@ const tabs = [
                     const orderId = btn.dataset.orderId;
                     if (!orderId) return;
 
-                    const confirmed = await customConfirm(
-                        "¿Cancelar Pedido?",
-                        "Se reembolsará el costo del producto, pero no los gastos de envío. Esta acción es irreversible.",
-                    );
+                    const confirmed = await showCancelOrderModal();
                     if (!confirmed) return;
 
                     btn.disabled = true;
