@@ -19,7 +19,7 @@ if (user) {
 }
 
 // Cargar configuración de envío desde admin settings
-let shippingConfig = { free_threshold: 50, standard_cost: 4.99, express_cost: 9.99 };
+let shippingConfig = { free_threshold: 50, standard_cost: 4.99, express_cost: 9.99, express_cost_over_threshold: 5.00 };
 try {
     const { data: ss } = await supabaseAdmin
         .from("site_settings").select("value").eq("key", "shipping").single();
@@ -434,9 +434,10 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 </script>
 <script is:inline define:vars={{ shippingConfig }}>
     window.SHIPPING_CONFIG = {
-        freeThreshold: shippingConfig.free_threshold,
-        standardCost:  shippingConfig.standard_cost,
-        expressCost:   shippingConfig.express_cost,
+        freeThreshold:       shippingConfig.free_threshold,
+        standardCost:        shippingConfig.standard_cost,
+        expressCost:         shippingConfig.express_cost,
+        expressOverThreshold: shippingConfig.express_cost_over_threshold ?? 5.00,
     };
 </script>
 <!-- Buffer inline: captura el token de Turnstile aunque dispare antes de que el módulo JS esté listo -->
@@ -466,30 +467,35 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
     // ── Shipping UI helpers ─────────────────────────────────────────────────
     function updateShippingUI() {
-        const cfg = (window as any).SHIPPING_CONFIG || { freeThreshold: 50, standardCost: 4.99, expressCost: 9.99 };
+        const cfg = (window as any).SHIPPING_CONFIG || { freeThreshold: 50, standardCost: 4.99, expressCost: 9.99, expressOverThreshold: 5.00 };
         const cart = getCart();
         const subtotal = cart.reduce((s: number, i: any) => s + (Number(i.price) * Number(i.quantity)), 0);
         const isFree = subtotal >= cfg.freeThreshold;
         const stdEl = document.getElementById("cost-standard");
         const expEl = document.getElementById("cost-express");
         if (stdEl) stdEl.textContent = isFree ? "Gratis" : `${cfg.standardCost.toFixed(2)} €`;
-        if (expEl) expEl.textContent = isFree ? "Gratis" : `${cfg.expressCost.toFixed(2)} €`;
+        if (expEl) expEl.textContent = isFree ? `${cfg.expressOverThreshold.toFixed(2)} €` : `${cfg.expressCost.toFixed(2)} €`;
         updateOrderSummary();
     }
 
     function updateOrderSummary() {
-        const cfg = (window as any).SHIPPING_CONFIG || { freeThreshold: 50, standardCost: 4.99, expressCost: 9.99 };
+        const cfg = (window as any).SHIPPING_CONFIG || { freeThreshold: 50, standardCost: 4.99, expressCost: 9.99, expressOverThreshold: 5.00 };
         const cart = getCart();
         const subtotal = cart.reduce((s: number, i: any) => s + (Number(i.price) * Number(i.quantity)), 0);
         const isFree = subtotal >= cfg.freeThreshold;
-        const shippingCost = isFree ? 0 : (selectedShippingMethod === "express" ? cfg.expressCost : cfg.standardCost);
+        let shippingCost: number;
+        if (isFree) {
+            shippingCost = selectedShippingMethod === "express" ? cfg.expressOverThreshold : 0;
+        } else {
+            shippingCost = selectedShippingMethod === "express" ? cfg.expressCost : cfg.standardCost;
+        }
         const total = subtotal + shippingCost;
         const fmt = (n: number) => `${n.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
         const productsEl = document.getElementById("summary-products");
         const shippingEl = document.getElementById("summary-shipping");
         const totalEl    = document.getElementById("summary-total");
         if (productsEl) productsEl.textContent = fmt(subtotal);
-        if (shippingEl) shippingEl.textContent = isFree ? "Gratis" : fmt(shippingCost);
+        if (shippingEl) shippingEl.textContent = shippingCost === 0 ? "Gratis" : fmt(shippingCost);
         if (totalEl)    totalEl.textContent    = fmt(total);
     }
 
@@ -918,10 +924,12 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
                         if (data.ok) {
                             // Save order summary so the success page can show the breakdown
                             try {
-                                const cfg = (window as any).SHIPPING_CONFIG || { freeThreshold: 50, standardCost: 4.99, expressCost: 9.99 };
+                                const cfg = (window as any).SHIPPING_CONFIG || { freeThreshold: 50, standardCost: 4.99, expressCost: 9.99, expressOverThreshold: 5.00 };
                                 const sub = items.reduce((s: number, i: any) => s + (Number(i.price) * Number(i.quantity)), 0);
                                 const isFree = sub >= cfg.freeThreshold;
-                                const ship = isFree ? 0 : (selectedShippingMethod === "express" ? cfg.expressCost : cfg.standardCost);
+                                const ship = isFree
+                                    ? (selectedShippingMethod === "express" ? cfg.expressOverThreshold : 0)
+                                    : (selectedShippingMethod === "express" ? cfg.expressCost : cfg.standardCost);
                                 sessionStorage.setItem("lastOrderSummary", JSON.stringify({
                                     subtotal: sub,
                                     shipping: ship,
