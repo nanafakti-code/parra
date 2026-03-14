@@ -108,7 +108,7 @@ function layout(previewText: string, body: string): string {
             <p style="margin:0 0 16px;font-size:12px;color:${c.subtle};font-family:${fontStack};">
               <a href="https://www.parragkgloves.es/shop" style="color:${c.muted};text-decoration:none;margin:0 12px;">Tienda</a>
               <a href="mailto:info@parragkgloves.es" style="color:${c.muted};text-decoration:none;margin:0 12px;">Contacto</a>
-              <a href="https://www.parragkgloves.es/profile" style="color:${c.muted};text-decoration:none;margin:0 12px;">Devoluciones</a>
+              <a href="https://www.parragkgloves.es/profile?tab=devoluciones" style="color:${c.muted};text-decoration:none;margin:0 12px;">Devoluciones</a>
             </p>
             <p style="margin:0 0 8px;font-size:12px;color:${c.subtle};font-family:${fontStack};">Parra GK Gloves &mdash; info@parragkgloves.es</p>
             <p style="margin:0;font-size:11px;color:#4b5563;font-family:${fontStack};">&copy; ${new Date().getFullYear()} Parra Goalkeeper Gloves. Todos los derechos reservados.</p>
@@ -255,7 +255,7 @@ function buildOrderConfirmationHtml(
       </tr>
       <tr>
         <td style="padding:0 40px 40px;text-align:center;">
-          <a href="https://www.parragkgloves.es/profile" style="display:inline-block;background-color:${c.gold};color:#000;font-size:13px;font-weight:900;letter-spacing:2px;text-transform:uppercase;text-decoration:none;padding:14px 40px;border-radius:4px;font-family:${fontStack};">VER MI PEDIDO &rarr;</a>
+          <a href="https://www.parragkgloves.es/profile?tab=pedidos" style="display:inline-block;background-color:${c.gold};color:#000;font-size:13px;font-weight:900;letter-spacing:2px;text-transform:uppercase;text-decoration:none;padding:14px 40px;border-radius:4px;font-family:${fontStack};">VER MI PEDIDO &rarr;</a>
         </td>
       </tr>
     </table>`;
@@ -414,7 +414,7 @@ function buildDeliveredHtml(opts: SendOrderDeliveredOptions): string {
             <p style="margin:0 0 8px;font-size:28px;letter-spacing:4px;color:${c.gold};">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
             <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:${c.white};font-family:${fontStack};">&iquest;Qu&eacute; te han parecido los guantes?</p>
             <p style="margin:0 0 20px;font-size:14px;color:${c.muted};font-family:${fontStack};">Tu opini&oacute;n nos ayuda a mejorar y a otros porteros a elegir.</p>
-            <a href="${esc(opts.reviewUrl || 'https://www.parragkgloves.es/shop')}" style="display:inline-block;background-color:${c.gold};color:#000;font-size:13px;font-weight:900;letter-spacing:2px;text-transform:uppercase;text-decoration:none;padding:12px 32px;border-radius:4px;font-family:${fontStack};">DEJAR RESE&Ntilde;A &rarr;</a>
+            <a href="${esc(opts.reviewUrl || 'https://www.parragkgloves.es/profile?tab=rese%C3%B1as')}" style="display:inline-block;background-color:${c.gold};color:#000;font-size:13px;font-weight:900;letter-spacing:2px;text-transform:uppercase;text-decoration:none;padding:12px 32px;border-radius:4px;font-family:${fontStack};">DEJAR RESE&Ntilde;A &rarr;</a>
           </div>
         </td>
       </tr>
