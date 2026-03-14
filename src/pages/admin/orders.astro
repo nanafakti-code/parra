@@ -237,6 +237,9 @@ function statusBadge(s: string) {
                                             class="btn btn-primary btn-sm btn-order-status"
                                             data-id={order.id}
                                             data-status={order.status}
+                                            disabled={order.status === 'cancelled' || undefined}
+                                            style={order.status === 'cancelled' ? 'opacity:0.35;cursor:not-allowed;pointer-events:none;' : ''}
+                                            title={order.status === 'cancelled' ? 'No se puede cambiar el estado de un pedido cancelado' : ''}
                                         >
                                             Estado
                                         </button>
@@ -474,6 +477,7 @@ function statusBadge(s: string) {
                     btn.addEventListener("click", function () {
                         var id = this.getAttribute("data-id");
                         var status = this.getAttribute("data-status");
+                        if (status === "cancelled") return;
                         document.getElementById("status-order-id").value = id;
                         document.getElementById("status-select").value = status;
                         document.getElementById("status-tracking").value = "";
