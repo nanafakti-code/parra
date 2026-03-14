@@ -8,7 +8,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '../../../../../lib/supabase';
 import { validateAdminAPI } from '../../../../../lib/admin';
-import { sendReturnRejectionNotification } from '../../../../../lib/email';
+import { sendReturnRejectionNotification } from '../../../../../lib/email/index';
 
 interface APIError {
   code: string;

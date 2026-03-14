@@ -9,7 +9,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin, supabaseClient } from '../../../../lib/supabase';
 import Stripe from 'stripe';
-import { sendCancellationConfirmation } from '../../../../lib/email';
+import { sendCancellationConfirmation } from '../../../../lib/email/index';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
