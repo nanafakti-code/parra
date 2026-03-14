@@ -6,7 +6,7 @@
  */
 
 import type { APIRoute } from 'astro';
-import { sendContactForm } from '../../lib/email';
+import { sendContactForm } from '../../lib/email/index';
 
 export const POST: APIRoute = async (context) => {
   try {
