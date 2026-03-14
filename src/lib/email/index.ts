@@ -689,6 +689,7 @@ export interface SendReturnApprovalConfirmationOptions {
   orderNumber: string;
   refundAmount: number;
   refundId: string;
+  pdfBuffer?: Buffer;
 }
 
 function buildReturnApprovalHtml(opts: SendReturnApprovalConfirmationOptions): string {
@@ -778,12 +779,18 @@ function buildReturnApprovalHtml(opts: SendReturnApprovalConfirmationOptions): s
 export async function sendReturnApprovalConfirmation(opts: SendReturnApprovalConfirmationOptions) {
   await loadBrandColors();
   const resend = getResend();
+  const invoiceNumber = `DEV-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}${String(new Date().getDate()).padStart(2,'0')}-${opts.refundId.slice(-6).toUpperCase()}`;
+  const attachments: { filename: string; content: Buffer }[] = [];
+  if (opts.pdfBuffer) {
+    attachments.push({ filename: `nota-abono-${invoiceNumber}.pdf`, content: opts.pdfBuffer });
+  }
   const { data, error } = await resend.emails.send({
     from: FROM,
     to: [opts.customerEmail],
     replyTo: REPLY_TO,
-    subject: `Devoluci\u00f3n aprobada \u2014 Pedido ${opts.orderNumber} \u2014 Parra GK Gloves`,
+    subject: `Devolución aprobada — Pedido ${opts.orderNumber} — Parra GK Gloves`,
     html: buildReturnApprovalHtml(opts),
+    ...(attachments.length > 0 ? { attachments } : {}),
   });
 
   if (error) throw new Error(`[email] Resend error: ${error.message}`);

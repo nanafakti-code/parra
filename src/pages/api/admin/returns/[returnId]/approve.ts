@@ -9,6 +9,7 @@ import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '../../../../../lib/supabase';
 import { validateAdminAPI } from '../../../../../lib/admin';
 import { sendReturnApprovalConfirmation } from '../../../../../lib/email/index';
+import { generateReturnInvoicePdf } from '../../../../../lib/pdf';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
@@ -217,12 +218,25 @@ export const PATCH: APIRoute = async (context) => {
 
     // Send approval email
     try {
+      // Build a return record object with the refund data for PDF generation
+      const returnForPdf = {
+        ...returnRecord,
+        refund_amount: refundAmount / 100,
+        stripe_refund_id: refund.id,
+      };
+      let pdfBuffer: Buffer | undefined;
+      try {
+        pdfBuffer = await generateReturnInvoicePdf(returnForPdf, order);
+      } catch (pdfError) {
+        console.error('[approve-return] PDF generation error:', pdfError);
+      }
       await sendReturnApprovalConfirmation({
         customerEmail: order.email,
         customerName: order.shipping_name || 'Cliente',
         orderNumber: order.order_number || `PG-${String(order.id).slice(-8).toUpperCase()}`,
         refundAmount: refundAmount / 100,
         refundId: refund.id,
+        pdfBuffer,
       });
     } catch (emailError) {
       console.error('[approve-return] Email error:', emailError);

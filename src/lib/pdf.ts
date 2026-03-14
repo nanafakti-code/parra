@@ -372,3 +372,309 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         doc.end();
     });
 }
+
+export async function generateReturnInvoicePdf(returnRecord: any, order: any): Promise<Buffer> {
+    let brandPrimary = "#39FF14";
+    let brandName = "PARRA GK Gloves";
+    let contactEmail = "info@parragkgloves.es";
+    let contactPhone = "+34 91 000 00 00";
+    let contactAddress = "Calle Mayor 42, 28001 Madrid";
+    try {
+        const { data: settingsRows } = await supabaseAdmin
+            .from("site_settings").select("key, value").in("key", ["brand", "contact"]);
+        const sm: Record<string, any> = {};
+        (settingsRows || []).forEach((r: any) => { sm[r.key] = r.value; });
+        const raw = sm.brand?.primary_color;
+        if (raw && /^#[0-9a-fA-F]{6}$/.test(raw)) brandPrimary = raw.toUpperCase();
+        if (sm.brand?.name) brandName = sm.brand.name;
+        if (sm.contact?.email) contactEmail = sm.contact.email;
+        if (sm.contact?.phone) contactPhone = sm.contact.phone;
+        if (sm.contact?.address) contactAddress = sm.contact.address;
+    } catch { /* mantener defaults */ }
+
+    const orderNumber = order.order_number || `PG-${String(order.id).slice(-8).toUpperCase()}`;
+    const refDate = new Date(returnRecord.updated_at || returnRecord.created_at || Date.now());
+    const refundId = returnRecord.stripe_refund_id || '';
+    const returnNumber = `DEV-${refDate.getFullYear()}${String(refDate.getMonth()+1).padStart(2,'0')}${String(refDate.getDate()).padStart(2,'0')}-${(refundId || returnRecord.id || '').slice(-6).toUpperCase()}`;
+    const refundAmount = parseFloat(returnRecord.refund_amount) || 0;
+    const customerName = order.shipping_name || 'Cliente';
+    const customerEmail = (order.email || '').toLowerCase();
+    const customerPhone = order.shipping_phone || '';
+    const address = [order.shipping_street, order.shipping_city, order.shipping_postal_code, order.shipping_country || 'España'].filter(Boolean).join(', ');
+
+    return new Promise((resolve, reject) => {
+        let done = false;
+        const finish = (buf?: Buffer, err?: unknown) => {
+            if (done) return;
+            done = true;
+            if (err) reject(err); else resolve(buf!);
+        };
+
+        const doc = new PDFDocument({
+            size: "A4", margin: 0, bufferPages: false,
+            info: { Title: `Nota de Abono ${returnNumber}`, Author: "PARRA", Subject: "Factura de devolución" },
+        });
+
+        const chunks: Buffer[] = [];
+        doc.on("data", (c: Buffer) => chunks.push(c));
+        doc.on("end", () => finish(Buffer.concat(chunks)));
+        doc.on("error", (e: unknown) => finish(undefined, e));
+
+        const W = 595.28;
+        const H = 841.89;
+        const M = 44;
+        const CW = W - M * 2;
+
+        const BG = "#07090d";
+        const BLACK = "#0d0f14";
+        const CARD = "#111520";
+        const GREEN = brandPrimary;
+        const GREEND = darkenHex(brandPrimary, 0.62);
+        const WHITE = "#f0f4f8";
+        const GRAY = "#6b7280";
+        const LGRAY = "#9ca3af";
+        const BORDER = "#1e2433";
+        const ACCENT = "#0f1929";
+        const RED = "#ef4444";
+        const REDD = darkenHex("#ef4444", 0.62);
+        const REDX = "#160a0a";
+
+        const bracket = (x: number, y: number, size: number, flip: boolean) => drawBracket(doc, RED, x, y, size, flip);
+        const sectionLabel = (label: string, x: number, y: number, color?: string) =>
+            drawSectionLabel(doc, color || RED, label, x, y);
+
+        // ── FONDO ────────────────────────────────────────────────────────────
+        doc.rect(0, 0, W, H).fill(BG);
+
+        // ── HEADER ───────────────────────────────────────────────────────────
+        const HH = 130;
+        doc.rect(0, 0, W, HH).fill(BLACK);
+        doc.save()
+            .moveTo(0, HH - 20).lineTo(W * 0.55, HH - 20).lineTo(W * 0.55 + 32, HH)
+            .lineTo(0, HH).fill(ACCENT);
+        doc.restore();
+        doc.rect(0, HH - 2, W, 2).fill(RED);
+        doc.rect(0, HH, W, 6).fill(REDX);
+
+        doc.font("Helvetica-Bold").fontSize(38).fillColor(WHITE)
+            .text("PARRA", M, 28, { lineBreak: false, characterSpacing: 4 });
+        doc.rect(M, 74, 3, 14).fill(RED);
+        doc.font("Helvetica").fontSize(7.5).fillColor(LGRAY)
+            .text("GOALKEEPER GLOVES", M + 10, 78, { lineBreak: false, characterSpacing: 2 });
+
+        const badgeW = 155; const badgeH = 32; const badgeX = W - M - badgeW; const badgeY = 26;
+        doc.rect(badgeX, badgeY, badgeW, badgeH).fill(REDX);
+        doc.rect(badgeX, badgeY, badgeW, badgeH).stroke(RED);
+        doc.rect(badgeX, badgeY + badgeH - 2, badgeW, 2).fill(RED);
+        doc.font("Helvetica-Bold").fontSize(13).fillColor(RED)
+            .text("NOTA DE ABONO", badgeX, badgeY + 9, { width: badgeW, align: "center", lineBreak: false, characterSpacing: 2 });
+
+        doc.font("Helvetica").fontSize(8).fillColor(GRAY)
+            .text("N\u00BA DOCUMENTO", badgeX, badgeY + badgeH + 8, { width: badgeW, align: "center", lineBreak: false, characterSpacing: 1 });
+        doc.font("Helvetica-Bold").fontSize(10).fillColor(LGRAY)
+            .text(returnNumber, badgeX, badgeY + badgeH + 20, { width: badgeW, align: "center", lineBreak: false });
+
+        // ── BANDA DE ESTADO ───────────────────────────────────────────────────
+        const SY = HH + 10;
+        const SH = 34;
+        doc.rect(M, SY, CW, SH).fill(CARD);
+        doc.rect(M, SY, 3, SH).fill(RED);
+        bracket(M + 3, SY + 5, 8, false);
+        bracket(M + CW, SY + 5, 8, true);
+
+        const colW3 = CW / 3;
+        [
+            { lbl: "FECHA DE DEVOLUCIÓN", val: refDate.toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" }) },
+            { lbl: "N\u00BA PEDIDO ORIGINAL", val: orderNumber },
+            { lbl: "ESTADO", val: "REEMBOLSADO" },
+        ].forEach((r, i) => {
+            const x = M + 3 + colW3 * i + (i === 0 ? 14 : 10);
+            doc.font("Helvetica").fontSize(6.5).fillColor(GRAY)
+                .text(r.lbl, x, SY + 7, { lineBreak: false, characterSpacing: 1 });
+            doc.font("Helvetica-Bold").fontSize(9).fillColor(i === 2 ? RED : WHITE)
+                .text(r.val, x, SY + 19, { lineBreak: false });
+            if (i < 2) {
+                doc.lineWidth(0.5).strokeColor(BORDER)
+                    .moveTo(M + 3 + colW3 * (i + 1), SY + 8)
+                    .lineTo(M + 3 + colW3 * (i + 1), SY + SH - 8).stroke();
+            }
+        });
+
+        // ── EMISOR / RECEPTOR ─────────────────────────────────────────────────
+        const IY = SY + SH + 14;
+        const IH = 100;
+        const HW = (CW - 10) / 2;
+        const GAP = 10;
+
+        doc.rect(M, IY, HW, IH).fill(CARD);
+        doc.rect(M, IY, 3, IH).fill(RED);
+        doc.rect(M + 3, IY, HW - 3, 1).fill(BORDER);
+        bracket(M + 3, IY + 4, 10, false);
+        bracket(M + HW, IY + 4, 10, true);
+        bracket(M + 3, IY + IH - 14, 10, false);
+        bracket(M + HW, IY + IH - 14, 10, true);
+        sectionLabel("// EMISOR", M + 16, IY + 9);
+        doc.rect(M + 16, IY + 19, 30, 1).fill(GREEND);
+
+        let ey = IY + 25;
+        ([
+            ["Helvetica-Bold", 10, WHITE, brandName],
+            ["Helvetica", 7.5, LGRAY, "CIF: B-12345678"],
+            ["Helvetica", 7.5, LGRAY, contactAddress],
+            ["Helvetica", 7.5, GRAY, contactEmail],
+            ["Helvetica", 7.5, GRAY, contactPhone],
+        ] as const).forEach(([f, s, col, t]) => {
+            doc.font(f).fontSize(Number(s)).fillColor(col).text(t, M + 16, ey, { lineBreak: false });
+            ey += Number(s) + 3.5;
+        });
+
+        const RX = M + HW + GAP;
+        doc.rect(RX, IY, HW, IH).fill(CARD);
+        doc.rect(RX, IY, 3, IH).fill(RED);
+        bracket(RX + 3, IY + 4, 10, false);
+        bracket(RX + HW, IY + 4, 10, true);
+        bracket(RX + 3, IY + IH - 14, 10, false);
+        bracket(RX + HW, IY + IH - 14, 10, true);
+        sectionLabel("// CLIENTE", RX + 16, IY + 9);
+        doc.rect(RX + 16, IY + 19, 30, 1).fill(GREEND);
+
+        const receptor: [string, number, string, string][] = [
+            ["Helvetica-Bold", 10, WHITE, customerName],
+            ...(customerEmail ? [["Helvetica", 7.5, LGRAY, customerEmail] as [string, number, string, string]] : []),
+            ...(customerPhone ? [["Helvetica", 7.5, LGRAY, customerPhone] as [string, number, string, string]] : []),
+            ...(address ? [["Helvetica", 7.5, GRAY, address] as [string, number, string, string]] : []),
+        ];
+        let ry = IY + 25;
+        receptor.forEach(([f, s, col, t]) => {
+            doc.font(f).fontSize(s).fillColor(col).text(t, RX + 16, ry, { width: HW - 28, lineBreak: false });
+            ry += s + 3.5;
+        });
+
+        // ── TABLA DEVOLUCIÓN ──────────────────────────────────────────────────
+        const TY = IY + IH + 18;
+        doc.rect(M, TY, CW, 28).fill(REDX);
+        doc.rect(M, TY, 3, 28).fill(RED);
+        doc.rect(M, TY + 26, CW, 2).fill(RED);
+
+        const cols = [
+            { lbl: "CONCEPTO", x: M + 14, w: CW * 0.55 },
+            { lbl: "N\u00BA PEDIDO", x: M + CW * 0.57, w: CW * 0.22 },
+            { lbl: "IMPORTE", x: M + CW * 0.80, w: CW * 0.19 },
+        ];
+        cols.forEach((col) => {
+            doc.font("Helvetica-Bold").fontSize(7).fillColor(RED)
+                .text(col.lbl, col.x, TY + 9, { lineBreak: false, characterSpacing: 1 });
+        });
+
+        const rowY = TY + 28;
+        const RH = 40;
+        doc.rect(M, rowY, CW, RH).fill(CARD);
+        doc.rect(M, rowY, 3, RH).fill(REDD);
+        doc.lineWidth(0.3).strokeColor(BORDER)
+            .moveTo(M + 3, rowY + RH).lineTo(M + CW, rowY + RH).stroke();
+
+        const cy = rowY + RH / 2 - 6;
+        doc.circle(M + 10, cy + 6, 2).fill(RED);
+        doc.font("Helvetica-Bold").fontSize(9).fillColor(WHITE)
+            .text("Devolución de producto — coste de envío no incluido", cols[0].x, cy, { width: cols[0].w - 6, lineBreak: false });
+        doc.font("Helvetica").fontSize(8.5).fillColor(LGRAY)
+            .text(orderNumber, cols[1].x, cy, { lineBreak: false });
+        doc.font("Helvetica-Bold").fontSize(9).fillColor(RED)
+            .text(refundAmount.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " \u20AC",
+                cols[2].x, cy, { align: "right", width: cols[2].w - 6, lineBreak: false });
+
+        doc.rect(M, rowY + RH, CW, 2).fill(BORDER);
+
+        // ── PANEL IZQUIERDO: referencia reembolso ─────────────────────────────
+        const BOTW = CW * 0.46;
+        const BOTY = rowY + RH + 16;
+        const BOTH = 66;
+        doc.rect(M, BOTY, BOTW, BOTH).fill(CARD);
+        doc.rect(M, BOTY, 3, BOTH).fill(GREEN);
+        bracket(M + 3, BOTY + 4, 8, false);
+        bracket(M + BOTW, BOTY + 4, 8, true);
+        sectionLabel("// ID REEMBOLSO STRIPE", M + 14, BOTY + 9, GREEN);
+        doc.font("Helvetica-Bold").fontSize(9).fillColor(LGRAY)
+            .text(refundId || "N/A", M + 14, BOTY + 25, { width: BOTW - 28, lineBreak: false });
+        if (returnRecord.reason) {
+            doc.font("Helvetica").fontSize(7.5).fillColor(GRAY)
+                .text("Motivo: " + returnRecord.reason, M + 14, BOTY + 42, { width: BOTW - 28, lineBreak: false });
+        }
+
+        // ── PANEL DERECHO: totales ────────────────────────────────────────────
+        const TX = M + CW * 0.52;
+        const TW = CW * 0.48;
+        const baseImponible = refundAmount / 1.21;
+        const ivaAmount = refundAmount - baseImponible;
+        const totRows: { lbl: string; val: string; accent?: boolean }[] = [
+            { lbl: "Base imponible:", val: baseImponible.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " \u20AC" },
+            { lbl: "IVA (21%):", val: ivaAmount.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " \u20AC" },
+            { lbl: "TOTAL REEMBOLSADO", val: refundAmount.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " \u20AC", accent: true },
+        ];
+        const totalH = (totRows.length - 1) * 22 + 44 + 12;
+        let tv = BOTY;
+
+        doc.rect(TX, tv, TW, totalH).fill(CARD);
+        doc.rect(TX, tv, TW, 2).fill(REDD);
+        doc.rect(TX, tv, 3, totalH).fill(RED);
+        bracket(TX + 3, tv + 4, 8, false);
+        bracket(TX + TW, tv + 4, 8, true);
+
+        tv += 10;
+        totRows.forEach((row) => {
+            if (row.accent) {
+                doc.rect(TX, tv - 2, TW, 38).fill(REDX);
+                doc.rect(TX, tv - 2, 3, 38).fill(RED);
+                doc.rect(TX, tv - 2, TW, 1).fill(REDD);
+                doc.rect(TX, tv + 36, TW, 2).fill(RED);
+                doc.font("Helvetica").fontSize(7).fillColor(RED)
+                    .text("IMPORTE REEMBOLSADO  //", TX + 12, tv + 3, { lineBreak: false, characterSpacing: 1 });
+                doc.font("Helvetica-Bold").fontSize(16).fillColor(RED)
+                    .text(row.val, TX + 8, tv + 13, { lineBreak: false });
+                tv += 42;
+            } else {
+                doc.lineWidth(0.3).strokeColor(BORDER)
+                    .moveTo(TX + 12, tv + 18).lineTo(TX + TW - 12, tv + 18).stroke();
+                doc.font("Helvetica").fontSize(8.5).fillColor(GRAY)
+                    .text(row.lbl, TX + 12, tv + 4, { lineBreak: false });
+                doc.font("Helvetica-Bold").fontSize(8.5).fillColor(WHITE)
+                    .text(row.val, TX + 8, tv + 4, { align: "right", width: TW - 16, lineBreak: false });
+                tv += 22;
+            }
+        });
+
+        // ── NOTA LEGAL ────────────────────────────────────────────────────────
+        const NY = BOTY + Math.max(BOTH, totalH) + 16;
+        doc.rect(M, NY, CW, 38).fill(CARD);
+        doc.rect(M, NY, 3, 38).fill(GRAY);
+        sectionLabel("// AVISO LEGAL", M + 12, NY + 8, GRAY);
+        doc.font("Helvetica").fontSize(7).fillColor(GRAY)
+            .text(
+                "Documento válido conforme al RD 1619/2012. IVA incluido en los precios. " +
+                `${brandName} — CIF: B-12345678 — ${contactEmail}`,
+                M + 12, NY + 21, { width: CW - 24, lineBreak: false }
+            );
+
+        // ── FOOTER ────────────────────────────────────────────────────────────
+        const FY = H - 50;
+        doc.rect(0, FY, W, 50).fill(BLACK);
+        doc.rect(0, FY, W, 2).fill(RED);
+        doc.rect(0, FY + 2, W, 4).fill(REDX);
+
+        doc.lineWidth(0.4).strokeColor(BORDER);
+        doc.moveTo(M, FY + 18).lineTo(W - M, FY + 18).stroke();
+
+        doc.font("Helvetica-Bold").fontSize(9).fillColor(WHITE)
+            .text(brandName.toUpperCase(), M, FY + 10, { lineBreak: false, characterSpacing: 2 });
+        doc.font("Helvetica").fontSize(7).fillColor(GRAY)
+            .text(`www.parragkgloves.es  \u00b7  ${contactEmail}  \u00b7  ${contactPhone}`, M, FY + 24, { lineBreak: false });
+        doc.font("Helvetica").fontSize(7).fillColor(GRAY)
+            .text(`Generado el ${refDate.toLocaleDateString("es-ES")}  \u00b7  ${returnNumber}`, 0, FY + 24,
+                { align: "right", width: W - M, lineBreak: false });
+        doc.font("Helvetica").fontSize(6.5).fillColor(GREEND)
+            .text("DOCUMENTO FISCAL VERIFICADO", 0, FY + 36,
+                { align: "right", width: W - M, lineBreak: false, characterSpacing: 1 });
+
+        doc.end();
+    });
+}

@@ -644,6 +644,23 @@ const tabs = [
                                                     )}
                                                 </div>
                                             )}
+                                            {ret.status === "refunded" && (
+                                                <div
+                                                    class="pt-4 mt-4"
+                                                    style="border-top:1px solid var(--border-color);"
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        data-return-invoice-url={`/api/returns/invoice/${ret.id}`}
+                                                        data-return-invoice-name={`nota-abono-${ret.id.slice(-8).toUpperCase()}.pdf`}
+                                                        class="return-invoice-dl-btn inline-flex items-center gap-2 px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all duration-200 cursor-pointer"
+                                                        style="background:rgba(239,68,68,0.08);color:#ef4444;border:1px solid rgba(239,68,68,0.30);border-radius:6px;"
+                                                    >
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                                                        Descargar Nota de Abono
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -2188,6 +2205,43 @@ const tabs = [
                         );
                     } finally {
                         btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                });
+            });
+
+        // ── Return invoice (nota de abono) download ──────────────────────────────
+        document
+            .querySelectorAll<HTMLButtonElement>(".return-invoice-dl-btn")
+            .forEach((btn) => {
+                btn.addEventListener("click", async () => {
+                    const url = btn.dataset.returnInvoiceUrl;
+                    const name = btn.dataset.returnInvoiceName || "nota-abono.pdf";
+                    if (!url) return;
+
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML =
+                        '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Generando...';
+                    btn.disabled = true;
+
+                    try {
+                        const res = await fetch(url, { credentials: "include" });
+                        if (!res.ok) {
+                            const text = await res.text();
+                            throw new Error(text || `Error ${res.status}`);
+                        }
+                        const blob = await res.blob();
+                        const a = document.createElement("a");
+                        a.href = URL.createObjectURL(blob);
+                        a.download = name;
+                        document.body.appendChild(a);
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                        a.remove();
+                    } catch (err: any) {
+                        alert("Error al descargar la nota de abono: " + (err?.message || "desconocido"));
+                    } finally {
+                        btn.innerHTML = originalHTML;
                         btn.disabled = false;
                     }
                 });
