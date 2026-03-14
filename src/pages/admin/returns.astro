@@ -365,13 +365,11 @@ function statusBadge(s: string) {
             document.getElementById("return-approve-btn").addEventListener("click", async function () {
                 var returnId = document.getElementById("return-id").value;
                 var notes    = document.getElementById("return-notes").value;
+                var btn      = this;
 
-                if (typeof window.adminConfirm === "function") {
-                    window.adminConfirm("¿Aprobar esta devolución y procesar el reembolso?", async () => { await doApprove(returnId, notes, this); });
-                } else {
-                    if (!confirm("¿Confirmas que deseas aprobar esta devolución y procesar el reembolso?")) return;
-                    await doApprove(returnId, notes, this);
-                }
+                var confirmed = await window.adminConfirm("¿Aprobar esta devolución y procesar el reembolso al método de pago del cliente?");
+                if (!confirmed) return;
+                await doApprove(returnId, notes, btn);
             });
 
             async function doApprove(returnId, notes, btn) {
@@ -404,18 +402,16 @@ function statusBadge(s: string) {
             document.getElementById("return-reject-btn").addEventListener("click", async function () {
                 var returnId = document.getElementById("return-id").value;
                 var notes    = document.getElementById("return-notes").value;
+                var btn      = this;
 
                 if (!notes.trim()) {
                     window.adminToast("Por favor indica la razón del rechazo en las notas", "error");
                     return;
                 }
 
-                if (typeof window.adminConfirm === "function") {
-                    window.adminConfirm("¿Rechazar esta devolución?", async () => { await doReject(returnId, notes, this); });
-                } else {
-                    if (!confirm("¿Confirmas que deseas rechazar esta devolución?")) return;
-                    await doReject(returnId, notes, this);
-                }
+                var confirmed = await window.adminConfirm("¿Rechazar esta devolución? Se notificará al cliente con el motivo indicado.");
+                if (!confirmed) return;
+                await doReject(returnId, notes, btn);
             });
 
             async function doReject(returnId, notes, btn) {
