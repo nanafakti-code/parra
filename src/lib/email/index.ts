@@ -844,6 +844,106 @@ export async function sendReturnRejectionNotification(opts: SendReturnRejectionN
   return data;
 }
 
+// ── 9. Return Request Confirmation ───────────────────────────────────────────
+
+export interface SendReturnRequestConfirmationOptions {
+  customerEmail: string;
+  customerName: string;
+  orderNumber: string;
+  reason: string;
+}
+
+function buildReturnRequestHtml(opts: SendReturnRequestConfirmationOptions): string {
+  const firstName = opts.customerName.split(' ')[0];
+
+  const body = `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${c.card};">
+      <tr>
+        <td style="padding:40px 40px 24px;text-align:center;">
+          <div style="width:56px;height:56px;border-radius:50%;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
+            <span style="font-size:24px;">&#128221;</span>
+          </div>
+          <h1 style="margin:0 0 8px;font-size:22px;font-weight:900;color:${c.white};letter-spacing:1px;text-transform:uppercase;font-family:${fontStack};">Solicitud Recibida</h1>
+          <p style="margin:0;font-size:14px;color:${c.muted};font-family:${fontStack};">Hola ${esc(firstName)}, hemos recibido tu solicitud de devolución.</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 24px;">
+          <div style="background-color:#0d0d10;border-radius:6px;padding:20px 24px;border:1px solid rgba(255,255,255,0.06);">
+            <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">Pedido</p>
+            <p style="margin:0 0 16px;font-size:18px;font-weight:900;color:${c.white};font-family:${fontStack};">${esc(opts.orderNumber)}</p>
+            <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">Motivo indicado</p>
+            <p style="margin:0;font-size:14px;color:${c.muted};line-height:1.6;font-family:${fontStack};">${esc(opts.reason)}</p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 24px;">
+          <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:${c.white};letter-spacing:0.5px;font-family:${fontStack};">¿Qué ocurre ahora?</p>
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="padding:8px 0;vertical-align:top;width:28px;">
+                <div style="width:22px;height:22px;border-radius:50%;background:${c.gold};display:inline-block;text-align:center;line-height:22px;font-size:11px;font-weight:900;color:#000;font-family:${fontStack};">1</div>
+              </td>
+              <td style="padding:8px 0 8px 8px;vertical-align:top;">
+                <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.5;font-family:${fontStack};"><strong style="color:${c.white};">Revisamos tu solicitud</strong> — Nuestro equipo analizará los detalles en un plazo de <strong style="color:${c.white};">1–2 días hábiles</strong>.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0;vertical-align:top;width:28px;">
+                <div style="width:22px;height:22px;border-radius:50%;background:${c.gold};display:inline-block;text-align:center;line-height:22px;font-size:11px;font-weight:900;color:#000;font-family:${fontStack};">2</div>
+              </td>
+              <td style="padding:8px 0 8px 8px;vertical-align:top;">
+                <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.5;font-family:${fontStack};"><strong style="color:${c.white};">Te notificamos por email</strong> — Recibirás una respuesta con la resolución y, si es aprobada, las instrucciones de envío.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0;vertical-align:top;width:28px;">
+                <div style="width:22px;height:22px;border-radius:50%;background:${c.gold};display:inline-block;text-align:center;line-height:22px;font-size:11px;font-weight:900;color:#000;font-family:${fontStack};">3</div>
+              </td>
+              <td style="padding:8px 0 8px 8px;vertical-align:top;">
+                <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.5;font-family:${fontStack};"><strong style="color:${c.white};">Reembolso procesado</strong> — Una vez recibamos y verifiquemos el artículo, el reembolso se acreditará en tu método de pago original.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 24px;">
+          <div style="background-color:#0d0d10;border-left:3px solid #f59e0b;border-radius:4px;padding:16px 20px;">
+            <p style="margin:0;font-size:13px;color:${c.muted};line-height:1.6;font-family:${fontStack};">
+              <strong style="color:#f59e0b;">Importante:</strong> No envíes el artículo hasta recibir la confirmación de aprobación. El email de aprobación incluirá la dirección de envío y las instrucciones detalladas.
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:0 40px 40px;text-align:center;">
+          <p style="margin:0 0 16px;font-size:14px;color:${c.muted};font-family:${fontStack};">¿Tienes alguna pregunta?</p>
+          <a href="mailto:info@parragkgloves.es" style="display:inline-block;border:1px solid ${c.gold};color:${c.gold};font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;padding:12px 32px;border-radius:4px;font-family:${fontStack};">CONTACTAR SOPORTE</a>
+        </td>
+      </tr>
+    </table>`;
+
+  return layout(`Solicitud de devolución recibida — ${opts.orderNumber}`, body);
+}
+
+export async function sendReturnRequestConfirmation(opts: SendReturnRequestConfirmationOptions) {
+  await loadBrandColors();
+  const resend = getResend();
+  const { data, error } = await resend.emails.send({
+    from: FROM,
+    to: [opts.customerEmail],
+    replyTo: REPLY_TO,
+    subject: `Solicitud de devolución recibida \u2014 Pedido ${opts.orderNumber} \u2014 Parra GK Gloves`,
+    html: buildReturnRequestHtml(opts),
+  });
+
+  if (error) throw new Error(`[email] Resend error: ${error.message}`);
+  console.log(`[email] Confirmación de solicitud de devolución enviada a ${opts.customerEmail}`);
+  return data;
+}
+
 // ── Legacy shim ───────────────────────────────────────────────────────────────
 
 export async function sendOrderConfirmationEmail(

@@ -7,6 +7,7 @@
 
 import type { APIRoute } from 'astro';
 import { supabase, supabaseAdmin } from '../../../../lib/supabase';
+import { sendReturnRequestConfirmation } from '../../../../lib/email/index';
 
 interface APIError {
   code: string;
@@ -163,6 +164,18 @@ export const POST: APIRoute = async (context) => {
         message: insertError?.message || insertError?.details || 'Failed to create return request',
         status: 500,
       });
+    }
+
+    // Send confirmation email to customer
+    try {
+      await sendReturnRequestConfirmation({
+        customerEmail: order.email,
+        customerName: order.shipping_name || 'Cliente',
+        orderNumber: order.order_number || `PG-${String(order.id).slice(-8).toUpperCase()}`,
+        reason: reason.trim(),
+      });
+    } catch (emailError) {
+      console.error('[request-return] Email error:', emailError);
     }
 
     return new Response(
