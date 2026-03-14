@@ -176,11 +176,19 @@ export const POST: APIRoute = async (context) => {
 
     // Send confirmation email to customer
     try {
+      const { data: contactSetting } = await supabaseAdmin
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'contact')
+        .maybeSingle();
+      const returnAddress: string = (contactSetting?.value as any)?.address?.trim() || '';
+
       await sendReturnRequestConfirmation({
         customerEmail: order.email,
         customerName: order.shipping_name || 'Cliente',
         orderNumber: order.order_number || `PG-${String(order.id).slice(-8).toUpperCase()}`,
         reason: reason.trim(),
+        returnAddress,
       });
     } catch (emailError) {
       console.error('[request-return] Email error:', emailError);

@@ -873,6 +873,7 @@ export interface SendReturnRequestConfirmationOptions {
   customerName: string;
   orderNumber: string;
   reason: string;
+  returnAddress?: string;
 }
 
 function buildReturnRequestHtml(opts: SendReturnRequestConfirmationOptions): string {
@@ -940,7 +941,7 @@ function buildReturnRequestHtml(opts: SendReturnRequestConfirmationOptions): str
         <td style="padding:0 40px 24px;">
           <div style="background-color:#0d0d10;border-left:3px solid ${c.gold};border-radius:4px;padding:20px 24px;">
             <p style="margin:0 0 6px;font-size:10px;font-weight:700;color:${c.subtle};letter-spacing:1.5px;text-transform:uppercase;font-family:${fontStack};">Dirección de envío</p>
-            <p style="margin:0;font-size:14px;font-weight:700;color:${c.white};line-height:1.8;font-family:${fontStack};">Parra GK Gloves<br/>info@parragkgloves.es</p>
+            <p style="margin:0;font-size:14px;font-weight:700;color:${c.white};line-height:1.8;font-family:${fontStack};">${opts.returnAddress ? esc(opts.returnAddress).replace(/\n/g, '<br/>') : 'Consulta por email la dirección de envío'}</p>
           </div>
         </td>
       </tr>
