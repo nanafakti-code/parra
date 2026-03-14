@@ -62,6 +62,17 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             return jsonResponse({ error: 'orderId y status son obligatorios' }, 400);
         }
 
+        // Guard: no se puede cambiar el estado de un pedido cancelado
+        const { data: currentOrder } = await supabaseAdmin
+            .from('orders')
+            .select('status')
+            .eq('id', orderId)
+            .single();
+
+        if (currentOrder?.status === 'cancelled') {
+            return jsonResponse({ error: 'No se puede modificar un pedido cancelado' }, 400);
+        }
+
         const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
         if (!validStatuses.includes(status)) {
             return jsonResponse({ error: 'Estado inválido' }, 400);
@@ -72,7 +83,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             updated_at: new Date().toISOString(),
         };
         if (trackingNumber !== undefined) updateData.tracking_number = trackingNumber;
-        if (notes !== undefined) updateData.admin_notes = notes;
+        if (notes !== undefined) updateData.notes = notes;
 
         const { data, error } = await supabaseAdmin
             .from('orders')
@@ -83,7 +94,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
         if (error) {
             console.error('[admin-orders] Update error:', error);
-            return jsonResponse({ error: 'Error al actualizar pedido' }, 500);
+            return jsonResponse({ error: error.message || error.details || 'Error al actualizar pedido' }, 500);
         }
 
         await logAdminAction(admin.id, 'update_order_status', 'order', orderId, {

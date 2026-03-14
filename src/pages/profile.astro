@@ -348,7 +348,7 @@ const tabs = [
                                             </div>
 
                                             {/* Tracking / Notas internas — solo cuando estado = enviado */}
-                                            {order.status === 'shipped' && (order.tracking_number || order.admin_notes) && (
+                                            {order.status === 'shipped' && (order.tracking_number || order.notes) && (
                                                 <div class="mt-4 mb-1 rounded-lg px-4 py-3 flex flex-col gap-2" style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.18);">
                                                     {order.tracking_number && (
                                                         <div class="flex items-center gap-2">
@@ -360,12 +360,12 @@ const tabs = [
                                                             <span class="text-[11px] font-mono font-semibold" style="color:var(--text-primary);">{order.tracking_number}</span>
                                                         </div>
                                                     )}
-                                                    {order.admin_notes && (
+                                                    {order.notes && (
                                                         <div class="flex items-start gap-2">
                                                             <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style="color:#3b82f6;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
                                                             </svg>
-                                                            <span class="text-[11px]" style="color:var(--text-secondary);">{order.admin_notes}</span>
+                                                            <span class="text-[11px]" style="color:var(--text-secondary);">{order.notes}</span>
                                                         </div>
                                                     )}
                                                 </div>
