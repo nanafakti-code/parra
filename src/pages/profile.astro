@@ -2672,10 +2672,12 @@ const tabs = [
 
                 modal.classList.remove("hidden");
                 modal.classList.add("flex");
+                document.body.style.overflow = "hidden";
 
                 function cleanup() {
                     modal.classList.add("hidden");
                     modal.classList.remove("flex");
+                    document.body.style.overflow = "";
                     okBtn.onclick = null;
                     cancelBtn.onclick = null;
                 }
