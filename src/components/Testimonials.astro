@@ -3,32 +3,45 @@ import { bc } from "../lib/brand-color";
 
 interface Props {
     content?: Record<string, any>;
+    featuredReviews?: any[];
 }
-const { content = {} } = Astro.props;
+const { content = {}, featuredReviews = [] } = Astro.props;
 
-const testimonials = [
-    {
-        name:   content.item1_name   || "Carlos Martínez",
-        team:   content.item1_team   || "Real Betis Juvenil A",
-        rating: 5,
-        quote:  content.item1_quote  || "Los mejores guantes que he probado. El agarre del Titan Pro es increíble, incluso en condiciones de lluvia.",
-        avatar: content.item1_avatar || "CM",
-    },
-    {
-        name:   content.item2_name   || "Laura Sánchez",
-        team:   content.item2_team   || "Selección Sub-19",
-        rating: 5,
-        quote:  content.item2_quote  || "Llevo toda la temporada con los Viper Grip y siguen como el primer día. La durabilidad es otro nivel.",
-        avatar: content.item2_avatar || "LS",
-    },
-    {
-        name:   content.item3_name   || "Miguel Ángel Torres",
-        team:   content.item3_team   || "Entrenador de porteros",
-        rating: 5,
-        quote:  content.item3_quote  || "Recomiendo PARRA a todos mis alumnos. Calidad profesional a un precio accesible. Sin duda la mejor marca.",
-        avatar: content.item3_avatar || "MT",
-    },
-];
+// Build testimonials: prioritise real DB reviews when available
+const testimonials = featuredReviews.length > 0
+    ? featuredReviews.map((r: any) => {
+        const name = r.users?.name || "Cliente";
+        return {
+            name,
+            team:   r.products?.name || "Compra verificada",
+            rating: r.rating || 5,
+            quote:  r.comment || r.title || "",
+            avatar: name.charAt(0).toUpperCase(),
+        };
+    })
+    : [
+        {
+            name:   content.item1_name   || "Carlos Martínez",
+            team:   content.item1_team   || "Real Betis Juvenil A",
+            rating: 5,
+            quote:  content.item1_quote  || "Los mejores guantes que he probado. El agarre del Titan Pro es increíble, incluso en condiciones de lluvia.",
+            avatar: content.item1_avatar || "CM",
+        },
+        {
+            name:   content.item2_name   || "Laura Sánchez",
+            team:   content.item2_team   || "Selección Sub-19",
+            rating: 5,
+            quote:  content.item2_quote  || "Llevo toda la temporada con los Viper Grip y siguen como el primer día. La durabilidad es otro nivel.",
+            avatar: content.item2_avatar || "LS",
+        },
+        {
+            name:   content.item3_name   || "Miguel Ángel Torres",
+            team:   content.item3_team   || "Entrenador de porteros",
+            rating: 5,
+            quote:  content.item3_quote  || "Recomiendo PARRA a todos mis alumnos. Calidad profesional a un precio accesible. Sin duda la mejor marca.",
+            avatar: content.item3_avatar || "MT",
+        },
+    ];
 ---
 
 <section

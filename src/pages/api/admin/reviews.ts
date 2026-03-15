@@ -28,7 +28,7 @@ export const GET: APIRoute = async ({ request, cookies }) => {
     return jsonResponse({ reviews: data || [], total: count || 0, page, totalPages: Math.ceil((count || 0) / limit) });
 };
 
-/** PATCH /api/admin/reviews – Approve/reject/update */
+/** PATCH /api/admin/reviews – Approve/reject/feature */
 export const PATCH: APIRoute = async ({ request, cookies }) => {
     const result = await validateAdminAPI(request, cookies);
     if (result instanceof Response) return result;
@@ -36,12 +36,40 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
     try {
         const body = await request.json();
-        const { reviewId, isApproved } = body;
+        const { reviewId, isApproved, isFeatured } = body;
 
-        if (!reviewId || isApproved === undefined) {
-            return jsonResponse({ error: 'reviewId y isApproved obligatorios' }, 400);
+        if (!reviewId || (isApproved === undefined && isFeatured === undefined)) {
+            return jsonResponse({ error: 'reviewId y al menos isApproved o isFeatured son obligatorios' }, 400);
         }
 
+        // ── Toggle featured (max 3) ────────────────────────────────────────────
+        if (isFeatured !== undefined) {
+            if (isFeatured === true) {
+                const { count } = await supabaseAdmin
+                    .from('reviews')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('is_featured', true)
+                    .neq('id', reviewId);
+
+                if ((count || 0) >= 3) {
+                    return jsonResponse({ error: 'Ya hay 3 reseñas destacadas. Quita una antes de añadir otra.' }, 409);
+                }
+            }
+
+            const { data, error } = await supabaseAdmin
+                .from('reviews')
+                .update({ is_featured: isFeatured })
+                .eq('id', reviewId)
+                .select()
+                .single();
+
+            if (error) return jsonResponse({ error: 'Error al actualizar reseña' }, 500);
+
+            await logAdminAction(admin.id, isFeatured ? 'feature_review' : 'unfeature_review', 'review', reviewId, {}, request.headers.get('x-forwarded-for') || undefined);
+            return jsonResponse({ review: data, message: isFeatured ? 'Reseña destacada en portada' : 'Reseña eliminada de portada' });
+        }
+
+        // ── Approve / reject ──────────────────────────────────────────────────
         const { data, error } = await supabaseAdmin
             .from('reviews')
             .update({ is_approved: isApproved })

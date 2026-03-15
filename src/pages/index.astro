@@ -20,9 +20,10 @@ Astro.response.headers.set(
 // ── Fetch page sections + featured products en paralelo ──────────────────
 let homeSections: Record<string, any> = {};
 let products: any[] = [];
+let featuredReviews: any[] = [];
 
 try {
-	const [sectionsResult, productsResult] = await Promise.all([
+	const [sectionsResult, productsResult, reviewsResult] = await Promise.all([
 		supabase
 			.from("page_sections")
 			.select("*")
@@ -36,6 +37,13 @@ try {
 			.order("display_order", { ascending: true })
 			.order("created_at", { ascending: false })
 			.limit(4),
+		supabase
+			.from("reviews")
+			.select("*, users(name), products(name)")
+			.eq("is_featured", true)
+			.eq("is_approved", true)
+			.order("created_at", { ascending: false })
+			.limit(3),
 	]);
 
 	if (sectionsResult.data) {
@@ -46,6 +54,7 @@ try {
 	if (sectionsResult.error) console.error("Error loading page sections:", sectionsResult.error.message);
 
 	products = productsResult.data || [];
+	featuredReviews = reviewsResult.data || [];
 
 	// Fallback: si no hay destacados, cargar los 4 más recientes
 	if (products.length === 0) {
@@ -212,7 +221,7 @@ const homeSchemaJson = JSON.stringify([
 		<!-- Testimonials -->
 		{
 			isActive("testimonials") && (
-				<Testimonials content={getContent("testimonials")} />
+				<Testimonials content={getContent("testimonials")} featuredReviews={featuredReviews} />
 			)
 		}
 
