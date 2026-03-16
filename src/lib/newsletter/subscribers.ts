@@ -4,7 +4,7 @@ import {
     NEWSLETTER_SUCCESS_MESSAGE,
     WELCOME_SUBJECT,
 } from './constants';
-import { buildWelcomeEmailHtml } from './email';
+import { buildWelcomeEmailHtml, sendNewsletterEmail } from './email';
 import { enqueueNewsletterEmail, processNewsletterQueueBatch, scheduleNewsletterQueueProcessing } from './queue';
 import { isValidEmail, normalizeEmail } from './validation';
 
@@ -111,23 +111,39 @@ export async function subscribeToNewsletter(input: SubscribeInput): Promise<Subs
         subscriberId = created.id;
     }
 
+    const welcomeHtml = buildWelcomeEmailHtml(normalizedEmail);
+    let welcomeSentDirect = false;
+
     try {
-        await enqueueNewsletterEmail({
-            toEmail: normalizedEmail,
-            eventKey: `welcome:${normalizedEmail}`,
+        await sendNewsletterEmail({
+            to: normalizedEmail,
             subject: WELCOME_SUBJECT,
-            htmlContent: buildWelcomeEmailHtml(normalizedEmail),
-            subscriberId,
-            payload: {
-                type: 'welcome',
-            },
+            html: welcomeHtml,
         });
-        scheduleNewsletterQueueProcessing();
-        await processNewsletterQueueBatch(5).catch((processingError) => {
-            console.error('[newsletter] Falló el procesamiento inmediato de la cola:', processingError);
-        });
-    } catch (queueError) {
-        console.error('[newsletter] Suscriptor creado pero falló la cola de bienvenida:', queueError);
+        welcomeSentDirect = true;
+    } catch (directError) {
+        console.error('[newsletter] Falló envío directo de bienvenida, se intentará por cola:', directError);
+    }
+
+    if (!welcomeSentDirect) {
+        try {
+            await enqueueNewsletterEmail({
+                toEmail: normalizedEmail,
+                eventKey: `welcome:${normalizedEmail}`,
+                subject: WELCOME_SUBJECT,
+                htmlContent: welcomeHtml,
+                subscriberId,
+                payload: {
+                    type: 'welcome',
+                },
+            });
+            scheduleNewsletterQueueProcessing();
+            await processNewsletterQueueBatch(5).catch((processingError) => {
+                console.error('[newsletter] Falló el procesamiento inmediato de la cola:', processingError);
+            });
+        } catch (queueError) {
+            console.error('[newsletter] Suscriptor creado pero falló la cola de bienvenida:', queueError);
+        }
     }
 
     return {
@@ -224,21 +240,37 @@ export async function setNewsletterPreference(options: {
     }
 
     if (options.subscribe && !existing.subscribed) {
+        const welcomeHtml = buildWelcomeEmailHtml(normalizedEmail);
+        let welcomeSentDirect = false;
+
         try {
-            await enqueueNewsletterEmail({
-                toEmail: normalizedEmail,
-                eventKey: `welcome-profile:${normalizedEmail}`,
+            await sendNewsletterEmail({
+                to: normalizedEmail,
                 subject: WELCOME_SUBJECT,
-                htmlContent: buildWelcomeEmailHtml(normalizedEmail),
-                subscriberId: existing.id,
-                payload: { type: 'welcome-profile' },
+                html: welcomeHtml,
             });
-            scheduleNewsletterQueueProcessing();
-            await processNewsletterQueueBatch(5).catch((processingError) => {
-                console.error('[newsletter] Falló el procesamiento inmediato de la cola (perfil):', processingError);
-            });
-        } catch (queueError) {
-            console.error('[newsletter] Preferencia actualizada pero falló la cola de bienvenida:', queueError);
+            welcomeSentDirect = true;
+        } catch (directError) {
+            console.error('[newsletter] Falló envío directo de bienvenida desde perfil, se intentará por cola:', directError);
+        }
+
+        if (!welcomeSentDirect) {
+            try {
+                await enqueueNewsletterEmail({
+                    toEmail: normalizedEmail,
+                    eventKey: `welcome-profile:${normalizedEmail}`,
+                    subject: WELCOME_SUBJECT,
+                    htmlContent: welcomeHtml,
+                    subscriberId: existing.id,
+                    payload: { type: 'welcome-profile' },
+                });
+                scheduleNewsletterQueueProcessing();
+                await processNewsletterQueueBatch(5).catch((processingError) => {
+                    console.error('[newsletter] Falló el procesamiento inmediato de la cola (perfil):', processingError);
+                });
+            } catch (queueError) {
+                console.error('[newsletter] Preferencia actualizada pero falló la cola de bienvenida:', queueError);
+            }
         }
     }
 
