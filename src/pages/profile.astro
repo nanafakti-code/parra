@@ -1501,94 +1501,136 @@ const tabs = [
 
                     {/* ════ MIS CUPONES ════ */}
                     <div data-tab-panel="cupones" hidden={tab !== "cupones"}>
-                        <h2 class="section-title mb-8">
-                            Mis <span class="text-brand">Cupones</span>
-                        </h2>
-                        {
-                            userCoupons.length > 0 ? (
-                                <div class="space-y-4">
-                                    {userCoupons.map((c: any) => {
-                                        const isUsed = !!c.usedAt;
-                                        const discount = c.type === "percentage"
-                                            ? `-${c.value}%`
-                                            : `-€${parseFloat(c.value || 0).toFixed(2)}`;
+                        <div class="flex items-end justify-between mb-8 flex-wrap gap-3">
+                            <h2 class="section-title">
+                                Mis <span class="text-brand">Cupones</span>
+                            </h2>
+                            {userCoupons.length > 0 && (
+                                <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+                                    {(() => {
+                                        const available = userCoupons.filter((c: any) => !c.usedAt).length;
+                                        const exclusive = userCoupons.filter((c: any) => c.is_exclusive).length;
                                         return (
-                                            <div class={`card p-5 flex items-center justify-between gap-4 flex-wrap${isUsed ? " opacity-55" : ""}`}>
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="flex items-center gap-2 flex-wrap mb-1">
-                                                        <p class="font-mono font-bold text-brand tracking-widest text-base">
+                                            <>
+                                                {available > 0 && (
+                                                    <span style="font-size:0.65rem;padding:0.2rem 0.65rem;border-radius:3px;background:rgba(74,222,128,0.07);color:#4ade80;border:1px solid rgba(74,222,128,0.18);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">
+                                                        {available} disponible{available > 1 ? "s" : ""}
+                                                    </span>
+                                                )}
+                                                {exclusive > 0 && (
+                                                    <span style="font-size:0.65rem;padding:0.2rem 0.65rem;border-radius:3px;background:rgba(168,85,247,0.08);color:#c084fc;border:1px solid rgba(168,85,247,0.2);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">
+                                                        {exclusive} exclusivo{exclusive > 1 ? "s" : ""}
+                                                    </span>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
+                                </div>
+                            )}
+                        </div>
+
+                        {userCoupons.length > 0 ? (
+                            <div class="space-y-3">
+                                {userCoupons.map((c: any) => {
+                                    const isUsed = !!c.usedAt;
+                                    const discountLabel = c.type === "percentage"
+                                        ? `${c.value}%`
+                                        : `€${parseFloat(c.value || 0).toFixed(2)}`;
+                                    return (
+                                        <div style={`position:relative;overflow:hidden;border-radius:6px;display:flex;transition:border-color 0.2s,box-shadow 0.2s;${isUsed ? "opacity:0.45;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.06);" : "background:rgba(255,255,255,0.02);border:1px solid rgba(var(--brand-rgb),0.18);box-shadow:0 0 24px rgba(var(--brand-rgb),0.04),inset 0 1px 0 rgba(255,255,255,0.03);"}`}>
+
+                                            {/* Accent bar */}
+                                            <div style={`width:3px;flex-shrink:0;border-radius:6px 0 0 6px;${isUsed ? "background:rgba(255,255,255,0.08);" : "background:var(--brand);"}`} />
+
+                                            {/* Body */}
+                                            <div style="flex:1;padding:1.1rem 1.1rem 1.1rem 0.9rem;display:flex;align-items:center;gap:0.9rem;min-width:0;">
+
+                                                {/* Left zone */}
+                                                <div style="flex:1;min-width:0;">
+
+                                                    {/* Code + badges */}
+                                                    <div style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;margin-bottom:0.3rem;">
+                                                        <span style={`font-family:monospace;font-size:0.95rem;font-weight:800;letter-spacing:0.13em;${isUsed ? "color:rgba(255,255,255,0.25);" : "color:var(--brand);"}`}>
                                                             {c.code}
-                                                        </p>
+                                                        </span>
                                                         {c.is_exclusive && (
-                                                            <span style="font-size:0.6rem;padding:0.1rem 0.45rem;border-radius:3px;background:rgba(168,85,247,0.15);color:#c084fc;border:1px solid rgba(168,85,247,0.3);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">
-                                                                Exclusivo
+                                                            <span style="font-size:0.55rem;padding:0.12rem 0.45rem;border-radius:2px;background:rgba(168,85,247,0.1);color:#c084fc;border:1px solid rgba(168,85,247,0.22);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">
+                                                                ◈ exclusivo
                                                             </span>
                                                         )}
                                                         {isUsed ? (
-                                                            <span style="font-size:0.6rem;padding:0.1rem 0.45rem;border-radius:3px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.35);border:1px solid rgba(255,255,255,0.1);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">
-                                                                Usado
+                                                            <span style="font-size:0.55rem;padding:0.12rem 0.45rem;border-radius:2px;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.22);border:1px solid rgba(255,255,255,0.07);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">
+                                                                canjeado
                                                             </span>
                                                         ) : (
-                                                            <span style="font-size:0.6rem;padding:0.1rem 0.45rem;border-radius:3px;background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">
-                                                                Disponible
+                                                            <span style="font-size:0.55rem;padding:0.12rem 0.45rem;border-radius:2px;background:rgba(74,222,128,0.08);color:#4ade80;border:1px solid rgba(74,222,128,0.18);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">
+                                                                ● activo
                                                             </span>
                                                         )}
                                                     </div>
+
                                                     {c.description && (
-                                                        <p class="text-xs mt-0.5" style="color: var(--text-muted);">
+                                                        <p style="font-size:0.72rem;color:rgba(255,255,255,0.38);margin-bottom:0.45rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                                             {c.description}
                                                         </p>
                                                     )}
-                                                    <div class="flex gap-3 flex-wrap mt-1">
+
+                                                    {/* Meta row */}
+                                                    <div style="display:flex;gap:0.9rem;flex-wrap:wrap;padding-top:0.4rem;border-top:1px solid rgba(255,255,255,0.05);">
                                                         {c.min_purchase > 0 && (
-                                                            <p class="text-[10px] uppercase tracking-wider" style="color: var(--text-muted);">
+                                                            <span style="font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.1em;">
                                                                 Mín. €{parseFloat(c.min_purchase).toFixed(2)}
-                                                            </p>
+                                                            </span>
                                                         )}
                                                         {c.expires_at && (
-                                                            <p class="text-[10px] uppercase tracking-wider" style="color: var(--text-muted);">
+                                                            <span style="font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.1em;">
                                                                 Expira {new Date(c.expires_at).toLocaleDateString("es-ES")}
-                                                            </p>
+                                                            </span>
                                                         )}
                                                         {isUsed && c.usedAt && (
-                                                            <p class="text-[10px] uppercase tracking-wider" style="color: var(--text-muted);">
-                                                                Usado el {new Date(c.usedAt).toLocaleDateString("es-ES")}
-                                                            </p>
+                                                            <span style="font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.1em;">
+                                                                Canjeado el {new Date(c.usedAt).toLocaleDateString("es-ES")}
+                                                            </span>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div class="text-right shrink-0">
-                                                    <p class="text-2xl font-bold text-brand">{discount}</p>
-                                                    <p class="text-[10px] uppercase tracking-wider mt-0.5" style="color: var(--text-muted);">
-                                                        descuento
-                                                    </p>
+
+                                                {/* Dashed separator */}
+                                                <div style="width:1px;align-self:stretch;border-right:1px dashed rgba(255,255,255,0.07);flex-shrink:0;" />
+
+                                                {/* Right zone — discount */}
+                                                <div style="text-align:center;flex-shrink:0;min-width:72px;padding-left:0.1rem;">
+                                                    <div style={`font-size:1.65rem;font-weight:900;line-height:1;letter-spacing:-0.02em;${isUsed ? "color:rgba(255,255,255,0.18);" : "color:var(--brand);text-shadow:0 0 18px rgba(var(--brand-rgb),0.35);"}`}>
+                                                        -{discountLabel}
+                                                    </div>
+                                                    <div style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.15em;color:rgba(255,255,255,0.2);margin-top:0.3rem;">
+                                                        {c.type === "percentage" ? "pct. desc." : "descuento"}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <div class="py-24 text-center card">
-                                    <svg
-                                        class="w-12 h-12 mx-auto mb-6"
-                                        style="color: var(--text-muted); opacity:.4;"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                                        />
-                                    </svg>
-                                    <p class="uppercase tracking-[0.2em] text-sm" style="color: var(--text-muted);">
-                                        No tienes cupones disponibles.
-                                    </p>
-                                </div>
-                            )
-                        }
+
+                                            {/* Corner triangle accent (available only) */}
+                                            {!isUsed && (
+                                                <div style="position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 28px 28px 0;border-color:transparent rgba(var(--brand-rgb),0.14) transparent transparent;" />
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div style="padding:5rem 2rem;text-align:center;border-radius:6px;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.05);">
+                                <svg
+                                    style="width:3rem;height:3rem;margin:0 auto 1.5rem;opacity:0.2;"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                >
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"
+                                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                                <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.25em;color:rgba(255,255,255,0.2);">
+                                    No tienes cupones disponibles
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
