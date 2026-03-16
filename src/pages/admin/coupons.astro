@@ -41,169 +41,245 @@ const couponsWithMeta = (coupons || []).map((c: any) => ({
     timesUsed: usageMap[c.id] || 0,
     allowedUsers: allowlistMap[c.id] || [],
 }));
+
+// Stats
+const now = new Date();
+const activeCoupons = couponsWithMeta.filter((c: any) => {
+    const expired = c.expires_at && new Date(c.expires_at) < now;
+    const maxReached = c.max_uses && c.timesUsed >= c.max_uses;
+    return c.is_active && !expired && !maxReached;
+}).length;
+const exclusiveCoupons = couponsWithMeta.filter((c: any) => c.is_exclusive).length;
+const totalRedemptions = couponsWithMeta.reduce((sum: number, c: any) => sum + c.timesUsed, 0);
 ---
 
+<style>
+    /* Toggle switch */
+    .toggle-wrap { display: flex; align-items: center; gap: 0.6rem; }
+    .toggle-wrap input[type="checkbox"] { display: none; }
+    .toggle-track {
+        position: relative; width: 36px; height: 20px;
+        background: rgba(255,255,255,0.1); border-radius: 10px;
+        cursor: pointer; transition: background 0.2s;
+        border: 1px solid rgba(255,255,255,0.12);
+        flex-shrink: 0;
+    }
+    .toggle-track::after {
+        content: ''; position: absolute; top: 2px; left: 2px;
+        width: 14px; height: 14px; border-radius: 50%;
+        background: rgba(255,255,255,0.5); transition: all 0.2s;
+    }
+    .toggle-active .toggle-track { background: rgba(var(--brand-rgb), 0.35); border-color: rgba(var(--brand-rgb), 0.5); }
+    .toggle-active .toggle-track::after { left: 18px; background: var(--brand); }
+    .toggle-exclusive .toggle-track { background: rgba(168,85,247,0.3); border-color: rgba(168,85,247,0.5); }
+    .toggle-exclusive .toggle-track::after { left: 18px; background: #c084fc; }
+    .toggle-label { font-size: 0.8rem; color: rgba(255,255,255,0.6); cursor: pointer; user-select: none; }
+
+    /* Stat cards */
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+    @media (max-width: 640px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+    .stat-card {
+        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 8px; padding: 0.875rem 1rem;
+        display: flex; flex-direction: column; gap: 0.25rem;
+    }
+    .stat-card-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.35); }
+    .stat-card-value { font-size: 1.6rem; font-weight: 700; line-height: 1; }
+    .stat-card-sub { font-size: 0.68rem; color: rgba(255,255,255,0.3); }
+
+    /* Action icon buttons */
+    .btn-icon {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 30px; height: 30px; border-radius: 6px; border: 1px solid transparent;
+        cursor: pointer; transition: all 0.15s; padding: 0;
+        background: transparent;
+    }
+    .btn-icon-edit {
+        border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5);
+    }
+    .btn-icon-edit:hover { border-color: var(--brand); color: var(--brand); background: rgba(var(--brand-rgb),0.08); }
+    .btn-icon-delete {
+        border-color: rgba(239,68,68,0.2); color: rgba(239,68,68,0.5);
+    }
+    .btn-icon-delete:hover { border-color: rgba(239,68,68,0.6); color: #f87171; background: rgba(239,68,68,0.08); }
+
+    /* Coupon code pill */
+    .coupon-code-pill {
+        display: inline-block;
+        font-family: 'Courier New', monospace;
+        font-size: 0.7rem; font-weight: 800;
+        letter-spacing: 0.08em; text-transform: uppercase;
+        color: var(--brand);
+        background: rgba(var(--brand-rgb), 0.07);
+        border: 1px solid rgba(var(--brand-rgb), 0.2);
+        border-radius: 4px; padding: 0.2rem 0.55rem;
+        transition: all 0.15s;
+    }
+    tr:hover .coupon-code-pill {
+        background: rgba(var(--brand-rgb), 0.12);
+        border-color: rgba(var(--brand-rgb), 0.35);
+        box-shadow: 0 0 8px rgba(var(--brand-rgb), 0.15);
+    }
+
+    /* Value display */
+    .coupon-value-display { font-size: 0.95rem; font-weight: 700; }
+
+    /* Table row hover */
+    .data-table tbody tr { transition: background 0.12s; }
+    .data-table tbody tr:hover { background: rgba(255,255,255,0.025); }
+
+    /* Section divider in modal */
+    .modal-section {
+        border-top: 1px solid rgba(255,255,255,0.07);
+        padding-top: 0.875rem; margin-top: 0.125rem;
+    }
+    .modal-section-title {
+        font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+        color: rgba(255,255,255,0.3); margin-bottom: 0.75rem;
+    }
+</style>
+
 <AdminLayout title="Cupones" activeSection="coupons" admin={admin}>
-    <div
-        style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"
-    >
-        <div style="font-size:0.8rem;color:rgba(255,255,255,0.4);">
-            {couponsWithMeta.length} cupones
+
+    <!-- Stats -->
+    <div class="stat-grid">
+        <div class="stat-card">
+            <span class="stat-card-label">Total</span>
+            <span class="stat-card-value" style="color: rgba(255,255,255,0.9);">{couponsWithMeta.length}</span>
+            <span class="stat-card-sub">cupones creados</span>
         </div>
-        <button class="btn btn-primary" id="btn-new-coupon">
-            + Nuevo Cupón
+        <div class="stat-card">
+            <span class="stat-card-label">Activos</span>
+            <span class="stat-card-value" style="color: #4ade80;">{activeCoupons}</span>
+            <span class="stat-card-sub">disponibles ahora</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card-label">Exclusivos</span>
+            <span class="stat-card-value" style="color: #c084fc;">{exclusiveCoupons}</span>
+            <span class="stat-card-sub">de usuario específico</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card-label">Canjes</span>
+            <span class="stat-card-value" style="color: var(--brand);">{totalRedemptions}</span>
+            <span class="stat-card-sub">usos totales</span>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <div style="position:relative;flex:1;max-width:360px;">
+            <svg style="position:absolute;left:0.875rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.3);pointer-events:none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" id="page-search" class="form-input" placeholder="Buscar por código..." style="padding-left:2.4rem;height:36px;font-size:0.8rem;" />
+        </div>
+        <button class="btn btn-primary" id="btn-new-coupon" style="display:inline-flex;align-items:center;gap:0.4rem;height:36px;padding:0 1rem;font-size:0.82rem;white-space:nowrap;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuevo Cupón
         </button>
     </div>
 
-    <!-- Search Bar -->
-    <div style="margin-bottom: 1rem; max-width: 400px; position: relative;">
-        <svg
-            style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.4);"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-        >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input
-            type="text"
-            id="page-search"
-            class="form-input"
-            placeholder="Buscar por código..."
-            style="padding-left: 2.5rem;"
-        />
-    </div>
-
-    <div class="card">
+    <!-- Table -->
+    <div class="card" style="overflow:hidden;padding:0;">
         {
             couponsWithMeta.length === 0 ? (
-                <div class="empty-state">
+                <div class="empty-state" style="padding:3rem;">
+                    <div style="font-size:2rem;margin-bottom:0.75rem;opacity:0.3;">🎟</div>
                     <h3>Sin cupones</h3>
                     <p>Crea tu primer cupón de descuento.</p>
                 </div>
             ) : (
-                <table class="data-table">
+                <table class="data-table" style="margin:0;">
                     <thead>
                         <tr>
-                            <th>Código</th>
+                            <th style="padding-left:1.25rem;">Código</th>
                             <th>Alcance</th>
-                            <th>Tipo</th>
-                            <th>Valor</th>
+                            <th>Descuento</th>
                             <th>Compra Mín.</th>
                             <th>Usos</th>
                             <th>Expira</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
+                            <th style="text-align:right;padding-right:1.25rem;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {couponsWithMeta.map((c: any) => {
                             const used = c.timesUsed;
-                            const expired =
-                                c.expires_at &&
-                                new Date(c.expires_at) < new Date();
+                            const expired = c.expires_at && new Date(c.expires_at) < new Date();
                             const maxReached = c.max_uses && used >= c.max_uses;
+                            const isInactive = expired || maxReached || !c.is_active;
                             return (
-                                <tr data-search={c.code}>
-                                    <td data-label="Código">
-                                        <code style="background:rgba(var(--brand-rgb),0.06);color:var(--brand);padding:0.15rem 0.4rem;border-radius:3px;font-size:0.75rem;font-weight:700;">
-                                            {c.code}
-                                        </code>
+                                <tr data-search={c.code} style={isInactive ? 'opacity:0.6;' : ''}>
+                                    <td style="padding-left:1.25rem;" data-label="Código">
+                                        <span class="coupon-code-pill">{c.code}</span>
                                     </td>
                                     <td data-label="Alcance">
                                         {c.is_exclusive ? (
                                             <span
                                                 class="badge"
-                                                style="background:rgba(168,85,247,0.15);color:#c084fc;border:1px solid rgba(168,85,247,0.3);font-size:0.65rem;"
+                                                style="background:rgba(168,85,247,0.12);color:#c084fc;border:1px solid rgba(168,85,247,0.25);font-size:0.63rem;letter-spacing:0.03em;"
                                                 title={`Solo para: ${c.allowedUsers.map((u: any) => u.name || u.email).join(', ') || 'ningún usuario asignado'}`}
                                             >
-                                                Exclusivo ({c.allowedUsers.length})
+                                                ◈ Exclusivo ({c.allowedUsers.length})
                                             </span>
                                         ) : (
                                             <span
                                                 class="badge"
-                                                style="background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.2);font-size:0.65rem;"
+                                                style="background:rgba(59,130,246,0.1);color:#60a5fa;border:1px solid rgba(59,130,246,0.18);font-size:0.63rem;letter-spacing:0.03em;"
                                             >
-                                                General
+                                                ● General
                                             </span>
                                         )}
                                     </td>
-                                    <td
-                                        data-label="Tipo"
-                                        style="font-size:0.75rem;"
-                                    >
-                                        {c.type === "percentage"
-                                            ? "Porcentaje"
-                                            : "Fijo"}
+                                    <td data-label="Descuento">
+                                        <span class="coupon-value-display" style={`color:${c.type === 'percentage' ? '#4ade80' : 'var(--brand)'};`}>
+                                            {c.type === "percentage" ? `${c.value}%` : `€${parseFloat(c.value).toFixed(2)}`}
+                                        </span>
+                                        <span style="font-size:0.65rem;color:rgba(255,255,255,0.3);margin-left:0.3rem;">
+                                            {c.type === "percentage" ? "dto." : "fijo"}
+                                        </span>
                                     </td>
-                                    <td
-                                        data-label="Valor"
-                                        style="font-weight:600;"
-                                    >
-                                        {c.type === "percentage"
-                                            ? `${c.value}%`
-                                            : `€${parseFloat(c.value).toFixed(2)}`}
+                                    <td data-label="Mín." style="font-size:0.78rem;color:rgba(255,255,255,0.55);">
+                                        {c.min_purchase ? `€${parseFloat(c.min_purchase).toFixed(2)}` : <span style="color:rgba(255,255,255,0.2);">—</span>}
                                     </td>
-                                    <td
-                                        data-label="Mín."
-                                        style="font-size:0.75rem;"
-                                    >
-                                        {c.min_purchase
-                                            ? `€${parseFloat(c.min_purchase).toFixed(2)}`
-                                            : "—"}
+                                    <td data-label="Usos" style="font-size:0.78rem;">
+                                        <span style="color:rgba(255,255,255,0.8);">{used}</span>
+                                        {c.max_uses ? (
+                                            <span style="color:rgba(255,255,255,0.3);">/{c.max_uses}</span>
+                                        ) : (
+                                            <span style="color:rgba(255,255,255,0.2);"> ∞</span>
+                                        )}
                                     </td>
-                                    <td
-                                        data-label="Usos"
-                                        style="font-size:0.75rem;"
-                                    >
-                                        {used}
-                                        {c.max_uses ? `/${c.max_uses}` : ""}
-                                    </td>
-                                    <td
-                                        data-label="Expira"
-                                        style="font-size:0.7rem;color:rgba(255,255,255,0.4);"
-                                    >
+                                    <td data-label="Expira" style="font-size:0.72rem;color:rgba(255,255,255,0.4);">
                                         {c.expires_at
-                                            ? new Date(
-                                                  c.expires_at,
-                                              ).toLocaleDateString("es-ES")
-                                            : "Nunca"}
+                                            ? new Date(c.expires_at).toLocaleDateString("es-ES", { day:"2-digit", month:"short", year:"2-digit" })
+                                            : <span style="color:rgba(255,255,255,0.2);">Sin límite</span>}
                                     </td>
                                     <td data-label="Estado">
                                         {expired || maxReached ? (
-                                            <span class="badge badge-danger">
-                                                Expirado
-                                            </span>
+                                            <span class="badge badge-danger" style="font-size:0.63rem;">Expirado</span>
                                         ) : c.is_active ? (
-                                            <span class="badge badge-success">
-                                                Activo
-                                            </span>
+                                            <span class="badge badge-success" style="font-size:0.63rem;">Activo</span>
                                         ) : (
-                                            <span class="badge badge-neutral">
-                                                Inactivo
-                                            </span>
+                                            <span class="badge badge-neutral" style="font-size:0.63rem;">Inactivo</span>
                                         )}
                                     </td>
-                                    <td>
-                                        <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
+                                    <td style="text-align:right;padding-right:1.25rem;">
+                                        <div style="display:inline-flex;gap:0.3rem;align-items:center;">
                                             <button
-                                                class="btn btn-secondary btn-sm btn-edit-coupon"
+                                                class="btn-icon btn-icon-edit btn-edit-coupon"
                                                 data-coupon={JSON.stringify(c)}
+                                                title="Editar"
                                             >
-                                                Editar
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                             </button>
                                             <button
-                                                class="btn btn-danger btn-sm btn-delete-coupon"
+                                                class="btn-icon btn-icon-delete btn-delete-coupon"
                                                 data-id={c.id}
                                                 data-code={c.code}
+                                                title="Eliminar"
                                             >
-                                                Eliminar
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
                                             </button>
                                         </div>
                                     </td>
@@ -218,139 +294,113 @@ const couponsWithMeta = (coupons || []).map((c: any) => ({
 
     <!-- Coupon Modal -->
     <div id="coupon-modal" class="modal-overlay" style="display:none;">
-        <div class="modal" style="max-width:480px;">
-            <div class="modal-header">
-                <div class="modal-title" id="coupon-modal-title">
-                    Nuevo Cupón
+        <div class="modal" style="max-width:500px;gap:0;">
+
+            <div class="modal-header" style="padding-bottom:1rem;border-bottom:1px solid rgba(255,255,255,0.07);">
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                    <div style="width:28px;height:28px;background:rgba(var(--brand-rgb),0.1);border:1px solid rgba(var(--brand-rgb),0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    </div>
+                    <div class="modal-title" id="coupon-modal-title" style="font-size:0.9rem;">Nuevo Cupón</div>
                 </div>
-                <button
-                    class="modal-close"
-                    onclick="document.getElementById('coupon-modal').style.display='none'"
-                >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <button class="modal-close" onclick="document.getElementById('coupon-modal').style.display='none'">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
-            <form id="coupon-form">
+
+            <form id="coupon-form" style="padding-top:1rem;">
                 <input type="hidden" id="coupon-id" />
-                <div class="form-group">
-                    <label class="form-label">Código</label>
+
+                <!-- Code -->
+                <div class="form-group" style="margin-bottom:0.875rem;">
+                    <label class="form-label" style="font-size:0.72rem;">Código del cupón</label>
                     <input
-                        type="text"
-                        class="form-input"
-                        id="coupon-code"
-                        placeholder="DESCUENTO20"
-                        required
-                        style="text-transform:uppercase;"
+                        type="text" class="form-input" id="coupon-code"
+                        placeholder="DESCUENTO20" required
+                        style="text-transform:uppercase;font-family:'Courier New',monospace;font-weight:700;font-size:0.9rem;letter-spacing:0.06em;"
                     />
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
-                    <div class="form-group">
-                        <label class="form-label">Tipo</label>
-                        <select class="form-select" id="coupon-type">
-                            <option value="percentage">Porcentaje (%)</option>
-                            <option value="fixed">Fijo (€)</option>
-                        </select>
+
+                <!-- Type + Value -->
+                <div class="modal-section">
+                    <div class="modal-section-title">Descuento</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" style="font-size:0.72rem;">Tipo</label>
+                            <select class="form-select" id="coupon-type" style="font-size:0.82rem;">
+                                <option value="percentage">Porcentaje (%)</option>
+                                <option value="fixed">Importe fijo (€)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" style="font-size:0.72rem;">Valor</label>
+                            <input type="number" step="0.01" class="form-input" id="coupon-value" placeholder="20" required style="font-size:0.82rem;" />
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Valor</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            class="form-input"
-                            id="coupon-value"
-                            placeholder="20"
-                            required
-                        />
+                    <div class="form-group" style="margin:0;">
+                        <label class="form-label" style="font-size:0.72rem;">Compra mínima (€) — opcional</label>
+                        <input type="number" step="0.01" class="form-input" id="coupon-min" placeholder="Sin mínimo" style="font-size:0.82rem;" />
                     </div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
-                    <div class="form-group">
-                        <label class="form-label">Compra Mínima (€)</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            class="form-input"
-                            id="coupon-min"
-                            placeholder="Opcional"
-                        />
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Usos Máximos</label>
-                        <input
-                            type="number"
-                            class="form-input"
-                            id="coupon-max-uses"
-                            placeholder="Ilimitado"
-                        />
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Fecha Expiración</label>
-                    <input type="date" class="form-input" id="coupon-expires" />
                 </div>
 
-                <!-- Toggles row -->
-                <div style="display:flex;gap:1.5rem;margin-bottom:0.75rem;">
-                    <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <input
-                            type="checkbox"
-                            id="coupon-active"
-                            checked
-                            style="accent-color: var(--brand);"
-                        />
-                        <label for="coupon-active" style="font-size:0.8rem;color:rgba(255,255,255,0.6);cursor:pointer;">Activo</label>
+                <!-- Limits -->
+                <div class="modal-section">
+                    <div class="modal-section-title">Límites</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" style="font-size:0.72rem;">Usos máximos</label>
+                            <input type="number" class="form-input" id="coupon-max-uses" placeholder="Ilimitado" style="font-size:0.82rem;" />
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label class="form-label" style="font-size:0.72rem;">Fecha de expiración</label>
+                            <input type="date" class="form-input" id="coupon-expires" style="font-size:0.82rem;" />
+                        </div>
                     </div>
-                    <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <input
-                            type="checkbox"
-                            id="coupon-exclusive"
-                            style="accent-color:#c084fc;"
-                        />
-                        <label for="coupon-exclusive" style="font-size:0.8rem;color:rgba(255,255,255,0.6);cursor:pointer;">
-                            Exclusivo (usuarios específicos)
+                </div>
+
+                <!-- Toggles -->
+                <div class="modal-section">
+                    <div class="modal-section-title">Configuración</div>
+                    <div style="display:flex;flex-direction:column;gap:0.6rem;">
+                        <!-- Active toggle -->
+                        <label class="toggle-wrap" id="toggle-active-wrap">
+                            <input type="checkbox" id="coupon-active" checked />
+                            <span class="toggle-track"></span>
+                            <span class="toggle-label">Cupón activo</span>
+                        </label>
+                        <!-- Exclusive toggle -->
+                        <label class="toggle-wrap" id="toggle-exclusive-wrap">
+                            <input type="checkbox" id="coupon-exclusive" />
+                            <span class="toggle-track"></span>
+                            <span class="toggle-label">Exclusivo — restringir a usuarios específicos</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- Exclusive users section (hidden unless exclusive is checked) -->
-                <div id="exclusive-section" style="display:none;border:1px solid rgba(168,85,247,0.25);border-radius:6px;padding:0.75rem;margin-bottom:0.75rem;background:rgba(168,85,247,0.04);">
-                    <div style="font-size:0.75rem;color:#c084fc;font-weight:600;margin-bottom:0.5rem;">
-                        Usuarios con acceso
+                <!-- Exclusive users section -->
+                <div id="exclusive-section" style="display:none;margin-top:0.75rem;border:1px solid rgba(168,85,247,0.22);border-radius:8px;padding:0.875rem;background:rgba(168,85,247,0.04);">
+                    <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.6rem;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                        <span style="font-size:0.72rem;color:#c084fc;font-weight:600;letter-spacing:0.04em;">USUARIOS CON ACCESO</span>
                     </div>
-
-                    <!-- User search -->
                     <div style="position:relative;margin-bottom:0.5rem;">
                         <input
-                            type="text"
-                            id="user-search-input"
-                            class="form-input"
-                            placeholder="Buscar usuario por nombre o email..."
+                            type="text" id="user-search-input" class="form-input"
+                            placeholder="Buscar por nombre o email…"
                             autocomplete="off"
-                            style="font-size:0.8rem;"
+                            style="font-size:0.8rem;padding-right:2rem;"
                         />
-                        <div
-                            id="user-search-results"
-                            style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);border-radius:0 0 6px 6px;max-height:180px;overflow-y:auto;"
-                        ></div>
+                        <div id="user-search-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:#1a1a2e;border:1px solid rgba(255,255,255,0.1);border-radius:0 0 6px 6px;max-height:160px;overflow-y:auto;"></div>
                     </div>
-
-                    <!-- Selected users list -->
                     <div id="allowed-users-list" style="display:flex;flex-direction:column;gap:0.3rem;"></div>
-                    <div
-                        id="allowed-users-empty"
-                        style="font-size:0.75rem;color:rgba(255,255,255,0.3);font-style:italic;"
-                    >
+                    <div id="allowed-users-empty" style="font-size:0.75rem;color:rgba(255,255,255,0.28);font-style:italic;">
                         Ningún usuario asignado — el cupón no podrá usarse.
                     </div>
                 </div>
 
-                <div class="modal-actions">
-                    <button
-                        type="button"
-                        class="btn btn-secondary"
-                        onclick="document.getElementById('coupon-modal').style.display='none'"
-                    >Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="coupon-submit-btn">Crear</button>
+                <div class="modal-actions" style="margin-top:1.25rem;padding-top:0.875rem;border-top:1px solid rgba(255,255,255,0.07);">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('coupon-modal').style.display='none'" style="font-size:0.82rem;">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="coupon-submit-btn" style="font-size:0.82rem;">Crear</button>
                 </div>
             </form>
         </div>
@@ -363,6 +413,20 @@ const couponsWithMeta = (coupons || []).map((c: any) => ({
             document.getElementById('coupon-expires').min = new Date().toISOString().slice(0, 10);
             // allowedUsers: array of { id, name, email }
             var allowedUsers = [];
+
+            // ── Toggle switch visual sync ─────────────────────────────────────
+            function syncToggle(checkboxId, wrapId, activeClass) {
+                var cb = document.getElementById(checkboxId);
+                var wrap = document.getElementById(wrapId);
+                function update() {
+                    if (cb.checked) wrap.classList.add(activeClass);
+                    else wrap.classList.remove(activeClass);
+                }
+                cb.addEventListener('change', update);
+                update();
+            }
+            syncToggle('coupon-active', 'toggle-active-wrap', 'toggle-active');
+            syncToggle('coupon-exclusive', 'toggle-exclusive-wrap', 'toggle-exclusive');
 
             // ── Helpers ───────────────────────────────────────────────────────
             function renderAllowedUsers() {
@@ -468,6 +532,9 @@ const couponsWithMeta = (coupons || []).map((c: any) => ({
                 document.getElementById('coupon-active').checked = true;
                 document.getElementById('coupon-exclusive').checked = false;
                 document.getElementById('exclusive-section').style.display = 'none';
+                // sync toggle visuals
+                document.getElementById('toggle-active-wrap').classList.add('toggle-active');
+                document.getElementById('toggle-exclusive-wrap').classList.remove('toggle-exclusive');
                 allowedUsers = [];
                 renderAllowedUsers();
                 searchInput.value = '';
@@ -500,6 +567,11 @@ const couponsWithMeta = (coupons || []).map((c: any) => ({
                     document.getElementById('coupon-active').checked = c.is_active;
                     document.getElementById('coupon-exclusive').checked = !!c.is_exclusive;
                     document.getElementById('exclusive-section').style.display = c.is_exclusive ? '' : 'none';
+                    // sync toggle visuals
+                    if (c.is_active) document.getElementById('toggle-active-wrap').classList.add('toggle-active');
+                    else document.getElementById('toggle-active-wrap').classList.remove('toggle-active');
+                    if (c.is_exclusive) document.getElementById('toggle-exclusive-wrap').classList.add('toggle-exclusive');
+                    else document.getElementById('toggle-exclusive-wrap').classList.remove('toggle-exclusive');
                     allowedUsers = Array.isArray(c.allowedUsers) ? c.allowedUsers.slice() : [];
                     renderAllowedUsers();
                     searchInput.value = '';
