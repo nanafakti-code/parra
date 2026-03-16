@@ -141,6 +141,12 @@ try {
                                     >Pendiente</span
                                 >
                             </div>
+                            <div id="discount-row" class="flex justify-between text-sm" style="display:none;">
+                                <span class="uppercase tracking-wider" style="color: var(--text-muted);">
+                                    Descuento <span id="discount-code-tag" class="font-mono" style="color:var(--brand);font-size:0.65rem;"></span>
+                                </span>
+                                <span id="discount-amount-label" class="font-semibold" style="color:#4ade80;"></span>
+                            </div>
                             <div
                                 class="pt-4 flex justify-between"
                                 style="border-top: 1px solid var(--border-color);"
@@ -162,15 +168,20 @@ try {
                             <div class="flex gap-2">
                                 <input
                                     type="text"
+                                    id="coupon-input"
                                     placeholder="Código descuento"
                                     class="input flex-1 !text-xs !py-2.5"
+                                    autocomplete="off"
+                                    style="text-transform:uppercase;"
                                 />
                                 <button
+                                    id="coupon-apply-btn"
                                     class="btn-outline !py-2.5 !px-4 !text-xs !border"
                                 >
                                     Aplicar
                                 </button>
                             </div>
+                            <div id="coupon-feedback" class="mt-1.5 text-xs" style="display:none;"></div>
                         </div>
 
                         <a
@@ -276,7 +287,21 @@ try {
                 }
             }
 
-            totalEl.textContent = fmt(total);
+            // Apply coupon discount to the displayed total
+            const saved = sessionStorage.getItem('applied_coupon');
+            const disc = saved ? JSON.parse(saved) : null;
+            const discRow = document.getElementById('discount-row');
+            if (disc && discRow) {
+                discRow.style.display = '';
+                const tag = document.getElementById('discount-code-tag');
+                const lbl = document.getElementById('discount-amount-label');
+                if (tag) tag.textContent = disc.code;
+                if (lbl) lbl.textContent = `-${fmt(disc.discountAmount)}`;
+                totalEl.textContent = fmt(Math.max(0, total - disc.discountAmount));
+            } else {
+                if (discRow) discRow.style.display = 'none';
+                totalEl.textContent = fmt(total);
+            }
 
             list.innerHTML = items.map(item => {
                 const key  = ikey(item);
@@ -363,6 +388,69 @@ try {
     }
 
     document.addEventListener('astro:page-load', initCartPage);
+
+    // ── Coupon validation ────────────────────────────────────────────────────
+    document.addEventListener('astro:page-load', () => {
+        const input    = document.getElementById('coupon-input')    as HTMLInputElement | null;
+        const btn      = document.getElementById('coupon-apply-btn') as HTMLButtonElement | null;
+        const feedback = document.getElementById('coupon-feedback')  as HTMLElement | null;
+
+        if (!input || !btn) return;
+
+        function setFeedback(msg: string, ok: boolean) {
+            if (!feedback) return;
+            feedback.textContent = msg;
+            feedback.style.display = msg ? '' : 'none';
+            feedback.style.color = ok ? '#4ade80' : '#f87171';
+        }
+
+        // Restore from sessionStorage on page load
+        const saved = sessionStorage.getItem('applied_coupon');
+        if (saved) {
+            try {
+                const c = JSON.parse(saved);
+                if (c?.code) {
+                    input.value = c.code;
+                    setFeedback(`Cupón "${c.code}" aplicado (-${(c.discountAmount as number).toFixed(2)}€)`, true);
+                }
+            } catch { sessionStorage.removeItem('applied_coupon'); }
+        }
+
+        // Allow pressing Enter in the input
+        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') btn.click(); });
+
+        btn.addEventListener('click', async () => {
+            const code = input.value.trim().toUpperCase();
+            if (!code) { setFeedback('Introduce un código de cupón.', false); return; }
+
+            btn.disabled = true;
+            btn.textContent = '...';
+            setFeedback('', true);
+
+            const subtotal = cartTotal();
+            try {
+                const res  = await fetch(`/api/coupon/validate?code=${encodeURIComponent(code)}&subtotal=${subtotal}`);
+                const data = await res.json();
+
+                if (data.valid) {
+                    const coupon = { code: data.code as string, discountAmount: data.discountAmount as number };
+                    sessionStorage.setItem('applied_coupon', JSON.stringify(coupon));
+                    setFeedback(`Cupón "${coupon.code}" aplicado (-${coupon.discountAmount.toFixed(2)}€)`, true);
+                    // Re-render summary to show discount
+                    window.dispatchEvent(new CustomEvent('cart:updated'));
+                } else {
+                    sessionStorage.removeItem('applied_coupon');
+                    setFeedback(data.error || 'Cupón no válido.', false);
+                    window.dispatchEvent(new CustomEvent('cart:updated'));
+                }
+            } catch {
+                setFeedback('Error de conexión. Inténtalo de nuevo.', false);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Aplicar';
+            }
+        });
+    });
 </script>
 
 <style>

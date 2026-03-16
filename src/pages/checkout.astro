@@ -302,6 +302,12 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
                             <span style="color: var(--text-muted);">Envío</span>
                             <span id="summary-shipping" class="font-semibold text-brand">—</span>
                         </div>
+                        <div id="summary-discount-row" class="flex justify-between text-sm" style="display:none;">
+                            <span style="color: var(--text-muted);">
+                                Descuento <span id="summary-discount-code" class="font-mono" style="color:var(--brand);font-size:0.65rem;"></span>
+                            </span>
+                            <span id="summary-discount-amount" class="font-semibold" style="color:#4ade80;"></span>
+                        </div>
                         <div
                             class="h-px mt-1"
                             style="background: var(--border-color);"
@@ -492,12 +498,28 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
         }
         const total = subtotal + shippingCost;
         const fmt = (n: number) => `${n.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
-        const productsEl = document.getElementById("summary-products");
-        const shippingEl = document.getElementById("summary-shipping");
-        const totalEl    = document.getElementById("summary-total");
+        const productsEl  = document.getElementById("summary-products");
+        const shippingEl  = document.getElementById("summary-shipping");
+        const totalEl     = document.getElementById("summary-total");
+        const discRow     = document.getElementById("summary-discount-row");
+        const discCodeEl  = document.getElementById("summary-discount-code");
+        const discAmtEl   = document.getElementById("summary-discount-amount");
+
         if (productsEl) productsEl.textContent = fmt(subtotal);
         if (shippingEl) shippingEl.textContent = shippingCost === 0 ? "Gratis" : fmt(shippingCost);
-        if (totalEl)    totalEl.textContent    = fmt(total);
+
+        // Apply coupon discount from sessionStorage
+        const savedCoupon = sessionStorage.getItem('applied_coupon');
+        const coupon = savedCoupon ? JSON.parse(savedCoupon) : null;
+        if (coupon?.discountAmount && discRow) {
+            discRow.style.display = '';
+            if (discCodeEl) discCodeEl.textContent = coupon.code;
+            if (discAmtEl)  discAmtEl.textContent  = `-${fmt(coupon.discountAmount)}`;
+            if (totalEl)    totalEl.textContent    = fmt(Math.max(0, total - coupon.discountAmount));
+        } else {
+            if (discRow) discRow.style.display = 'none';
+            if (totalEl) totalEl.textContent   = fmt(total);
+        }
     }
 
     function setActiveShippingOption(method: string) {
@@ -548,6 +570,10 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
                     email: "guest@example.com",
                     turnstileToken: token,
                     shippingMethod: selectedShippingMethod,
+                    couponCode: (() => {
+                        try { return JSON.parse(sessionStorage.getItem('applied_coupon') || '{}')?.code ?? null; }
+                        catch { return null; }
+                    })(),
                 }),
             });
             const data = await res.json();
