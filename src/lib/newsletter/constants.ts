@@ -1,4 +1,4 @@
-export const NEWSLETTER_SUCCESS_MESSAGE = '¡Gracias por unirte al Club Parra! Revisa tu correo.';
+export const NEWSLETTER_SUCCESS_MESSAGE = '¡Gracias por unirte al Club Parra! Te enviaremos un correo de bienvenida en unos minutos.';
 export const NEWSLETTER_DUPLICATE_MESSAGE = 'Este correo ya está suscrito a la newsletter.';
 
 export const WELCOME_SUBJECT = 'Bienvenido al Club Parra GK Gloves';

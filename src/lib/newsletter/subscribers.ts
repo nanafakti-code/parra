@@ -5,7 +5,7 @@ import {
     WELCOME_SUBJECT,
 } from './constants';
 import { buildWelcomeEmailHtml } from './email';
-import { enqueueNewsletterEmail, scheduleNewsletterQueueProcessing } from './queue';
+import { enqueueNewsletterEmail, processNewsletterQueueBatch, scheduleNewsletterQueueProcessing } from './queue';
 import { isValidEmail, normalizeEmail } from './validation';
 
 interface SubscribeInput {
@@ -123,6 +123,9 @@ export async function subscribeToNewsletter(input: SubscribeInput): Promise<Subs
             },
         });
         scheduleNewsletterQueueProcessing();
+        await processNewsletterQueueBatch(5).catch((processingError) => {
+            console.error('[newsletter] Falló el procesamiento inmediato de la cola:', processingError);
+        });
     } catch (queueError) {
         console.error('[newsletter] Suscriptor creado pero falló la cola de bienvenida:', queueError);
     }
@@ -231,6 +234,9 @@ export async function setNewsletterPreference(options: {
                 payload: { type: 'welcome-profile' },
             });
             scheduleNewsletterQueueProcessing();
+            await processNewsletterQueueBatch(5).catch((processingError) => {
+                console.error('[newsletter] Falló el procesamiento inmediato de la cola (perfil):', processingError);
+            });
         } catch (queueError) {
             console.error('[newsletter] Preferencia actualizada pero falló la cola de bienvenida:', queueError);
         }
