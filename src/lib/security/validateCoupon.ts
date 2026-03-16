@@ -7,7 +7,8 @@
  * The function:
  *  1. Looks up the coupon by code using supabaseAdmin (bypasses RLS).
  *  2. Validates: active, not expired, max_uses not exceeded, min_purchase met.
- *  3. Computes the discount amount server-side.
+ *  3. If is_exclusive=true, verifies the userId is in coupon_user_allowlist.
+ *  4. Computes the discount amount server-side.
  */
 
 import { supabaseAdmin } from '../supabase';
@@ -26,6 +27,7 @@ export type CouponValidationResult =
 export async function validateCoupon(
     couponCode: string,
     subtotal: number,
+    userId?: string | null,
 ): Promise<CouponValidationResult> {
     // Basic input guard — never trust input length/type from outside
     if (!couponCode || typeof couponCode !== 'string' || couponCode.length > 60) {
@@ -36,7 +38,7 @@ export async function validateCoupon(
 
     const { data: coupon, error } = await supabaseAdmin
         .from('coupons')
-        .select('id, code, type, value, is_active, expires_at, max_uses, min_purchase')
+        .select('id, code, type, value, is_active, expires_at, max_uses, min_purchase, is_exclusive')
         .eq('code', code)
         .maybeSingle();
 
@@ -61,6 +63,24 @@ export async function validateCoupon(
 
         if ((count ?? 0) >= coupon.max_uses) {
             return { valid: false, error: 'Este cupón ha alcanzado su límite de uso.' };
+        }
+    }
+
+    // Exclusive coupon: check the user allowlist
+    if (coupon.is_exclusive) {
+        if (!userId) {
+            return { valid: false, error: 'Este cupón es exclusivo. Debes iniciar sesión para usarlo.' };
+        }
+
+        const { data: entry } = await supabaseAdmin
+            .from('coupon_user_allowlist')
+            .select('id')
+            .eq('coupon_id', coupon.id)
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        if (!entry) {
+            return { valid: false, error: 'Este cupón no está disponible para tu cuenta.' };
         }
     }
 

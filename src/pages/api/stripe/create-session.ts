@@ -70,7 +70,7 @@ function getOrigin(request: Request): string {
 
 // ── Handler ────────────────────────────────────────────────────────────────────
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
     try {
         const ip = getClientIp(request);
         const { success } = await paymentLimiter.limit(ip);
@@ -161,7 +161,7 @@ export const POST: APIRoute = async ({ request }) => {
         let discountEuros:  number = 0;
 
         if (couponCode && typeof couponCode === 'string') {
-            const couponResult = await validateCoupon(couponCode, subtotalEuros);
+            const couponResult = await validateCoupon(couponCode, subtotalEuros, (locals as any).user?.id ?? null);
 
             if (!couponResult.valid) {
                 return jsonResponse({ error: couponResult.error }, 400);

@@ -18,7 +18,7 @@
 | 7 | Preconnect CDN | `Layout.astro`, `AdminLayout.astro` | −100–200 ms latencia CDN |
 | 8 | LCP product image | `product/[slug].astro` | Mejora LCP score |
 | 9 | Cart API (1 query) | `api/cart.ts` | −1 DB round-trip |
-| 10 | DB indexes nuevos | `database/migrations/` | −seq scans en tablas clave |
+|10 | DB indexes nuevos | `database/migrations/` | −seq scans en tablas clave |
 
 ---
 

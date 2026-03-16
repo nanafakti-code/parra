@@ -14,12 +14,31 @@ export const GET: APIRoute = async ({ request, cookies }) => {
 
     if (error) return jsonResponse({ error: 'Error al obtener cupones' }, 500);
 
-    // Get usage counts
+    // Usage counts
     const { data: usage } = await supabaseAdmin.from('coupon_usage').select('coupon_id');
     const usageMap: Record<string, number> = {};
     (usage || []).forEach((u: any) => { usageMap[u.coupon_id] = (usageMap[u.coupon_id] || 0) + 1; });
 
-    const coupons = (data || []).map(c => ({ ...c, timesUsed: usageMap[c.id] || 0 }));
+    // Allowed users for exclusive coupons
+    const { data: allowlist } = await supabaseAdmin
+        .from('coupon_user_allowlist')
+        .select('coupon_id, user_id, users!inner(id, name, email)');
+
+    const allowlistMap: Record<string, { id: string; name: string; email: string }[]> = {};
+    (allowlist || []).forEach((entry: any) => {
+        if (!allowlistMap[entry.coupon_id]) allowlistMap[entry.coupon_id] = [];
+        allowlistMap[entry.coupon_id].push({
+            id:    entry.users.id,
+            name:  entry.users.name,
+            email: entry.users.email,
+        });
+    });
+
+    const coupons = (data || []).map((c: any) => ({
+        ...c,
+        timesUsed:    usageMap[c.id] || 0,
+        allowedUsers: allowlistMap[c.id] || [],
+    }));
 
     return jsonResponse({ coupons });
 };
@@ -32,7 +51,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     try {
         const body = await request.json();
-        const { code, type, value, minPurchase, maxUses, expiresAt, isActive } = body;
+        const { code, type, value, minPurchase, maxUses, expiresAt, isActive, isExclusive, allowedUsers } = body;
 
         if (!code?.trim() || !type || value === undefined) {
             return jsonResponse({ error: 'code, type y value son obligatorios' }, 400);
@@ -43,22 +62,38 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         const insertData: Record<string, any> = {
-            code: code.trim().toUpperCase(),
+            code:         code.trim().toUpperCase(),
             type,
-            value: parseFloat(value),
-            is_active: isActive !== false,
+            value:        parseFloat(value),
+            is_active:    isActive !== false,
+            is_exclusive: isExclusive === true,
         };
         if (minPurchase) insertData.min_purchase = parseFloat(minPurchase);
-        if (maxUses) insertData.max_uses = parseInt(maxUses);
-        if (expiresAt) insertData.expires_at = expiresAt;
+        if (maxUses)     insertData.max_uses      = parseInt(maxUses);
+        if (expiresAt)   insertData.expires_at    = expiresAt;
 
-        const { data, error } = await supabaseAdmin.from('coupons').insert(insertData).select().single();
+        const { data, error } = await supabaseAdmin
+            .from('coupons')
+            .insert(insertData)
+            .select()
+            .single();
+
         if (error) {
             if (error.code === '23505') return jsonResponse({ error: 'Ya existe un cupón con ese código' }, 409);
             return jsonResponse({ error: 'Error al crear cupón' }, 500);
         }
 
-        await logAdminAction(admin.id, 'create_coupon', 'coupon', data.id, { code: insertData.code }, request.headers.get('x-forwarded-for') || undefined);
+        // Set allowlist for exclusive coupons
+        if (isExclusive && Array.isArray(allowedUsers) && allowedUsers.length > 0) {
+            const rows = allowedUsers.map((uid: string) => ({ coupon_id: data.id, user_id: uid }));
+            await supabaseAdmin.from('coupon_user_allowlist').insert(rows);
+        }
+
+        await logAdminAction(
+            admin.id, 'create_coupon', 'coupon', data.id,
+            { code: insertData.code, is_exclusive: isExclusive },
+            request.headers.get('x-forwarded-for') || undefined,
+        );
         return jsonResponse({ coupon: data, message: 'Cupón creado' }, 201);
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);
@@ -73,29 +108,49 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
     try {
         const body = await request.json();
-        const { couponId, ...updates } = body;
+        const { couponId, allowedUsers, ...updates } = body;
         if (!couponId) return jsonResponse({ error: 'couponId obligatorio' }, 400);
 
         const updateData: Record<string, any> = {};
-        if (updates.code !== undefined) updateData.code = updates.code.trim().toUpperCase();
-        if (updates.type !== undefined) updateData.type = updates.type;
-        if (updates.value !== undefined) updateData.value = parseFloat(updates.value);
+        if (updates.code        !== undefined) updateData.code         = updates.code.trim().toUpperCase();
+        if (updates.type        !== undefined) updateData.type         = updates.type;
+        if (updates.value       !== undefined) updateData.value        = parseFloat(updates.value);
         if (updates.minPurchase !== undefined) updateData.min_purchase = updates.minPurchase ? parseFloat(updates.minPurchase) : null;
-        if (updates.maxUses !== undefined) updateData.max_uses = updates.maxUses ? parseInt(updates.maxUses) : null;
-        if (updates.expiresAt !== undefined) updateData.expires_at = updates.expiresAt || null;
-        if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
+        if (updates.maxUses     !== undefined) updateData.max_uses     = updates.maxUses ? parseInt(updates.maxUses) : null;
+        if (updates.expiresAt   !== undefined) updateData.expires_at   = updates.expiresAt || null;
+        if (updates.isActive    !== undefined) updateData.is_active    = updates.isActive;
+        if (updates.isExclusive !== undefined) updateData.is_exclusive = updates.isExclusive;
 
-        const { data, error } = await supabaseAdmin.from('coupons').update(updateData).eq('id', couponId).select().single();
+        const { data, error } = await supabaseAdmin
+            .from('coupons')
+            .update(updateData)
+            .eq('id', couponId)
+            .select()
+            .single();
+
         if (error) return jsonResponse({ error: 'Error al actualizar cupón' }, 500);
 
-        await logAdminAction(admin.id, 'update_coupon', 'coupon', couponId, updateData, request.headers.get('x-forwarded-for') || undefined);
+        // Replace allowlist when allowedUsers array is provided
+        if (Array.isArray(allowedUsers)) {
+            await supabaseAdmin.from('coupon_user_allowlist').delete().eq('coupon_id', couponId);
+            if (allowedUsers.length > 0) {
+                const rows = allowedUsers.map((uid: string) => ({ coupon_id: couponId, user_id: uid }));
+                await supabaseAdmin.from('coupon_user_allowlist').insert(rows);
+            }
+        }
+
+        await logAdminAction(
+            admin.id, 'update_coupon', 'coupon', couponId,
+            updateData,
+            request.headers.get('x-forwarded-for') || undefined,
+        );
         return jsonResponse({ coupon: data, message: 'Cupón actualizado' });
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);
     }
 };
 
-/** DELETE /api/admin/coupons – Delete coupon */
+/** DELETE /api/admin/coupons – Delete coupon (allowlist entries cascade) */
 export const DELETE: APIRoute = async ({ request, cookies }) => {
     const result = await validateAdminAPI(request, cookies);
     if (result instanceof Response) return result;
@@ -109,7 +164,11 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
         const { error } = await supabaseAdmin.from('coupons').delete().eq('id', couponId);
         if (error) return jsonResponse({ error: 'Error al eliminar cupón' }, 500);
 
-        await logAdminAction(admin.id, 'delete_coupon', 'coupon', couponId, {}, request.headers.get('x-forwarded-for') || undefined);
+        await logAdminAction(
+            admin.id, 'delete_coupon', 'coupon', couponId,
+            {},
+            request.headers.get('x-forwarded-for') || undefined,
+        );
         return jsonResponse({ message: 'Cupón eliminado' });
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);

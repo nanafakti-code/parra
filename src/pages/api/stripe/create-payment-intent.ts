@@ -13,7 +13,7 @@ function jsonResponse(data: Record<string, unknown>, status: number): Response {
     });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
     try {
         const ip = getClientIp(request);
         const { success } = await paymentLimiter.limit(ip);
@@ -73,7 +73,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         if (couponCode && typeof couponCode === 'string') {
             const subtotalEuros = subtotalCents / 100;
-            const couponResult = await validateCoupon(couponCode, subtotalEuros);
+            const couponResult = await validateCoupon(couponCode, subtotalEuros, (locals as any).user?.id ?? null);
 
             if (!couponResult.valid) {
                 return jsonResponse({ error: couponResult.error }, 400);
