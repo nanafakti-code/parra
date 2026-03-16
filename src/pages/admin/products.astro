@@ -1057,7 +1057,9 @@ const extraGalleries: Record<
                                     window.location.reload();
                                 }, 600);
                             } else {
-                                window.adminToast("Error al eliminar", "error");
+                                var errMsg = "Error al eliminar";
+                                try { var d = await res.json(); errMsg = d.error || errMsg; } catch {}
+                                window.adminToast(errMsg, "error");
                             }
                         } catch (err) {
                             window.adminToast("Error de conexión", "error");

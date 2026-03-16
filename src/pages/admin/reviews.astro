@@ -560,13 +560,18 @@ const currentFeatured = featuredCount || 0;
     async function deleteReview(id) {
         const ok = await window.adminConfirm?.('¿Eliminar esta reseña permanentemente? Esta acción no se puede deshacer.');
         if (!ok) return;
-        const res = await fetch(`/api/admin/reviews?id=${id}`, { method: 'DELETE' });
-        const data = await res.json();
-        if (res.ok) {
-            window.adminToast?.('Reseña eliminada', 'success');
-            setTimeout(() => location.reload(), 600);
-        } else {
-            window.adminToast?.(data.error || 'Error', 'error');
+        try {
+            const res = await fetch(`/api/admin/reviews?id=${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                window.adminToast?.('Reseña eliminada', 'success');
+                setTimeout(() => location.reload(), 600);
+            } else {
+                let msg = 'Error al eliminar';
+                try { const d = await res.json(); msg = d.error || msg; } catch {}
+                window.adminToast?.(msg, 'error');
+            }
+        } catch {
+            window.adminToast?.('Error de conexión', 'error');
         }
     }
 

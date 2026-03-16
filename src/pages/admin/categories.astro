@@ -397,11 +397,9 @@ const countMap: Record<string, number> = {};
                                     window.location.reload();
                                 }, 600);
                             } else {
-                                var data = await res.json();
-                                window.adminToast(
-                                    data.error || "Error",
-                                    "error",
-                                );
+                                var errMsg = "Error al eliminar";
+                                try { var data = await res.json(); errMsg = data.error || errMsg; } catch {}
+                                window.adminToast(errMsg, "error");
                             }
                         } catch (err) {
                             window.adminToast("Error de conexión", "error");

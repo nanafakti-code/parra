@@ -210,7 +210,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
 
     // Hard delete
     const { error } = await supabaseAdmin.from('products').delete().eq('id', productId);
-    if (error) return jsonResponse({ error: 'Error al eliminar producto' }, 500);
+    if (error) return jsonResponse({ error: `Error al eliminar producto: ${error.message}` }, 500);
 
     await logAdminAction(admin.id, 'delete_product', 'product', productId, {}, request.headers.get('x-forwarded-for') || undefined);
     return jsonResponse({ message: 'Producto eliminado permanentemente' });
