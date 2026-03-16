@@ -294,7 +294,13 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         });
         doc.rect(M, rowY, CW, 2).fill(BORDER);
 
-        const discountAmount = parseFloat(order.discount) || 0;
+        let discountAmount = parseFloat(order.discount) || 0;
+        if (discountAmount === 0 && total > 0 && shippingCost >= 0) {
+            const orderSubtotal = parseFloat(order.subtotal) || 0;
+            if (orderSubtotal > 0 && orderSubtotal + shippingCost > total + 0.01) {
+                discountAmount = Math.round((orderSubtotal + shippingCost - total) * 100) / 100;
+            }
+        }
         const couponCode: string | null = order.coupons?.code || null;
 
         // ── TOTALES ───────────────────────────────────────────────────────

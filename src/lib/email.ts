@@ -101,7 +101,13 @@ function getOrderConfirmationHtml(order: any, items: any[], userProfile?: any): 
     const subtotal = parseFloat(order.subtotal) || 0;
     const shippingCost = parseFloat(order.shipping_cost) || 0;
     const total = parseFloat(order.total) || subtotal + shippingCost;
-    const discountAmount = parseFloat(order.discount) || 0;
+
+    // Discount: use stored value; fall back to computing from totals when the field is
+    // null/0 but the numbers clearly don't add up (subtotal + shipping > total).
+    let discountAmount = parseFloat(order.discount) || 0;
+    if (discountAmount === 0 && subtotal > 0 && total > 0 && subtotal + shippingCost > total + 0.01) {
+        discountAmount = Math.round((subtotal + shippingCost - total) * 100) / 100;
+    }
     const couponCode: string | null = order.coupons?.code || null;
 
     return `<!DOCTYPE html>
