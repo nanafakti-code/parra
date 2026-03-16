@@ -13,7 +13,7 @@ const fmt = (n: number) =>
  * Hostalia usa TLS/protocolos legacy que OpenSSL 3.x bloquea por defecto;
  * los ajustes tls los desbloquean sin comprometer el resto de la aplicaciÃ³n.
  */
-function createTransporter() {
+export function createTransporter() {
     const host = import.meta.env.SMTP_HOST || process.env.SMTP_HOST || 'smtp.hostalia.com';
     const port = Number(import.meta.env.SMTP_PORT || process.env.SMTP_PORT || 587);
     const secure = (import.meta.env.SMTP_SECURE || process.env.SMTP_SECURE) === 'true';
