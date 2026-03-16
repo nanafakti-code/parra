@@ -1,5 +1,5 @@
 import { buildBroadcastEmailHtml } from './email';
-import { enqueueNewsletterBroadcast, enqueueNewsletterEmail, scheduleNewsletterQueueProcessing } from './queue';
+import { enqueueNewsletterBroadcast, enqueueNewsletterEmail, processNewsletterQueueBatch } from './queue';
 import { sanitizeNewsletterText } from './validation';
 import { supabaseAdmin } from '../supabase';
 
@@ -196,5 +196,5 @@ export async function notifyExclusiveCoupon(options: {
         });
     }
 
-    scheduleNewsletterQueueProcessing();
+    await processNewsletterQueueBatch(options.userIds.length);
 }

@@ -109,13 +109,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         if (product.is_active) {
-            notifyNewProductPublished({
-                eventKey: `new-product:${product.id}`,
-                productName: product.name,
-                productSlug: product.slug,
-            }).catch((err) => {
-                console.error('[admin-products] Error encolando newsletter de nuevo producto:', err);
-            });
+            try {
+                await notifyNewProductPublished({
+                    eventKey: `new-product:${product.id}`,
+                    productName: product.name,
+                    productSlug: product.slug,
+                });
+            } catch (err) {
+                console.error('[admin-products] Error en notificación de newsletter de nuevo producto:', err);
+            }
         }
 
         await logAdminAction(admin.id, 'create_product', 'product', product.id, { name: product.name }, request.headers.get('x-forwarded-for') || undefined);
