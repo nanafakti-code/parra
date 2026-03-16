@@ -166,11 +166,11 @@ const currentFeatured = featuredCount || 0;
             {totalPages > 1 && (
                 <div class="pagination mt-6">
                     {page > 1 && (
-                        <a href={`/admin/reviews?${approved ? `approved=${approved}&` : ''}page=${page - 1}`} class="pagination-btn">Anterior</a>
+                        <a href={`/admin/reviews?${approved ? 'approved=' + approved + '&' : ''}page=${page - 1}`} class="pagination-btn">Anterior</a>
                     )}
                     <span class="pagination-info">Página {page} de {totalPages}</span>
                     {page < totalPages && (
-                        <a href={`/admin/reviews?${approved ? `approved=${approved}&` : ''}page=${page + 1}`} class="pagination-btn">Siguiente</a>
+                        <a href={`/admin/reviews?${approved ? 'approved=' + approved + '&' : ''}page=${page + 1}`} class="pagination-btn">Siguiente</a>
                     )}
                 </div>
             )}
