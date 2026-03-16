@@ -21,7 +21,7 @@ export function createTransporter() {
     const pass = import.meta.env.SMTP_PASS || process.env.SMTP_PASS;
 
     if (!pass) {
-        console.warn('[email] SMTP_PASS no estÃ¡ configurada. Los emails no se enviarÃ¡n.');
+        console.warn('[email] SMTP_PASS no está configurada.');
     }
 
     return nodemailer.createTransport({
