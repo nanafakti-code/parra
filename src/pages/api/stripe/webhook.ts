@@ -216,7 +216,7 @@ export const POST: APIRoute = async ({ request }) => {
                 shipping_postal_code: metadata.shipping_zip ?? null,
                 shipping_phone: metadata.shipping_phone ?? null,
             })
-            .select('*')
+            .select('*, coupons(code)')
             .single();
 
         if (orderError || !order) {

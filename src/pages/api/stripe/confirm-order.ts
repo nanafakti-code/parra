@@ -77,7 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
         // 2. Buscar si la orden ya existe en la BD
         const { data: existingOrder } = await supabaseAdmin
             .from('orders')
-            .select('*, order_items(*)')
+            .select('*, order_items(*), coupons(code)')
             .eq('stripe_session_id', sessionId)
             .maybeSingle();
 
@@ -168,7 +168,7 @@ export const POST: APIRoute = async ({ request }) => {
                 shipping_phone: metadata.shipping_phone ?? null,
                 email_sent: false,
             })
-            .select('*')
+            .select('*, coupons(code)')
             .single();
 
         if (orderError || !newOrder) {

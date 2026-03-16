@@ -9,24 +9,50 @@ const admin = adminResult;
 
 // ── KPI Queries ────────────────────────────────────────────────────────────────
 
-// Total revenue
+// All orders (id needed to match against refunds)
 const { data: allOrders } = await supabaseAdmin
     .from('orders')
-    .select('total, status, created_at');
+    .select('id, total, status, created_at');
 
-const totalRevenue = (allOrders || []).reduce((s, o) => s + parseFloat(o.total || 0), 0);
+// All approved refunds
+const { data: allRefunds } = await supabaseAdmin
+    .from('returns')
+    .select('order_id, refund_amount')
+    .eq('status', 'refunded');
 
-// This month's revenue
+// Build refund map: order_id → total amount refunded for that order
+const refundMap = new Map<string, number>();
+(allRefunds || []).forEach((r: any) => {
+    refundMap.set(r.order_id, (refundMap.get(r.order_id) || 0) + parseFloat(r.refund_amount || 0));
+});
+
+// Net revenue for a single order:
+//   cancelled  → 0 (money was never captured or was fully reversed by Stripe)
+//   refunded   → order.total − refund_amount (typically just the shipping cost)
+//   everything else → order.total
+function netRevenue(order: any): number {
+    if (order.status === 'cancelled') return 0;
+    const refunded = refundMap.get(order.id) || 0;
+    return Math.max(0, parseFloat(order.total || 0) - refunded);
+}
+
+// Total refunded amount (shown as its own KPI)
+const totalRefunded = (allRefunds || []).reduce((s: number, r: any) => s + parseFloat(r.refund_amount || 0), 0);
+
+// Total net revenue
+const totalRevenue = (allOrders || []).reduce((s, o) => s + netRevenue(o), 0);
+
+// This month's net revenue
 const now = new Date();
 const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 const monthOrders = (allOrders || []).filter(o => o.created_at >= firstOfMonth);
-const monthRevenue = monthOrders.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+const monthRevenue = monthOrders.reduce((s, o) => s + netRevenue(o), 0);
 
-// Previous month for comparison
+// Previous month for comparison (net)
 const firstOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
 const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString();
 const prevMonthOrders = (allOrders || []).filter(o => o.created_at >= firstOfPrevMonth && o.created_at <= endOfPrevMonth);
-const prevMonthRevenue = prevMonthOrders.reduce((s, o) => s + parseFloat(o.total || 0), 0);
+const prevMonthRevenue = prevMonthOrders.reduce((s, o) => s + netRevenue(o), 0);
 const revenueChange = prevMonthRevenue > 0 ? ((monthRevenue - prevMonthRevenue) / prevMonthRevenue * 100).toFixed(1) : '0';
 
 // Order counts
@@ -35,8 +61,9 @@ const monthOrderCount = monthOrders.length;
 const prevMonthOrderCount = prevMonthOrders.length;
 const ordersChange = prevMonthOrderCount > 0 ? ((monthOrderCount - prevMonthOrderCount) / prevMonthOrderCount * 100).toFixed(1) : '0';
 
-// Average ticket
-const avgTicket = totalOrderCount > 0 ? (totalRevenue / totalOrderCount) : 0;
+// Average ticket — only over paid orders (excludes cancelled and refunded)
+const paidOrders = (allOrders || []).filter(o => o.status !== 'cancelled' && o.status !== 'refunded');
+const avgTicket = paidOrders.length > 0 ? (totalRevenue / paidOrders.length) : 0;
 
 // Total customers
 const { count: totalCustomers } = await supabaseAdmin
@@ -76,7 +103,7 @@ for (let i = 5; i >= 0; i--) {
     const mOrders = (allOrders || []).filter(o => o.created_at >= d.toISOString() && o.created_at <= dEnd.toISOString());
     monthlyData.push({
         label: monthNames[d.getMonth()],
-        revenue: mOrders.reduce((s, o) => s + parseFloat(o.total || 0), 0),
+        revenue: mOrders.reduce((s, o) => s + netRevenue(o), 0),
         orders: mOrders.length,
     });
 }
@@ -105,7 +132,7 @@ for (let i = 29; i >= 0; i--) {
     const dayOrders = recentAllOrders.filter(o => o.created_at.slice(0, 10) === dayStr);
     dailyRevenue.push({
         day: `${d.getDate()}/${d.getMonth() + 1}`,
-        revenue: dayOrders.reduce((s, o) => s + parseFloat(o.total || 0), 0),
+        revenue: dayOrders.reduce((s, o) => s + netRevenue(o), 0),
     });
 }
 
@@ -148,6 +175,10 @@ const chartData = JSON.stringify({
         <div class="stat-card">
             <div class="stat-label">Ingresos Totales</div>
             <div class="stat-value">{totalRevenue.toFixed(0)}€</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Reembolsado</div>
+            <div class="stat-value" style={totalRefunded > 0 ? 'color:#f87171;' : ''}>{totalRefunded > 0 ? '-' : ''}{totalRefunded.toFixed(2)}€</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Ventas este mes</div>

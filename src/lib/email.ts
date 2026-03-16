@@ -101,6 +101,8 @@ function getOrderConfirmationHtml(order: any, items: any[], userProfile?: any): 
     const subtotal = parseFloat(order.subtotal) || 0;
     const shippingCost = parseFloat(order.shipping_cost) || 0;
     const total = parseFloat(order.total) || subtotal + shippingCost;
+    const discountAmount = parseFloat(order.discount) || 0;
+    const couponCode: string | null = order.coupons?.code || null;
 
     return `<!DOCTYPE html>
 <html lang="es" xmlns="http://www.w3.org/1999/xhtml">
@@ -218,6 +220,16 @@ function getOrderConfirmationHtml(order: any, items: any[], userProfile?: any): 
                     </table>
                   </td>
                 </tr>
+                ${discountAmount > 0 ? `<tr>
+                  <td style="padding-bottom:10px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="font-size:13px;color:#9ca3af;font-family:Arial,sans-serif;">${couponCode ? 'Cup\u00F3n ' + couponCode : 'Descuento'}</td>
+                        <td align="right" style="font-size:13px;font-weight:700;color:#4ade80;font-family:Arial,sans-serif;">-${fmt(discountAmount)}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>` : ''}
                 <tr>
                   <td style="padding-bottom:10px;">
                     <table width="100%" cellpadding="0" cellspacing="0" border="0">
