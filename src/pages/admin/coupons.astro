@@ -359,6 +359,8 @@ const couponsWithMeta = (coupons || []).map((c: any) => ({
     <script is:inline>
         (function () {
             var isEditing = false;
+            // Block past dates in the expiry picker
+            document.getElementById('coupon-expires').min = new Date().toISOString().slice(0, 10);
             // allowedUsers: array of { id, name, email }
             var allowedUsers = [];
 
