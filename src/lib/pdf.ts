@@ -294,7 +294,8 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         });
         doc.rect(M, rowY, CW, 2).fill(BORDER);
 
-        const discountAmount = parseFloat(order.discount_amount) || 0;
+        const discountAmount = parseFloat(order.discount) || 0;
+        const couponCode: string | null = order.coupons?.code || null;
 
         // ── TOTALES ───────────────────────────────────────────────────────
         const TX = M + CW * 0.52;
@@ -304,7 +305,7 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
             { lbl: "IVA (21%):", val: fmt(ivaAmount) },
         ];
         if (shippingCost > 0) totRows.push({ lbl: "Gastos de env\u00EDo:", val: fmt(shippingCost) });
-        if (discountAmount > 0) totRows.push({ lbl: "Desc. cupón:", val: `-${fmt(discountAmount)}`, discount: true });
+        if (discountAmount > 0) totRows.push({ lbl: couponCode ? `Cup\u00F3n ${couponCode}:` : "Desc. cup\u00F3n:", val: `-${fmt(discountAmount)}`, discount: true });
         totRows.push({ lbl: "TOTAL A PAGAR", val: fmt(total), accent: true });
 
         const totalH = (totRows.length - 1) * 22 + 44 + 12;

@@ -29,7 +29,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
         // Intentar por user_id primero (más seguro, sin interpolación de strings)
         let { data: order, error } = await supabaseAdmin
             .from("orders")
-            .select("*, order_items(*, products(name, image))")
+            .select("*, order_items(*, products(name, image)), coupons(code)")
             .eq("id", orderId)
             .eq("user_id", authUser.id)
             .maybeSingle();
@@ -39,7 +39,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
         if (!order && userEmail) {
             const result = await supabaseAdmin
                 .from("orders")
-                .select("*, order_items(*, products(name, image))")
+                .select("*, order_items(*, products(name, image)), coupons(code)")
                 .eq("id", orderId)
                 .eq("email", userEmail)
                 .maybeSingle();

@@ -40,7 +40,7 @@ const [
     // Pedidos + items + producto en una sola query anidada (sin N+1)
     supabaseAdmin
         .from("orders")
-        .select("*, order_items(*, products(name, image))")
+        .select("*, order_items(*, products(name, image)), coupons(code)")
         .or(userProfile.email
             ? `user_id.eq.${authUser.id},email.eq.${userProfile.email}`
             : `user_id.eq.${authUser.id}`)
@@ -371,6 +371,16 @@ const tabs = [
                                                     >
                                                         Total
                                                     </p>
+                                                    {order.discount > 0 && (
+                                                        <p class="text-[11px] mb-0.5" style="color: var(--text-muted);">
+                                                            Subtotal: €{parseFloat(order.subtotal).toFixed(2)}
+                                                        </p>
+                                                    )}
+                                                    {order.discount > 0 && (
+                                                        <p class="text-[11px] font-semibold mb-0.5" style="color: #4ade80;">
+                                                            {order.coupons?.code ? `Cupón ${order.coupons.code}` : 'Descuento'}: -€{parseFloat(order.discount).toFixed(2)}
+                                                        </p>
+                                                    )}
                                                     <p class="text-lg font-bold">
                                                         €
                                                         {parseFloat(
