@@ -111,17 +111,21 @@ export async function subscribeToNewsletter(input: SubscribeInput): Promise<Subs
         subscriberId = created.id;
     }
 
-    await enqueueNewsletterEmail({
-        toEmail: normalizedEmail,
-        eventKey: `welcome:${normalizedEmail}`,
-        subject: WELCOME_SUBJECT,
-        htmlContent: buildWelcomeEmailHtml(normalizedEmail),
-        subscriberId,
-        payload: {
-            type: 'welcome',
-        },
-    });
-    scheduleNewsletterQueueProcessing();
+    try {
+        await enqueueNewsletterEmail({
+            toEmail: normalizedEmail,
+            eventKey: `welcome:${normalizedEmail}`,
+            subject: WELCOME_SUBJECT,
+            htmlContent: buildWelcomeEmailHtml(normalizedEmail),
+            subscriberId,
+            payload: {
+                type: 'welcome',
+            },
+        });
+        scheduleNewsletterQueueProcessing();
+    } catch (queueError) {
+        console.error('[newsletter] Suscriptor creado pero falló la cola de bienvenida:', queueError);
+    }
 
     return {
         ok: true,
@@ -217,15 +221,19 @@ export async function setNewsletterPreference(options: {
     }
 
     if (options.subscribe && !existing.subscribed) {
-        await enqueueNewsletterEmail({
-            toEmail: normalizedEmail,
-            eventKey: `welcome-profile:${normalizedEmail}`,
-            subject: WELCOME_SUBJECT,
-            htmlContent: buildWelcomeEmailHtml(normalizedEmail),
-            subscriberId: existing.id,
-            payload: { type: 'welcome-profile' },
-        });
-        scheduleNewsletterQueueProcessing();
+        try {
+            await enqueueNewsletterEmail({
+                toEmail: normalizedEmail,
+                eventKey: `welcome-profile:${normalizedEmail}`,
+                subject: WELCOME_SUBJECT,
+                htmlContent: buildWelcomeEmailHtml(normalizedEmail),
+                subscriberId: existing.id,
+                payload: { type: 'welcome-profile' },
+            });
+            scheduleNewsletterQueueProcessing();
+        } catch (queueError) {
+            console.error('[newsletter] Preferencia actualizada pero falló la cola de bienvenida:', queueError);
+        }
     }
 
     return { subscribed: options.subscribe };
