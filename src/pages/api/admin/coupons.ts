@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { validateAdminAPI, jsonResponse, logAdminAction } from '../../../lib/admin';
-import { notifyCouponCreated } from '../../../lib/newsletter/events';
+import { notifyCouponCreated, notifyExclusiveCoupon } from '../../../lib/newsletter/events';
 
 /** GET /api/admin/coupons */
 export const GET: APIRoute = async ({ request, cookies }) => {
@@ -96,13 +96,26 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         if (insertData.is_active) {
-            notifyCouponCreated({
-                eventKey: `coupon-created:${data.id}`,
-                couponCode: insertData.code,
-                description: data.description || null,
-            }).catch((err) => {
-                console.error('[admin-coupons] Error encolando newsletter de cupón:', err);
-            });
+            if (isExclusive && Array.isArray(allowedUsers) && allowedUsers.length > 0) {
+                // Cupón único: solo se envía al usuario asignado, independientemente de si está suscrito
+                notifyExclusiveCoupon({
+                    eventKey: `coupon-exclusive:${data.id}`,
+                    couponCode: insertData.code,
+                    description: data.description || null,
+                    userIds: allowedUsers,
+                }).catch((err) => {
+                    console.error('[admin-coupons] Error encolando email de cupón exclusivo:', err);
+                });
+            } else if (!isExclusive) {
+                // Cupón general: se envía a todos los suscriptores de la newsletter
+                notifyCouponCreated({
+                    eventKey: `coupon-created:${data.id}`,
+                    couponCode: insertData.code,
+                    description: data.description || null,
+                }).catch((err) => {
+                    console.error('[admin-coupons] Error encolando newsletter de cupón:', err);
+                });
+            }
         }
 
         await logAdminAction(

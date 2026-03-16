@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { validateAdminAPI, jsonResponse, logAdminAction } from '../../../lib/admin';
-import { notifyNewProductPublished, notifyStockUpdated } from '../../../lib/newsletter/events';
+import { notifyNewProductPublished, notifyPriceDrop, notifyStockUpdated } from '../../../lib/newsletter/events';
 
 /** GET /api/admin/products?page=1&category=...&search=...&active=true */
 export const GET: APIRoute = async ({ request, cookies }) => {
@@ -139,7 +139,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
 
         const { data: previousProduct } = await supabaseAdmin
             .from('products')
-            .select('id, name, slug, stock, is_active, product_variants(stock)')
+            .select('id, name, slug, stock, price, is_active, product_variants(stock)')
             .eq('id', productId)
             .single();
 
@@ -220,6 +220,8 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             : previousVariantStock;
         const wasActive = !!previousProduct?.is_active;
         const isActiveNow = !!data?.is_active;
+        const previousPrice = Number(previousProduct?.price || 0);
+        const nextPrice = Number(data?.price || previousPrice);
 
         if (!wasActive && isActiveNow) {
             notifyNewProductPublished({
@@ -231,7 +233,8 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             });
         }
 
-        if (updates.stock !== undefined && previousStock !== nextStock) {
+        // Solo notificar restock: el producto pasó de sin stock a tener stock
+        if (updates.stock !== undefined && previousStock <= 0 && nextStock > 0) {
             notifyStockUpdated({
                 eventKey: `stock-updated:${data.id}:${previousStock}:${nextStock}:${data.updated_at || ''}`,
                 productName: data.name,
@@ -241,7 +244,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             }).catch((err) => {
                 console.error('[admin-products] Error encolando newsletter de stock:', err);
             });
-        } else if (Array.isArray(variants) && previousVariantStock !== nextVariantStock) {
+        } else if (Array.isArray(variants) && previousVariantStock <= 0 && nextVariantStock > 0) {
             notifyStockUpdated({
                 eventKey: `stock-updated-variants:${data.id}:${previousVariantStock}:${nextVariantStock}:${data.updated_at || ''}`,
                 productName: data.name,
@@ -250,6 +253,19 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
                 currentStock: nextVariantStock,
             }).catch((err) => {
                 console.error('[admin-products] Error encolando newsletter de stock por variantes:', err);
+            });
+        }
+
+        // Notificar bajada de precio (solo si el producto está activo)
+        if (isActiveNow && updates.price !== undefined && nextPrice < previousPrice && previousPrice > 0) {
+            notifyPriceDrop({
+                eventKey: `price-drop:${data.id}:${previousPrice}:${nextPrice}:${data.updated_at || ''}`,
+                productName: data.name,
+                productSlug: data.slug,
+                previousPrice,
+                currentPrice: nextPrice,
+            }).catch((err) => {
+                console.error('[admin-products] Error encolando newsletter de bajada de precio:', err);
             });
         }
 

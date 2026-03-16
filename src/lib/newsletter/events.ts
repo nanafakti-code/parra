@@ -1,6 +1,10 @@
 import { buildBroadcastEmailHtml } from './email';
-import { enqueueNewsletterBroadcast } from './queue';
+import { enqueueNewsletterBroadcast, enqueueNewsletterEmail, scheduleNewsletterQueueProcessing } from './queue';
 import { sanitizeNewsletterText } from './validation';
+import { supabaseAdmin } from '../supabase';
+
+const fmtEur = (n: number) =>
+    n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 
 export async function notifyNewProductPublished(options: {
     eventKey: string;
@@ -118,4 +122,79 @@ export async function notifyCampaignLaunched(options: {
             event: 'campaign-launched',
         },
     });
+}
+
+export async function notifyPriceDrop(options: {
+    eventKey: string;
+    productName: string;
+    productSlug?: string | null;
+    previousPrice: number;
+    currentPrice: number;
+}): Promise<void> {
+    const name = sanitizeNewsletterText(options.productName);
+    const discount = Math.round((1 - options.currentPrice / options.previousPrice) * 100);
+    const title = `Bajada de precio: ${name}`;
+    const message =
+        `El precio de ${name} ha bajado de ${fmtEur(options.previousPrice)} a ${fmtEur(options.currentPrice)}` +
+        (discount > 0 ? ` (−${discount}%)` : '') +
+        `. ¡Aprovecha antes de que se acabe el stock!`;
+
+    await enqueueNewsletterBroadcast({
+        eventKey: options.eventKey,
+        eventType: 'price-drop',
+        subject: title,
+        htmlContent: buildBroadcastEmailHtml({
+            title,
+            message,
+            ctaLabel: 'Comprar ahora',
+            ctaUrl: options.productSlug
+                ? `https://www.parragkgloves.es/product/${options.productSlug}`
+                : 'https://www.parragkgloves.es/shop',
+        }),
+        payload: {
+            event: 'price-drop',
+            previousPrice: options.previousPrice,
+            currentPrice: options.currentPrice,
+            productSlug: options.productSlug || null,
+        },
+    });
+}
+
+export async function notifyExclusiveCoupon(options: {
+    eventKey: string;
+    couponCode: string;
+    description?: string | null;
+    userIds: string[];
+}): Promise<void> {
+    if (options.userIds.length === 0) return;
+
+    const safeCode = sanitizeNewsletterText(options.couponCode.toUpperCase());
+    const subject = `Tu cupón exclusivo: ${safeCode}`;
+    const message = [
+        `Hemos creado este cupón exclusivamente para ti. Usa el código ${safeCode} en tu próxima compra.`,
+        options.description ? sanitizeNewsletterText(options.description) : '',
+    ].filter(Boolean).join('\n\n');
+
+    const htmlContent = buildBroadcastEmailHtml({
+        title: subject,
+        message,
+        ctaLabel: 'Ir a la tienda',
+        ctaUrl: 'https://www.parragkgloves.es/shop',
+    });
+
+    for (const userId of options.userIds) {
+        const { data: userRecord } = await supabaseAdmin.auth.admin.getUserById(userId);
+        const email = userRecord?.user?.email;
+        if (!email) continue;
+
+        await enqueueNewsletterEmail({
+            toEmail: email,
+            eventKey: `${options.eventKey}:${userId}`,
+            subject,
+            htmlContent,
+            payload: { event: 'exclusive-coupon', couponCode: safeCode, userId },
+        });
+    }
+
+    scheduleNewsletterQueueProcessing();
 }

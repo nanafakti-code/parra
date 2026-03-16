@@ -122,7 +122,7 @@ export async function sendNewsletterEmail(options: {
     const { data, error } = await resend.emails.send({
         from: FROM,
         to: options.to,
-        reply_to: REPLY_TO,
+        replyTo: REPLY_TO,
         subject: options.subject,
         html: options.html,
         text: options.text,
