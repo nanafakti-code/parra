@@ -174,8 +174,11 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
         const couponId = url.searchParams.get('id');
         if (!couponId) return jsonResponse({ error: 'id obligatorio' }, 400);
 
+        // Delete usage records first (coupon_usage may not have ON DELETE CASCADE)
+        await supabaseAdmin.from('coupon_usage').delete().eq('coupon_id', couponId);
+
         const { error } = await supabaseAdmin.from('coupons').delete().eq('id', couponId);
-        if (error) return jsonResponse({ error: 'Error al eliminar cupón' }, 500);
+        if (error) return jsonResponse({ error: `Error al eliminar cupón: ${error.message}` }, 500);
 
         await logAdminAction(
             admin.id, 'delete_coupon', 'coupon', couponId,
