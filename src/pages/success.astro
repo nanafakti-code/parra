@@ -109,6 +109,11 @@ import Footer from "../components/Footer.astro";
                                     <span style="color:var(--text-muted);">Productos</span>
                                     <span>${fmt(summary.subtotal)}</span>
                                 </div>
+                                ${summary.discount > 0 ? `
+                                <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:5px;">
+                                    <span style="color:var(--text-muted);">Cupón <code style="font-size:11px;background:rgba(57,255,20,0.08);color:var(--brand);border:1px solid var(--brand);border-radius:3px;padding:1px 5px;font-weight:700;">${esc(summary.couponCode || '')}</code></span>
+                                    <span style="color:#4ade80;font-weight:600;">-${fmt(summary.discount)}</span>
+                                </div>` : ''}
                                 <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:12px;">
                                     <span style="color:var(--text-muted);">Envío</span>
                                     <span style="color:var(--brand);">${summary.shipping === 0 ? "Gratis" : fmt(summary.shipping)}</span>

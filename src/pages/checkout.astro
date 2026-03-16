@@ -957,12 +957,20 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
                                 const ship = isFree
                                     ? (selectedShippingMethod === "express" ? cfg.expressOverThreshold : 0)
                                     : (selectedShippingMethod === "express" ? cfg.expressCost : cfg.standardCost);
+                                let discountAmount = 0, couponCode: string | null = null;
+                                try {
+                                    const cpn = JSON.parse(sessionStorage.getItem('applied_coupon') || '{}');
+                                    if (cpn.discountAmount) { discountAmount = Number(cpn.discountAmount); couponCode = cpn.code || null; }
+                                } catch {}
                                 sessionStorage.setItem("lastOrderSummary", JSON.stringify({
                                     subtotal: sub,
                                     shipping: ship,
-                                    total: sub + ship,
+                                    discount: discountAmount,
+                                    couponCode: couponCode,
+                                    total: sub - discountAmount + ship,
                                     items: items.map((i: any) => ({ name: i.name, image: i.image, size: i.size, quantity: i.quantity, price: i.price })),
                                 }));
+                                sessionStorage.removeItem('applied_coupon');
                             } catch { /* non-critical */ }
                             clearCart();
                             window.location.href = `/success`;

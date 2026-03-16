@@ -294,14 +294,17 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
         });
         doc.rect(M, rowY, CW, 2).fill(BORDER);
 
+        const discountAmount = parseFloat(order.discount_amount) || 0;
+
         // ── TOTALES ───────────────────────────────────────────────────────
         const TX = M + CW * 0.52;
         const TW = CW * 0.48;
-        const totRows: { lbl: string; val: string; accent?: boolean }[] = [
+        const totRows: { lbl: string; val: string; accent?: boolean; discount?: boolean }[] = [
             { lbl: "Base imponible:", val: fmt(baseImponible) },
             { lbl: "IVA (21%):", val: fmt(ivaAmount) },
         ];
         if (shippingCost > 0) totRows.push({ lbl: "Gastos de env\u00EDo:", val: fmt(shippingCost) });
+        if (discountAmount > 0) totRows.push({ lbl: "Desc. cupón:", val: `-${fmt(discountAmount)}`, discount: true });
         totRows.push({ lbl: "TOTAL A PAGAR", val: fmt(total), accent: true });
 
         const totalH = (totRows.length - 1) * 22 + 44 + 12;
@@ -330,7 +333,7 @@ export async function generateInvoicePdf(order: any, userProfile?: any): Promise
                     .moveTo(TX + 12, tv + 18).lineTo(TX + TW - 12, tv + 18).stroke();
                 doc.font("Helvetica").fontSize(8.5).fillColor(GRAY)
                     .text(row.lbl, TX + 12, tv + 4, { lineBreak: false });
-                doc.font("Helvetica-Bold").fontSize(8.5).fillColor(WHITE)
+                doc.font("Helvetica-Bold").fontSize(8.5).fillColor(row.discount ? GREEN : WHITE)
                     .text(row.val, TX + 8, tv + 4, { align: "right", width: TW - 16, lineBreak: false });
                 tv += 22;
             }

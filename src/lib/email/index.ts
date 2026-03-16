@@ -145,6 +145,8 @@ export interface SendOrderConfirmationOptions {
     shipping_postal_code?: string;
     shipping_country?: string;
     shipping_phone?: string;
+    discount_amount?: number;
+    coupon_id?: string;
   };
   items: Array<OrderItem>;
   pdfBuffer?: Buffer;
@@ -159,7 +161,8 @@ function buildOrderConfirmationHtml(
   const orderDate = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
   const shipping = order.shipping_cost ?? 0;
   const total = order.total ?? 0;
-  const subtotal = order.subtotal != null ? order.subtotal : (total - shipping);
+  const discount = order.discount_amount ?? 0;
+  const subtotal = order.subtotal != null ? order.subtotal : (total - shipping + discount);
   const address = [
     order.shipping_street,
     order.shipping_city,
@@ -245,6 +248,11 @@ function buildOrderConfirmationHtml(
                 <td style="padding:4px 0;"><p style="margin:0;font-size:14px;color:${c.muted};font-family:${fontStack};">Env&iacute;o</p></td>
                 <td style="padding:4px 0;text-align:right;"><p style="margin:0;font-size:14px;color:${c.white};font-family:${fontStack};">${shipping === 0 ? 'Gratis' : fmt(shipping)}</p></td>
               </tr>
+              ${discount > 0 ? `
+              <tr>
+                <td style="padding:4px 0;"><p style="margin:0;font-size:14px;color:${c.muted};font-family:${fontStack};">Descuento</p></td>
+                <td style="padding:4px 0;text-align:right;"><p style="margin:0;font-size:14px;font-weight:700;color:#4ade80;font-family:${fontStack};">-${fmt(discount)}</p></td>
+              </tr>` : ''}
               <tr>
                 <td style="padding:12px 0 0;border-top:1px solid ${c.divider};"><p style="margin:0;font-size:16px;font-weight:700;color:${c.white};font-family:${fontStack};">Total</p></td>
                 <td style="padding:12px 0 0;border-top:1px solid ${c.divider};text-align:right;"><p style="margin:0;font-size:18px;font-weight:900;color:${c.gold};font-family:${fontStack};">${fmt(total)}</p></td>
