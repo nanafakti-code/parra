@@ -1,8 +1,15 @@
+import { Resend } from 'resend';
 import { createTransporter } from '../email';
 import { WELCOME_MANAGE_URL } from './constants';
 
-const FROM = '"Parra GK Gloves" <info@parragkgloves.es>';
+const FROM = 'Parra GK Gloves <info@parragkgloves.es>';
 const REPLY_TO = 'soporte@parragkgloves.es';
+
+function getResendClient(): Resend | null {
+    const key = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
+    if (!key) return null;
+    return new Resend(key);
+}
 
 function escapeHtml(value: string): string {
     return value
@@ -111,16 +118,32 @@ export async function sendNewsletterEmail(options: {
     html: string;
     text?: string;
 }): Promise<string | null> {
-  const transporter = createTransporter();
+    const resend = getResendClient();
 
-  const info = await transporter.sendMail({
-    from: FROM,
-    to: options.to,
-    replyTo: REPLY_TO,
-    subject: options.subject,
-    html: options.html,
-    text: options.text,
-  });
+    if (resend) {
+        const { data, error } = await resend.emails.send({
+            from: FROM,
+            to: options.to,
+            replyTo: REPLY_TO,
+            subject: options.subject,
+            html: options.html,
+            text: options.text,
+        });
 
-  return info.messageId || null;
+        if (error) throw new Error(`[newsletter] Resend error: ${error.message}`);
+        return data?.id ?? null;
+    }
+
+    // Fallback: Nodemailer/SMTP when RESEND_API_KEY is not configured
+    const transporter = createTransporter();
+    const info = await transporter.sendMail({
+        from: FROM,
+        to: options.to,
+        replyTo: REPLY_TO,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+    });
+
+    return info.messageId || null;
 }
