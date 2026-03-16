@@ -14,7 +14,7 @@ export default defineConfig({
     defaultStrategy: 'hover',
   },
   security: {
-    checkOrigin: true,
+    checkOrigin: false,
   },
   vite: {
     ssr: {
