@@ -186,15 +186,17 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
             // Function not yet created — run manual cleanup steps
             console.warn('[delete_coupon] admin_delete_coupon not found, running manual steps');
 
-            await supabaseAdmin.from('coupon_user_allowlist').delete().eq('coupon_id', couponId);
-            await supabaseAdmin.from('coupon_usage').delete().eq('coupon_id', couponId);
-            await supabaseAdmin.from('orders').update({ coupon_id: null }).eq('coupon_id', couponId);
+            const { error: e1 } = await supabaseAdmin.from('coupon_user_allowlist').delete().eq('coupon_id', couponId);
+            if (e1) console.warn('[delete_coupon] allowlist:', e1.message);
+
+            const { error: e2 } = await supabaseAdmin.from('coupon_usage').delete().eq('coupon_id', couponId);
+            if (e2) return jsonResponse({ error: `Error borrando usos: ${e2.message}` }, 500);
+
+            const { error: e3 } = await supabaseAdmin.from('orders').update({ coupon_id: null }).eq('coupon_id', couponId);
+            if (e3) return jsonResponse({ error: `Error actualizando pedidos: ${e3.message}` }, 500);
 
             const { error: delErr } = await supabaseAdmin.from('coupons').delete().eq('id', couponId);
-            if (delErr) {
-                console.error('[delete_coupon] manual delete error:', delErr.message, delErr.details);
-                return jsonResponse({ error: `Error: ${delErr.message}` }, 500);
-            }
+            if (delErr) return jsonResponse({ error: `Error borrando cupón: ${delErr.message}` }, 500);
         }
 
         await logAdminAction(
