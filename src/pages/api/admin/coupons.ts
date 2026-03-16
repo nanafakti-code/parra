@@ -174,11 +174,27 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
         const couponId = url.searchParams.get('id');
         if (!couponId) return jsonResponse({ error: 'id obligatorio' }, 400);
 
-        // Use the DB function to delete everything in one atomic transaction
-        const { error } = await supabaseAdmin.rpc('admin_delete_coupon', { p_coupon_id: couponId });
-        if (error) {
-            console.error('[delete_coupon] rpc error:', error.message, error.details, error.hint);
-            return jsonResponse({ error: `Error al eliminar cupón: ${error.message}` }, 500);
+        // Try atomic DB function first; fall back to manual steps if not yet created
+        const { error: rpcErr } = await supabaseAdmin.rpc('admin_delete_coupon', { p_coupon_id: couponId });
+
+        if (rpcErr) {
+            const isMissing = rpcErr.message?.includes('Could not find') || rpcErr.code === '42883';
+            if (!isMissing) {
+                console.error('[delete_coupon] rpc error:', rpcErr.message);
+                return jsonResponse({ error: `Error: ${rpcErr.message}` }, 500);
+            }
+            // Function not yet created — run manual cleanup steps
+            console.warn('[delete_coupon] admin_delete_coupon not found, running manual steps');
+
+            await supabaseAdmin.from('coupon_user_allowlist').delete().eq('coupon_id', couponId);
+            await supabaseAdmin.from('coupon_usage').delete().eq('coupon_id', couponId);
+            await supabaseAdmin.from('orders').update({ coupon_id: null }).eq('coupon_id', couponId);
+
+            const { error: delErr } = await supabaseAdmin.from('coupons').delete().eq('id', couponId);
+            if (delErr) {
+                console.error('[delete_coupon] manual delete error:', delErr.message, delErr.details);
+                return jsonResponse({ error: `Error: ${delErr.message}` }, 500);
+            }
         }
 
         await logAdminAction(
