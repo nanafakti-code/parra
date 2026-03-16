@@ -8,7 +8,8 @@
  *  1. Looks up the coupon by code using supabaseAdmin (bypasses RLS).
  *  2. Validates: active, not expired, max_uses not exceeded, min_purchase met.
  *  3. If is_exclusive=true, verifies the userId is in coupon_user_allowlist.
- *  4. Computes the discount amount server-side.
+ *  4. Per-user check: each logged-in user can only use a given coupon once.
+ *  5. Computes the discount amount server-side.
  */
 
 import { supabaseAdmin } from '../supabase';
@@ -81,6 +82,19 @@ export async function validateCoupon(
 
         if (!entry) {
             return { valid: false, error: 'Este cupón no está disponible para tu cuenta.' };
+        }
+    }
+
+    // Per-user usage check: each logged-in user can only use a coupon once
+    if (userId) {
+        const { count: userCount } = await supabaseAdmin
+            .from('coupon_usage')
+            .select('*', { count: 'exact', head: true })
+            .eq('coupon_id', coupon.id)
+            .eq('user_id', userId);
+
+        if ((userCount ?? 0) > 0) {
+            return { valid: false, error: 'Ya has utilizado este cupón anteriormente.' };
         }
     }
 
