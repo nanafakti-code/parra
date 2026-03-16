@@ -21,6 +21,7 @@ export async function notifyNewProductPublished(options: {
         htmlContent: buildBroadcastEmailHtml({
             title,
             message,
+            badge: 'Nuevo producto',
             ctaLabel: 'Ver producto',
             ctaUrl: options.productSlug
                 ? `https://www.parragkgloves.es/product/${options.productSlug}`
@@ -40,12 +41,8 @@ export async function notifyStockUpdated(options: {
     previousStock: number;
     currentStock: number;
 }): Promise<void> {
-    const title = `Stock actualizado: ${sanitizeNewsletterText(options.productName)}`;
-    const isRestock = options.previousStock <= 0 && options.currentStock > 0;
-
-    const message = isRestock
-        ? 'El producto ha vuelto a estar disponible. Si lo estabas esperando, este es el momento de comprarlo.'
-        : 'Se actualizó el stock de un producto de la tienda.';
+    const title = `De vuelta en stock: ${sanitizeNewsletterText(options.productName)}`;
+    const message = 'El producto ha vuelto a estar disponible. Si lo estabas esperando, este es el momento de comprarlo antes de que se agote.';
 
     await enqueueNewsletterBroadcast({
         eventKey: options.eventKey,
@@ -54,6 +51,7 @@ export async function notifyStockUpdated(options: {
         htmlContent: buildBroadcastEmailHtml({
             title,
             message,
+            badge: 'Vuelve al stock',
             ctaLabel: 'Comprar ahora',
             ctaUrl: options.productSlug
                 ? `https://www.parragkgloves.es/product/${options.productSlug}`
@@ -74,20 +72,21 @@ export async function notifyCouponCreated(options: {
     description?: string | null;
 }): Promise<void> {
     const safeCode = sanitizeNewsletterText(options.couponCode.toUpperCase());
-    const title = `Nuevo cupón disponible: ${safeCode}`;
+    const title = 'Tienes un cupón de descuento';
 
-    const message = [
-        `Ya puedes utilizar el cupón ${safeCode} en tu próxima compra.`,
-        options.description ? sanitizeNewsletterText(options.description) : '',
-    ].filter(Boolean).join('\n\n');
+    const message = options.description
+        ? sanitizeNewsletterText(options.description)
+        : 'Úsalo en tu próxima compra en la tienda. ¡No dejes que caduque!';
 
     await enqueueNewsletterBroadcast({
         eventKey: options.eventKey,
         eventType: 'coupon-created',
-        subject: title,
+        subject: `Cupón disponible: ${safeCode}`,
         htmlContent: buildBroadcastEmailHtml({
             title,
             message,
+            badge: 'Cupón exclusivo',
+            code: safeCode,
             ctaLabel: 'Ir a la tienda',
             ctaUrl: 'https://www.parragkgloves.es/shop',
         }),
@@ -115,6 +114,7 @@ export async function notifyCampaignLaunched(options: {
         htmlContent: buildBroadcastEmailHtml({
             title,
             message,
+            badge: 'Campaña especial',
             ctaLabel: options.ctaLabel || 'Descubrir campaña',
             ctaUrl: options.ctaUrl || 'https://www.parragkgloves.es/shop',
         }),
@@ -146,6 +146,7 @@ export async function notifyPriceDrop(options: {
         htmlContent: buildBroadcastEmailHtml({
             title,
             message,
+            badge: discount > 0 ? `−${discount}% de descuento` : 'Bajada de precio',
             ctaLabel: 'Comprar ahora',
             ctaUrl: options.productSlug
                 ? `https://www.parragkgloves.es/product/${options.productSlug}`
@@ -170,14 +171,15 @@ export async function notifyExclusiveCoupon(options: {
 
     const safeCode = sanitizeNewsletterText(options.couponCode.toUpperCase());
     const subject = `Tu cupón exclusivo: ${safeCode}`;
-    const message = [
-        `Hemos creado este cupón exclusivamente para ti. Usa el código ${safeCode} en tu próxima compra.`,
-        options.description ? sanitizeNewsletterText(options.description) : '',
-    ].filter(Boolean).join('\n\n');
+    const message = options.description
+        ? sanitizeNewsletterText(options.description)
+        : `Hemos creado este cupón exclusivamente para ti. Úsalo en tu próxima compra.`;
 
     const htmlContent = buildBroadcastEmailHtml({
-        title: subject,
+        title: 'Tienes un cupón exclusivo',
         message,
+        badge: 'Solo para ti',
+        code: safeCode,
         ctaLabel: 'Ir a la tienda',
         ctaUrl: 'https://www.parragkgloves.es/shop',
     });
