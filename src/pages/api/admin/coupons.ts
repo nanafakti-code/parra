@@ -62,15 +62,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         }
 
         const insertData: Record<string, any> = {
-            code:         code.trim().toUpperCase(),
+            code:      code.trim().toUpperCase(),
             type,
-            value:        parseFloat(value),
-            is_active:    isActive !== false,
-            is_exclusive: isExclusive === true,
+            value:     parseFloat(value),
+            is_active: isActive !== false,
         };
-        if (minPurchase) insertData.min_purchase = parseFloat(minPurchase);
-        if (maxUses)     insertData.max_uses      = parseInt(maxUses);
-        if (expiresAt)   insertData.expires_at    = expiresAt;
+        if (isExclusive === true) insertData.is_exclusive = true;
+        if (minPurchase)          insertData.min_purchase = parseFloat(minPurchase);
+        if (maxUses)              insertData.max_uses     = parseInt(maxUses);
+        if (expiresAt)            insertData.expires_at   = expiresAt;
 
         const { data, error } = await supabaseAdmin
             .from('coupons')
@@ -79,14 +79,19 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             .single();
 
         if (error) {
+            console.error('[POST /api/admin/coupons]', error);
             if (error.code === '23505') return jsonResponse({ error: 'Ya existe un cupón con ese código' }, 409);
-            return jsonResponse({ error: 'Error al crear cupón' }, 500);
+            if (error.code === '42703' || error.message?.includes('is_exclusive')) {
+                return jsonResponse({ error: 'Migración pendiente: ejecuta database/migrations/exclusive-coupons.sql en tu base de datos Supabase.' }, 500);
+            }
+            return jsonResponse({ error: `Error al crear cupón: ${error.message}` }, 500);
         }
 
         // Set allowlist for exclusive coupons
         if (isExclusive && Array.isArray(allowedUsers) && allowedUsers.length > 0) {
             const rows = allowedUsers.map((uid: string) => ({ coupon_id: data.id, user_id: uid }));
-            await supabaseAdmin.from('coupon_user_allowlist').insert(rows);
+            const { error: allowlistError } = await supabaseAdmin.from('coupon_user_allowlist').insert(rows);
+            if (allowlistError) console.error('[POST /api/admin/coupons] allowlist insert:', allowlistError);
         }
 
         await logAdminAction(
@@ -119,6 +124,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         if (updates.maxUses     !== undefined) updateData.max_uses     = updates.maxUses ? parseInt(updates.maxUses) : null;
         if (updates.expiresAt   !== undefined) updateData.expires_at   = updates.expiresAt || null;
         if (updates.isActive    !== undefined) updateData.is_active    = updates.isActive;
+        // is_exclusive requires migration — only set if explicitly provided
         if (updates.isExclusive !== undefined) updateData.is_exclusive = updates.isExclusive;
 
         const { data, error } = await supabaseAdmin
@@ -128,11 +134,18 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             .select()
             .single();
 
-        if (error) return jsonResponse({ error: 'Error al actualizar cupón' }, 500);
+        if (error) {
+            console.error('[PATCH /api/admin/coupons]', error);
+            if (error.message?.includes('is_exclusive')) {
+                return jsonResponse({ error: 'La migración de cupones exclusivos aún no se ha ejecutado en la base de datos. Ejecuta database/migrations/exclusive-coupons.sql en Supabase.' }, 500);
+            }
+            return jsonResponse({ error: `Error al actualizar cupón: ${error.message}` }, 500);
+        }
 
         // Replace allowlist when allowedUsers array is provided
         if (Array.isArray(allowedUsers)) {
-            await supabaseAdmin.from('coupon_user_allowlist').delete().eq('coupon_id', couponId);
+            const { error: delErr } = await supabaseAdmin.from('coupon_user_allowlist').delete().eq('coupon_id', couponId);
+            if (delErr) console.error('[PATCH /api/admin/coupons] allowlist delete:', delErr);
             if (allowedUsers.length > 0) {
                 const rows = allowedUsers.map((uid: string) => ({ coupon_id: couponId, user_id: uid }));
                 await supabaseAdmin.from('coupon_user_allowlist').insert(rows);
