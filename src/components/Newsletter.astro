@@ -40,22 +40,36 @@ const { content = {} } = Astro.props;
                 > en tu primera compra.
             </p>
 
-            <form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" data-newsletter-form="hero">
                 <input
                     type="email"
+                    name="email"
                     placeholder="Tu email..."
+                    data-newsletter-email
                     class="input flex-1 text-center sm:text-left"
                     style={`background-color: ${content.style_input_bg || "#111827"}; border-color: ${content.style_input_border || "#1F2937"}; color: ${content.style_input_text || "#FFFFFF"};`}
                     required
                 />
+                <input
+                    type="text"
+                    name="website"
+                    data-newsletter-hp
+                    autocomplete="off"
+                    tabindex="-1"
+                    aria-hidden="true"
+                    class="sr-only"
+                />
                 <button
                     type="submit"
+                    data-newsletter-submit
                     class="btn-glow whitespace-nowrap"
                     style={`background: ${bc(content.style_btn_bg, "var(--brand)")}; color: ${content.style_btn_text || "#000000"}; --glow-color: ${bc(content.style_btn_bg, "var(--brand)")};`}
                 >
                     Suscribirme
                 </button>
             </form>
+
+            <p data-newsletter-status class="text-xs mt-3 hidden"></p>
 
             <p
                 class="text-xs mt-4 tracking-wider"

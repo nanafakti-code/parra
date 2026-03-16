@@ -51,3 +51,9 @@ export const contactLimiter  = buildLimiter(3,  '1 h',  'rl:contact');
 
 // 10 llamadas por hora — confirmación de pedido de respaldo (success page)
 export const confirmOrderLimiter = buildLimiter(10, '1 h', 'rl:confirm-order');
+
+// 5 intentos por 10 minutos — suscripción newsletter por IP
+export const newsletterLimiter = buildLimiter(5, '10 m', 'rl:newsletter');
+
+// 60 ejecuciones por minuto — worker interno de cola newsletter
+export const newsletterWorkerLimiter = buildLimiter(60, '1 m', 'rl:newsletter-worker');

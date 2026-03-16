@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../../../lib/supabase';
 import { validateAdminAPI, jsonResponse, logAdminAction } from '../../../lib/admin';
 import { invalidateMaintenanceCache } from '../../../middleware';
 import { invalidateBrandCache } from '../../../lib/brand';
+import { notifyCampaignLaunched } from '../../../lib/newsletter/events';
 
 // Reemplaza recursivamente un valor hex en cualquier JSONB anidado
 function replaceColorInContent(obj: unknown, oldHex: string, newHex: string): unknown {
@@ -112,6 +113,27 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             oldPrimaryColor.toLowerCase() !== value.primary_color.toLowerCase()
         ) {
             await migrateColorInSections(oldPrimaryColor, value.primary_color);
+        }
+
+        if (/(campaign|promotion|promo)/i.test(String(key))) {
+            const title = typeof value?.title === 'string'
+                ? value.title
+                : `Nueva campaña disponible (${key})`;
+            const message = typeof value?.message === 'string'
+                ? value.message
+                : 'Hemos lanzado una nueva promoción para miembros de la newsletter.';
+            const ctaUrl = typeof value?.cta_url === 'string' ? value.cta_url : undefined;
+            const ctaLabel = typeof value?.cta_label === 'string' ? value.cta_label : undefined;
+
+            notifyCampaignLaunched({
+                eventKey: `campaign-setting:${key}:${data.updated_at || ''}`,
+                title,
+                message,
+                ctaUrl,
+                ctaLabel,
+            }).catch((err) => {
+                console.error('[admin-settings] Error encolando newsletter de campaña:', err);
+            });
         }
 
         await logAdminAction(admin.id, 'update_setting', 'site_setting', key, { value }, request.headers.get('x-forwarded-for') || undefined);

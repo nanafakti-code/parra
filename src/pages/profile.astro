@@ -36,6 +36,8 @@ const [
     { data: addresses },
     { data: couponUsages },
     { data: rawReturns },
+    { data: newsletterByUser },
+    { data: newsletterByEmail },
 ] = await Promise.all([
     // Pedidos + items + producto en una sola query anidada (sin N+1)
     supabaseAdmin
@@ -66,7 +68,23 @@ const [
         .select("*, orders(order_number, total, created_at, order_items(*, products(name, image)))")
         .eq("user_id", authUser.id)
         .order("created_at", { ascending: false }),
+    supabaseAdmin
+        .from("newsletter_subscribers")
+        .select("email, subscribed, updated_at")
+        .eq("user_id", authUser.id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    supabaseAdmin
+        .from("newsletter_subscribers")
+        .select("email, subscribed, updated_at")
+        .eq("email_normalized", String(userProfile.email || "").trim().toLowerCase())
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
 ]);
+
+const newsletterPreference = newsletterByUser || newsletterByEmail || null;
 
 // ── Cupones disponibles para el usuario ──────────────────────────────────────
 const [{ data: rawAllCoupons }, { data: rawAllowlist }, { data: rawUserUsages }] = await Promise.all([
@@ -877,6 +895,53 @@ const tabs = [
                                     </p>
                                 </div>
                             </form>
+                            <div
+                                class="mt-8 pt-8"
+                                style="border-top: 1px solid var(--border-color);"
+                            >
+                                <h3
+                                    class="text-xs font-bold uppercase tracking-[0.2em] mb-4"
+                                    style="color: var(--text-muted);"
+                                >
+                                    Newsletter Preferences
+                                </h3>
+
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                    <div>
+                                        <p class="text-sm font-semibold" style="color: var(--text-primary);">
+                                            Estado actual:
+                                            <span id="newsletter-pref-badge" class:list={[
+                                                "inline-flex items-center px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ml-2",
+                                                newsletterPreference?.subscribed ? "bg-brand/10 text-brand" : "bg-red-500/10 text-red-500",
+                                            ]}>
+                                                {newsletterPreference?.subscribed ? "Suscrito" : "No suscrito"}
+                                            </span>
+                                        </p>
+                                        <p class="text-xs mt-1" style="color: var(--text-muted);">
+                                            Gestiona tus comunicaciones de productos, stock, cupones y campañas.
+                                        </p>
+                                    </div>
+
+                                    <form id="newsletter-pref-form" class="shrink-0">
+                                        <button
+                                            id="newsletter-pref-btn"
+                                            type="submit"
+                                            data-next-action={newsletterPreference?.subscribed ? "unsubscribe" : "subscribe"}
+                                            class:list={[
+                                                "px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all duration-200",
+                                                newsletterPreference?.subscribed
+                                                    ? "bg-red-500/10 text-red-500"
+                                                    : "bg-brand text-black",
+                                            ]}
+                                            style="border:1px solid var(--border-color);"
+                                        >
+                                            {newsletterPreference?.subscribed ? "Cancelar suscripción" : "Activar newsletter"}
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <p id="newsletter-pref-msg" class="text-xs mt-3 hidden" style="color: var(--text-muted);"></p>
+                            </div>
                             <div
                                 class="mt-8 pt-8"
                                 style="border-top: 1px solid var(--border-color);"
@@ -2293,6 +2358,71 @@ const tabs = [
                             4000,
                         );
                     }
+                }
+            });
+        }
+
+        // ── Newsletter preferences ─────────────────────────────────────────────
+        const newsletterForm = document.getElementById('newsletter-pref-form') as HTMLFormElement | null;
+        const newsletterBtn = document.getElementById('newsletter-pref-btn') as HTMLButtonElement | null;
+        const newsletterMsg = document.getElementById('newsletter-pref-msg') as HTMLElement | null;
+        const newsletterBadge = document.getElementById('newsletter-pref-badge') as HTMLElement | null;
+
+        if (newsletterForm && newsletterBtn) {
+            newsletterForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const action = newsletterBtn.dataset.nextAction === 'unsubscribe' ? 'unsubscribe' : 'subscribe';
+                const originalText = newsletterBtn.textContent || '';
+
+                newsletterBtn.disabled = true;
+                newsletterBtn.textContent = 'Procesando...';
+
+                try {
+                    const res = await fetch('/api/newsletter/preferences', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({ action }),
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+                    const subscribed = !!data?.subscribed;
+
+                    if (newsletterMsg) {
+                        newsletterMsg.classList.remove('hidden');
+                        newsletterMsg.textContent = data?.message || (res.ok ? 'Preferencia actualizada.' : 'No se pudo actualizar la preferencia.');
+                        newsletterMsg.style.color = res.ok ? '#22c55e' : '#ef4444';
+                    }
+
+                    if (res.ok) {
+                        newsletterBtn.dataset.nextAction = subscribed ? 'unsubscribe' : 'subscribe';
+                        newsletterBtn.textContent = subscribed ? 'Cancelar suscripción' : 'Activar newsletter';
+
+                        newsletterBtn.classList.toggle('bg-red-500/10', subscribed);
+                        newsletterBtn.classList.toggle('text-red-500', subscribed);
+                        newsletterBtn.classList.toggle('bg-brand', !subscribed);
+                        newsletterBtn.classList.toggle('text-black', !subscribed);
+
+                        if (newsletterBadge) {
+                            newsletterBadge.textContent = subscribed ? 'Suscrito' : 'No suscrito';
+                            newsletterBadge.classList.toggle('bg-brand/10', subscribed);
+                            newsletterBadge.classList.toggle('text-brand', subscribed);
+                            newsletterBadge.classList.toggle('bg-red-500/10', !subscribed);
+                            newsletterBadge.classList.toggle('text-red-500', !subscribed);
+                        }
+                    } else {
+                        newsletterBtn.textContent = originalText;
+                    }
+                } catch {
+                    if (newsletterMsg) {
+                        newsletterMsg.classList.remove('hidden');
+                        newsletterMsg.textContent = 'Error de conexión al actualizar newsletter.';
+                        newsletterMsg.style.color = '#ef4444';
+                    }
+                    newsletterBtn.textContent = originalText;
+                } finally {
+                    newsletterBtn.disabled = false;
                 }
             });
         }

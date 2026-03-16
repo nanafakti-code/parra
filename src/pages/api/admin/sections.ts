@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { validateAdminAPI, jsonResponse, logAdminAction } from '../../../lib/admin';
+import { notifyCampaignLaunched } from '../../../lib/newsletter/events';
 
 // Sanitize HTML to prevent XSS
 function sanitize(val: unknown): unknown {
@@ -109,6 +110,27 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         await logAdminAction(admin.id, 'update_section', 'page_sections', id,
             { page_name: current.page_name, section_key: current.section_key },
             request.headers.get('x-forwarded-for') || undefined);
+
+        const sectionKey = String(current.section_key || '').toLowerCase();
+        const isMarketingSection = ['newsletter', 'hero', 'promo', 'campaign', 'offers'].some((token) =>
+            sectionKey.includes(token),
+        );
+
+        if (isMarketingSection && update.is_active !== false) {
+            const sectionTitle = String((content as any)?.title || (content as any)?.title_line1 || current.label || 'Nueva campaña');
+            const sectionMessage = String((content as any)?.subtitle || (content as any)?.description || 'Hemos actualizado una campaña con novedades para ti.');
+            const ctaUrl = String((content as any)?.cta_link || '/shop');
+
+            notifyCampaignLaunched({
+                eventKey: `campaign-section:${current.id}:${data.updated_at || ''}`,
+                title: sectionTitle,
+                message: sectionMessage,
+                ctaUrl: ctaUrl.startsWith('http') ? ctaUrl : `https://www.parragkgloves.es${ctaUrl}`,
+                ctaLabel: String((content as any)?.cta_text || 'Ver campaña'),
+            }).catch((err) => {
+                console.error('[admin-sections] Error encolando newsletter de campaña:', err);
+            });
+        }
 
         return jsonResponse({ section: data, message: 'Sección actualizada' });
     } catch (err) {

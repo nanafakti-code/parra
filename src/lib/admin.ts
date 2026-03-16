@@ -1,5 +1,6 @@
 import type { AstroGlobal } from 'astro';
 import { supabase, supabaseAdmin } from './supabase';
+import { isSameOriginRequest } from './security/requestOrigin';
 
 /**
  * Admin guard – validates the current user is an active admin.
@@ -73,6 +74,11 @@ export function jsonResponse(data: Record<string, unknown>, status = 200): Respo
 
 /** Validate admin API request – returns admin user or error Response */
 export async function validateAdminAPI(request: Request, cookies: any): Promise<{ admin: any } | Response> {
+    const method = request.method.toUpperCase();
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(method) && !isSameOriginRequest(request)) {
+        return jsonResponse({ error: 'Solicitud no permitida' }, 403);
+    }
+
     // Primary: Astro cookies object
     let accessToken = cookies.get('sb-access-token')?.value || cookies.get('auth_token')?.value;
 

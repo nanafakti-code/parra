@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { validateAdminAPI, jsonResponse, logAdminAction } from '../../../lib/admin';
+import { notifyCouponCreated } from '../../../lib/newsletter/events';
 
 /** GET /api/admin/coupons */
 export const GET: APIRoute = async ({ request, cookies }) => {
@@ -92,6 +93,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             const rows = allowedUsers.map((uid: string) => ({ coupon_id: data.id, user_id: uid }));
             const { error: allowlistError } = await supabaseAdmin.from('coupon_user_allowlist').insert(rows);
             if (allowlistError) console.error('[POST /api/admin/coupons] allowlist insert:', allowlistError);
+        }
+
+        if (insertData.is_active) {
+            notifyCouponCreated({
+                eventKey: `coupon-created:${data.id}`,
+                couponCode: insertData.code,
+                description: data.description || null,
+            }).catch((err) => {
+                console.error('[admin-coupons] Error encolando newsletter de cupón:', err);
+            });
         }
 
         await logAdminAction(

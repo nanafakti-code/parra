@@ -190,17 +190,29 @@ try {
                 <p class="footer-text text-sm mb-4">
                     Suscríbete y obtén un 10% en tu primera compra.
                 </p>
-                <form class="flex flex-col gap-3">
+                <form class="flex flex-col gap-3" data-newsletter-form="footer">
                     <input
                         type="email"
+                        name="email"
                         placeholder="tu@email.com"
+                        data-newsletter-email
                         class="input !text-xs"
                         required
                     />
-                    <button type="submit" class="btn-primary !py-2.5 !text-xs">
+                    <input
+                        type="text"
+                        name="website"
+                        data-newsletter-hp
+                        autocomplete="off"
+                        tabindex="-1"
+                        aria-hidden="true"
+                        class="sr-only"
+                    />
+                    <button type="submit" data-newsletter-submit class="btn-primary !py-2.5 !text-xs">
                         Suscribirse
                     </button>
                 </form>
+                <p data-newsletter-status class="text-xs mt-3 hidden"></p>
             </div>
         </div>
     </div>
@@ -257,3 +269,84 @@ try {
         .footer-wrapper input[type="email"], .footer-wrapper .btn-primary { width: 100%; }
     }
 </style>
+
+<script>
+    const NEWSLETTER_SUCCESS = "¡Gracias por unirte al Club Parra! Revisa tu correo.";
+    const NEWSLETTER_DUPLICATE = "Este correo ya está suscrito a la newsletter.";
+
+    function initNewsletterForms() {
+        const forms = document.querySelectorAll('form[data-newsletter-form]');
+
+        forms.forEach((formEl) => {
+            if (!(formEl instanceof HTMLFormElement)) return;
+            const form = formEl;
+
+            if (form.getAttribute('data-newsletter-bound') === 'true') return;
+            form.setAttribute('data-newsletter-bound', 'true');
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const emailNode = form.querySelector('[data-newsletter-email]');
+                const hpNode = form.querySelector('[data-newsletter-hp]');
+                const submitNode = form.querySelector('[data-newsletter-submit]');
+                const statusNode = form.parentElement?.querySelector('[data-newsletter-status]');
+
+                if (!(emailNode instanceof HTMLInputElement)) return;
+                if (!(submitNode instanceof HTMLButtonElement)) return;
+                if (!(statusNode instanceof HTMLElement)) return;
+
+                const hpInput = hpNode instanceof HTMLInputElement ? hpNode : null;
+                const emailInput = emailNode;
+                const submitBtn = submitNode;
+                const statusEl = statusNode;
+
+                const email = String(emailInput.value || '').trim();
+                const website = String(hpInput?.value || '').trim();
+
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Enviando...';
+
+                try {
+                    const res = await fetch('/api/newsletter/subscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({
+                            email,
+                            website,
+                            source: form.getAttribute('data-newsletter-form') || 'website',
+                        }),
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+                    const message = data?.message || (res.ok ? NEWSLETTER_SUCCESS : 'No se pudo completar la suscripción.');
+
+                    statusEl.classList.remove('hidden');
+                    statusEl.textContent = message;
+
+                    if (res.ok) {
+                        const isDuplicate = !!data?.duplicate || message === NEWSLETTER_DUPLICATE;
+                        statusEl.style.color = isDuplicate ? '#f59e0b' : '#22c55e';
+                        if (!isDuplicate) {
+                            form.reset();
+                        }
+                    } else {
+                        statusEl.style.color = '#ef4444';
+                    }
+                } catch {
+                    statusEl.classList.remove('hidden');
+                    statusEl.textContent = 'Error de conexión. Inténtalo de nuevo.';
+                    statusEl.style.color = '#ef4444';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText || 'Suscribirse';
+                }
+            });
+        });
+    }
+
+    document.addEventListener('astro:page-load', initNewsletterForms);
+    initNewsletterForms();
+</script>

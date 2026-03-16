@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '../../../lib/supabase';
 import { validateAdminAPI, jsonResponse, logAdminAction } from '../../../lib/admin';
+import { notifyNewProductPublished, notifyStockUpdated } from '../../../lib/newsletter/events';
 
 /** GET /api/admin/products?page=1&category=...&search=...&active=true */
 export const GET: APIRoute = async ({ request, cookies }) => {
@@ -107,6 +108,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
             await supabaseAdmin.from('product_images').insert(galleryRows);
         }
 
+        if (product.is_active) {
+            notifyNewProductPublished({
+                eventKey: `new-product:${product.id}`,
+                productName: product.name,
+                productSlug: product.slug,
+            }).catch((err) => {
+                console.error('[admin-products] Error encolando newsletter de nuevo producto:', err);
+            });
+        }
+
         await logAdminAction(admin.id, 'create_product', 'product', product.id, { name: product.name }, request.headers.get('x-forwarded-for') || undefined);
         return jsonResponse({ product, message: 'Producto creado' }, 201);
     } catch (err) {
@@ -125,6 +136,12 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         const body = await request.json();
         const { productId, variants, gallery, ...updates } = body;
         if (!productId) return jsonResponse({ error: 'productId obligatorio' }, 400);
+
+        const { data: previousProduct } = await supabaseAdmin
+            .from('products')
+            .select('id, name, slug, stock, is_active, product_variants(stock)')
+            .eq('id', productId)
+            .single();
 
         const updateData: Record<string, any> = { updated_at: new Date().toISOString() };
         if (updates.name !== undefined) updateData.name = updates.name.trim();
@@ -192,6 +209,50 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         }
 
         await logAdminAction(admin.id, 'update_product', 'product', productId, updateData, request.headers.get('x-forwarded-for') || undefined);
+
+        const previousStock = Number(previousProduct?.stock || 0);
+        const nextStock = Number(data?.stock || previousStock);
+        const previousVariantStock = Array.isArray(previousProduct?.product_variants)
+            ? previousProduct.product_variants.reduce((acc: number, item: any) => acc + Number(item.stock || 0), 0)
+            : 0;
+        const nextVariantStock = Array.isArray(variants)
+            ? variants.reduce((acc: number, item: any) => acc + Number(item.stock || 0), 0)
+            : previousVariantStock;
+        const wasActive = !!previousProduct?.is_active;
+        const isActiveNow = !!data?.is_active;
+
+        if (!wasActive && isActiveNow) {
+            notifyNewProductPublished({
+                eventKey: `new-product:${data.id}:${data.updated_at || ''}`,
+                productName: data.name,
+                productSlug: data.slug,
+            }).catch((err) => {
+                console.error('[admin-products] Error encolando newsletter de publicación:', err);
+            });
+        }
+
+        if (updates.stock !== undefined && previousStock !== nextStock) {
+            notifyStockUpdated({
+                eventKey: `stock-updated:${data.id}:${previousStock}:${nextStock}:${data.updated_at || ''}`,
+                productName: data.name,
+                productSlug: data.slug,
+                previousStock,
+                currentStock: nextStock,
+            }).catch((err) => {
+                console.error('[admin-products] Error encolando newsletter de stock:', err);
+            });
+        } else if (Array.isArray(variants) && previousVariantStock !== nextVariantStock) {
+            notifyStockUpdated({
+                eventKey: `stock-updated-variants:${data.id}:${previousVariantStock}:${nextVariantStock}:${data.updated_at || ''}`,
+                productName: data.name,
+                productSlug: data.slug,
+                previousStock: previousVariantStock,
+                currentStock: nextVariantStock,
+            }).catch((err) => {
+                console.error('[admin-products] Error encolando newsletter de stock por variantes:', err);
+            });
+        }
+
         return jsonResponse({ product: data, message: 'Producto actualizado' });
     } catch (err) {
         return jsonResponse({ error: 'Error interno' }, 500);
