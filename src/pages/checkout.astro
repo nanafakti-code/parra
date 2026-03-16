@@ -352,7 +352,8 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
                     <button
                         id="place-order-btn"
-                        class="btn-glow w-full h-14 flex items-center justify-center gap-3 text-base"
+                        class="btn-glow w-full h-14 flex items-center justify-center gap-3 text-base opacity-40 cursor-not-allowed"
+                        disabled
                     >
                         Pagar y Finalizar
                         <svg
@@ -610,6 +611,14 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "";
                     });
 
                     paymentElement.on("change", (event: any) => {
+                        const btn = document.getElementById("place-order-btn") as HTMLButtonElement;
+                        if (event.complete) {
+                            btn?.removeAttribute("disabled");
+                            btn?.classList.remove("opacity-40", "cursor-not-allowed");
+                        } else {
+                            btn?.setAttribute("disabled", "true");
+                            btn?.classList.add("opacity-40", "cursor-not-allowed");
+                        }
                         if (event.error) {
                             _showMsg(event.error.message);
                         } else {

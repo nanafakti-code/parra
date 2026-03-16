@@ -707,6 +707,21 @@ const seoDescription = product.short_description
             }
         })();
 
+        // Actualiza el botón de carrito según el stock de la variante seleccionada
+        function updateCartButton(stock: number) {
+            var btn = document.getElementById("add-to-cart-btn") as HTMLButtonElement | null;
+            if (!btn) return;
+            if (stock <= 0) {
+                btn.disabled = true;
+                btn.classList.add("opacity-50", "cursor-not-allowed");
+                btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Agotado';
+            } else {
+                btn.disabled = false;
+                btn.classList.remove("opacity-50", "cursor-not-allowed");
+                btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg> Añadir al Carrito';
+            }
+        }
+
         // Size selector
         document.querySelectorAll(".size-btn").forEach(function (btnEl) {
             const btn = btnEl as HTMLButtonElement;
@@ -734,8 +749,15 @@ const seoDescription = product.short_description
                     stockInfo.textContent =
                         stock > 0 ? stock + " disponibles" : "Agotado";
                 }
+                updateCartButton(stock);
             });
         });
+
+        // Estado inicial: refleja el stock de la talla auto-seleccionada al cargar
+        var initialSelected = document.querySelector(".size-btn.border-brand") as HTMLButtonElement | null;
+        if (initialSelected) {
+            updateCartButton(parseInt(initialSelected.dataset.stock || "0"));
+        }
 
         // Accordion
         document
