@@ -242,6 +242,19 @@ export async function enqueueNewsletterBroadcast(options: {
         });
 
         scheduleNewsletterQueueProcessing(Math.min(50, queued));
+        await processNewsletterQueueBatch(Math.min(50, queued)).catch(async (processingError) => {
+            await logQueueEvent({
+                event: 'broadcast-immediate-processing-failed',
+                level: 'warn',
+                message: 'Falló el procesamiento inmediato tras encolar broadcast.',
+                metadata: {
+                    eventKey: options.eventKey,
+                    eventType: options.eventType,
+                    queued,
+                    error: processingError instanceof Error ? processingError.message : String(processingError),
+                },
+            });
+        });
     }
 
     return { queued, duplicateEvent: false };

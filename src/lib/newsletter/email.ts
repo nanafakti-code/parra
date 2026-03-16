@@ -1,15 +1,35 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
+import { constants as cryptoConstants } from 'crypto';
 import { WELCOME_MANAGE_URL } from './constants';
 
 const FROM = 'Parra GK Gloves <info@parragkgloves.es>';
 const REPLY_TO = 'soporte@parragkgloves.es';
 
-function getResendClient(): Resend {
-    const apiKey = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
-    if (!apiKey) {
-        console.warn('[newsletter] RESEND_API_KEY no configurada.');
-    }
-    return new Resend(apiKey || '');
+function createTransporter() {
+  const host = import.meta.env.SMTP_HOST || process.env.SMTP_HOST || 'smtp.hostalia.com';
+  const port = Number(import.meta.env.SMTP_PORT || process.env.SMTP_PORT || 587);
+  const secure = (import.meta.env.SMTP_SECURE || process.env.SMTP_SECURE) === 'true';
+  const user = import.meta.env.SMTP_USER || process.env.SMTP_USER || 'info@parragkgloves.es';
+  const pass = import.meta.env.SMTP_PASS || process.env.SMTP_PASS;
+
+  if (!pass) {
+    console.warn('[newsletter] SMTP_PASS no está configurada. Los emails no se enviarán.');
+  }
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    auth: { user, pass },
+    tls: {
+      rejectUnauthorized: false,
+      minVersion: 'TLSv1' as import('tls').SecureVersion,
+      ciphers: 'DEFAULT@SECLEVEL=0',
+      secureOptions:
+        (cryptoConstants.SSL_OP_LEGACY_SERVER_CONNECT ?? 0) |
+        (cryptoConstants.SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION ?? 0),
+    },
+  });
 }
 
 function escapeHtml(value: string): string {
@@ -119,19 +139,16 @@ export async function sendNewsletterEmail(options: {
     html: string;
     text?: string;
 }): Promise<string | null> {
-    const resend = getResendClient();
-  const { data, error } = await resend.emails.send({
-        from: FROM,
-        to: [options.to],
-        replyTo: REPLY_TO,
-        subject: options.subject,
-        html: options.html,
-        text: options.text,
-    });
+  const transporter = createTransporter();
 
-    if (error) {
-        throw new Error(error.message || 'No se pudo enviar el email de newsletter');
-    }
+  const info = await transporter.sendMail({
+    from: FROM,
+    to: options.to,
+    replyTo: REPLY_TO,
+    subject: options.subject,
+    html: options.html,
+    text: options.text,
+  });
 
-    return data?.id || null;
+  return info.messageId || null;
 }
