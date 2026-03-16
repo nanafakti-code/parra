@@ -19,6 +19,49 @@ function escapeHtml(value: string): string {
         .replace(/'/g, '&#39;');
 }
 
+// ─── Shared partials ──────────────────────────────────────────────────────────
+
+const emailHeader = `
+  <!-- Top thin accent line -->
+  <tr>
+    <td height="2" style="background:linear-gradient(90deg,#000,#39FF14 40%,#39FF14 60%,#000);font-size:0;line-height:0;">&nbsp;</td>
+  </tr>
+  <!-- Logo -->
+  <tr>
+    <td style="background:#000000;padding:32px 40px 28px;text-align:center;">
+      <div style="font-size:11px;color:#39FF14;letter-spacing:6px;font-weight:700;text-transform:uppercase;margin-bottom:12px;">&#9632;&nbsp;&nbsp;Club Newsletter&nbsp;&nbsp;&#9632;</div>
+      <div style="font-size:42px;font-weight:900;letter-spacing:14px;color:#ffffff;line-height:1;text-transform:uppercase;">PARRA</div>
+      <div style="font-size:9px;letter-spacing:8px;color:#4a5568;margin-top:8px;font-weight:600;text-transform:uppercase;">Goalkeeper&nbsp;&nbsp;Gloves</div>
+    </td>
+  </tr>
+  <!-- Bottom header divider -->
+  <tr>
+    <td height="1" style="background:linear-gradient(90deg,#000,#1e2533 30%,#1e2533 70%,#000);font-size:0;line-height:0;">&nbsp;</td>
+  </tr>`;
+
+const emailFooter = `
+  <!-- Divider -->
+  <tr>
+    <td height="1" style="background:linear-gradient(90deg,#000,#1e2533 30%,#1e2533 70%,#000);font-size:0;line-height:0;">&nbsp;</td>
+  </tr>
+  <!-- Footer -->
+  <tr>
+    <td style="background:#000000;padding:22px 40px;text-align:center;">
+      <p style="margin:0 0 8px;font-size:10px;color:#2a3040;letter-spacing:3px;text-transform:uppercase;font-weight:600;">Parra GK Gloves &nbsp;·&nbsp; Club Newsletter</p>
+      <p style="margin:0;font-size:11px;color:#2a3040;line-height:1.8;">
+        <a href="https://www.parragkgloves.es/profile" style="color:#3a4558;text-decoration:none;border-bottom:1px solid #2a3040;">Gestionar suscripción</a>
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <a href="https://www.parragkgloves.es" style="color:#3a4558;text-decoration:none;border-bottom:1px solid #2a3040;">parragkgloves.es</a>
+      </p>
+    </td>
+  </tr>
+  <!-- Bottom accent line -->
+  <tr>
+    <td height="2" style="background:linear-gradient(90deg,#000,#39FF14 40%,#39FF14 60%,#000);font-size:0;line-height:0;">&nbsp;</td>
+  </tr>`;
+
+// ─── Welcome email ─────────────────────────────────────────────────────────────
+
 export function buildWelcomeEmailHtml(email: string): string {
     const safeEmail = escapeHtml(email);
 
@@ -29,34 +72,75 @@ export function buildWelcomeEmailHtml(email: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bienvenido al Club Parra</title>
 </head>
-<body style="margin:0;padding:0;background:#06070a;font-family:Arial,Helvetica,sans-serif;color:#fff;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding:24px;">
+<body style="margin:0;padding:0;background:#05060a;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;color:#ffffff;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#05060a" style="padding:40px 16px;">
     <tr>
       <td align="center">
-        <table width="620" cellpadding="0" cellspacing="0" border="0" style="max-width:620px;width:100%;background:#0d1018;border:1px solid #1f2937;border-radius:8px;overflow:hidden;">
+        <table width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;border:1px solid #111827;">
+          ${emailHeader}
+
+          <!-- Badge -->
           <tr>
-            <td style="background:#000;padding:28px 32px;border-bottom:2px solid #39FF14;text-align:center;">
-              <div style="font-size:32px;font-weight:900;letter-spacing:4px;">PARRA</div>
-              <div style="font-size:11px;letter-spacing:3px;color:#39FF14;margin-top:4px;">GOALKEEPER GLOVES</div>
+            <td style="background:#060810;padding:28px 40px 0;">
+              <span style="display:inline-block;border:1px solid #39FF14;color:#39FF14;font-size:9px;font-weight:700;letter-spacing:4px;padding:5px 14px;text-transform:uppercase;">Acceso confirmado</span>
             </td>
           </tr>
+
+          <!-- Body -->
           <tr>
-            <td style="padding:30px 32px;">
-              <h1 style="margin:0 0 12px;font-size:26px;line-height:1.2;">Bienvenido al Club Parra GK Gloves</h1>
-              <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#c9ced8;">
-                Gracias por suscribirte con <strong style="color:#ffffff;">${safeEmail}</strong>.
+            <td style="background:#060810;padding:20px 40px 32px;">
+              <h1 style="margin:0 0 20px;font-size:28px;font-weight:900;line-height:1.2;color:#ffffff;letter-spacing:-0.5px;">Bienvenido al<br />Club Parra GK Gloves</h1>
+              <p style="margin:0 0 24px;font-size:14px;line-height:1.8;color:#6b7280;">
+                Te has suscrito con <strong style="color:#c9ced8;">${safeEmail}</strong>.<br />
+                A partir de ahora serás el primero en saber:
               </p>
-              <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#c9ced8;">
-                Recibirás lanzamientos de nuevos productos, reposiciones de stock, cupones exclusivos y campañas especiales antes que nadie.
-              </p>
-              <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#c9ced8;">
-                Puedes gestionar o cancelar tu suscripción en cualquier momento desde tu perfil.
-              </p>
-              <a href="${WELCOME_MANAGE_URL}" style="display:inline-block;background:#39FF14;color:#000;text-decoration:none;font-weight:800;letter-spacing:1px;padding:12px 22px;border-radius:4px;">
-                Gestionar suscripción
-              </a>
+
+              <!-- Benefits list -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;">
+                <tr>
+                  <td style="padding:10px 0;border-top:1px solid #111827;">
+                    <table cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="color:#39FF14;font-size:12px;font-weight:700;padding-right:14px;vertical-align:top;padding-top:1px;">01</td>
+                        <td style="font-size:13px;color:#9aa3b2;line-height:1.5;">Lanzamientos de nuevos productos</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:10px 0;border-top:1px solid #111827;">
+                    <table cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="color:#39FF14;font-size:12px;font-weight:700;padding-right:14px;vertical-align:top;padding-top:1px;">02</td>
+                        <td style="font-size:13px;color:#9aa3b2;line-height:1.5;">Cupones exclusivos y bajadas de precio</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:10px 0;border-top:1px solid #111827;border-bottom:1px solid #111827;">
+                    <table cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="color:#39FF14;font-size:12px;font-weight:700;padding-right:14px;vertical-align:top;padding-top:1px;">03</td>
+                        <td style="font-size:13px;color:#9aa3b2;line-height:1.5;">Reposiciones de stock y campañas especiales</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA -->
+              <table cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="background:#39FF14;">
+                    <a href="${WELCOME_MANAGE_URL}" style="display:inline-block;background:#39FF14;color:#000000;text-decoration:none;font-weight:900;font-size:12px;letter-spacing:2px;padding:14px 30px;text-transform:uppercase;">Gestionar suscripción &rarr;</a>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
+
+          ${emailFooter}
         </table>
       </td>
     </tr>
@@ -64,6 +148,8 @@ export function buildWelcomeEmailHtml(email: string): string {
 </body>
 </html>`;
 }
+
+// ─── Broadcast email ───────────────────────────────────────────────────────────
 
 export function buildBroadcastEmailHtml(options: {
     title: string;
@@ -80,22 +166,30 @@ export function buildBroadcastEmailHtml(options: {
     const badge       = options.badge ? escapeHtml(options.badge) : null;
     const code        = options.code  ? escapeHtml(options.code)  : null;
 
-    const codeBlock = code ? `
+    const badgeRow = badge ? `
           <tr>
-            <td style="padding:0 36px 28px;">
+            <td style="background:#060810;padding:28px 40px 0;">
+              <span style="display:inline-block;border:1px solid #39FF14;color:#39FF14;font-size:9px;font-weight:700;letter-spacing:4px;padding:5px 14px;text-transform:uppercase;">${badge}</span>
+            </td>
+          </tr>` : '';
+
+    const codeRow = code ? `
+          <tr>
+            <td style="background:#060810;padding:0 40px 28px;">
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="background:#0a0f1a;border:2px dashed #39FF14;border-radius:10px;padding:22px 16px;text-align:center;">
-                    <div style="font-size:11px;color:#6b7280;letter-spacing:2px;margin-bottom:10px;text-transform:uppercase;">Tu código de descuento</div>
-                    <div style="font-size:34px;font-weight:900;letter-spacing:10px;color:#39FF14;font-family:'Courier New',Courier,monospace;">${code}</div>
-                    <div style="font-size:12px;color:#6b7280;margin-top:10px;">Cópialo y úsalo al finalizar tu compra</div>
+                  <td style="background:#000000;border:1px solid #39FF14;padding:26px 16px;text-align:center;box-shadow:0 0 30px rgba(57,255,20,0.12);">
+                    <div style="font-size:9px;color:#39FF14;letter-spacing:5px;margin-bottom:16px;text-transform:uppercase;font-weight:700;">&#47;&#47;&nbsp;Código de descuento&nbsp;&#47;&#47;</div>
+                    <div style="font-size:40px;font-weight:900;letter-spacing:10px;color:#39FF14;font-family:'Courier New',Courier,monospace;text-shadow:0 0 24px rgba(57,255,20,0.6);">${code}</div>
+                    <div style="margin:16px auto 0;height:1px;max-width:200px;background:linear-gradient(90deg,transparent,rgba(57,255,20,0.5),transparent);"></div>
+                    <div style="font-size:11px;color:#3a4558;margin-top:14px;letter-spacing:2px;text-transform:uppercase;">Úsalo en el checkout</div>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>` : '';
 
-    const badgeBlock = badge ? `<div style="margin-bottom:18px;"><span style="background:#39FF14;color:#000000;font-size:10px;font-weight:900;letter-spacing:2px;padding:5px 12px;border-radius:3px;text-transform:uppercase;">${badge}</span></div>` : '';
+    const ctaPaddingTop = code ? '0' : '0';
 
     return `<!DOCTYPE html>
 <html lang="es">
@@ -104,54 +198,45 @@ export function buildBroadcastEmailHtml(options: {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${safeTitle}</title>
 </head>
-<body style="margin:0;padding:0;background:#06070a;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;color:#ffffff;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#06070a" style="padding:36px 16px;">
+<body style="margin:0;padding:0;background:#05060a;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;color:#ffffff;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#05060a" style="padding:40px 16px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+        <table width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;border:1px solid #111827;">
+          ${emailHeader}
+          ${badgeRow}
 
-          <!-- Header -->
+          <!-- Title + message -->
           <tr>
-            <td style="background:#000000;padding:28px 36px;border-radius:12px 12px 0 0;border-bottom:3px solid #39FF14;text-align:center;">
-              <div style="font-size:30px;font-weight:900;letter-spacing:6px;color:#ffffff;line-height:1;">PARRA</div>
-              <div style="font-size:10px;letter-spacing:4px;color:#39FF14;margin-top:6px;font-weight:700;">GOALKEEPER GLOVES</div>
+            <td style="background:#060810;padding:${badge ? '20px' : '28px'} 40px 28px;">
+              <h1 style="margin:0 0 18px;font-size:26px;font-weight:900;line-height:1.25;color:#ffffff;letter-spacing:-0.5px;">${safeTitle}</h1>
+              <p style="margin:0;font-size:14px;line-height:1.85;color:#6b7280;">${safeMessage}</p>
             </td>
           </tr>
 
-          <!-- Body -->
+          <!-- Separator -->
           <tr>
-            <td style="background:#0d1018;border:1px solid #1e2533;border-top:none;border-radius:0 0 12px 12px;padding:36px 36px 0;">
-              ${badgeBlock}
-              <h1 style="margin:0 0 16px;font-size:24px;font-weight:800;line-height:1.35;color:#ffffff;">${safeTitle}</h1>
-              <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#9aa3b2;">${safeMessage}</p>
+            <td style="background:#060810;padding:0 40px;">
+              <div style="height:1px;background:linear-gradient(90deg,transparent,#1a2030,transparent);"></div>
             </td>
           </tr>
 
-          <!-- Coupon code (optional) -->${codeBlock}
+          ${codeRow}
 
           <!-- CTA -->
           <tr>
-            <td style="background:#0d1018;border:1px solid #1e2533;border-top:none;padding:0 36px 32px;">
+            <td style="background:#060810;padding:28px 40px 36px;">
               <table cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="border-radius:6px;">
-                    <a href="${ctaUrl}" style="display:inline-block;background:#39FF14;color:#000000;text-decoration:none;font-weight:900;font-size:14px;letter-spacing:1px;padding:14px 30px;border-radius:6px;">${ctaLabel} &rarr;</a>
+                  <td style="background:#39FF14;">
+                    <a href="${ctaUrl}" style="display:inline-block;background:#39FF14;color:#000000;text-decoration:none;font-weight:900;font-size:12px;letter-spacing:2px;padding:15px 32px;text-transform:uppercase;">${ctaLabel} &rarr;</a>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          <!-- Footer -->
-          <tr>
-            <td style="background:#0d1018;border:1px solid #1e2533;border-top:1px solid #1e2533;border-radius:0 0 12px 12px;padding:20px 36px;margin-top:0;">
-              <p style="margin:0;font-size:12px;color:#4b5563;line-height:1.6;">
-                Recibes este correo porque estás suscrito al <strong style="color:#6b7280;">Club Parra GK Gloves</strong>.<br />
-                <a href="https://www.parragkgloves.es/profile" style="color:#6b7280;text-decoration:underline;">Gestionar suscripción</a>
-              </p>
-            </td>
-          </tr>
-
+          ${emailFooter}
         </table>
       </td>
     </tr>
@@ -159,6 +244,8 @@ export function buildBroadcastEmailHtml(options: {
 </body>
 </html>`;
 }
+
+// ─── Send ──────────────────────────────────────────────────────────────────────
 
 export async function sendNewsletterEmail(options: {
     to: string;
