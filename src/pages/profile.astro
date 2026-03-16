@@ -68,6 +68,34 @@ const [
         .order("created_at", { ascending: false }),
 ]);
 
+// ── Cupones disponibles para el usuario ──────────────────────────────────────
+const [{ data: rawAllCoupons }, { data: rawAllowlist }, { data: rawUserUsages }] = await Promise.all([
+    supabaseAdmin
+        .from("coupons")
+        .select("id, code, description, type, value, min_purchase, max_uses, expires_at, is_exclusive")
+        .eq("is_active", true),
+    supabaseAdmin
+        .from("coupon_user_allowlist")
+        .select("coupon_id")
+        .eq("user_id", authUser.id),
+    supabaseAdmin
+        .from("coupon_usage")
+        .select("coupon_id, used_at")
+        .eq("user_id", authUser.id),
+]);
+
+const userAllowlistIds = new Set((rawAllowlist || []).map((e: any) => e.coupon_id));
+const userUsageMap: Record<string, string> = {};
+(rawUserUsages || []).forEach((u: any) => { userUsageMap[u.coupon_id] = u.used_at; });
+
+const userCoupons = (rawAllCoupons || [])
+    .filter((c: any) => {
+        if (c.expires_at && new Date(c.expires_at) < new Date()) return false;
+        if (c.is_exclusive) return userAllowlistIds.has(c.id);
+        return true;
+    })
+    .map((c: any) => ({ ...c, usedAt: userUsageMap[c.id] || null }));
+
 // Normalizar items para que el template funcione igual
 const ordersWithItems: any[] = (rawOrders || []).map((o: any) => ({
     ...o,
@@ -1477,51 +1505,67 @@ const tabs = [
                             Mis <span class="text-brand">Cupones</span>
                         </h2>
                         {
-                            (couponUsages || []).length > 0 ? (
+                            userCoupons.length > 0 ? (
                                 <div class="space-y-4">
-                                    {(couponUsages || []).map((cu: any) => (
-                                        <div class="card p-5 flex items-center justify-between gap-4 flex-wrap">
-                                            <div>
-                                                <p class="font-mono font-bold text-brand tracking-widest text-base">
-                                                    {cu.coupons?.code}
-                                                </p>
-                                                {cu.coupons?.description && (
-                                                    <p
-                                                        class="text-xs mt-0.5"
-                                                        style="color: var(--text-muted);"
-                                                    >
-                                                        {cu.coupons.description}
-                                                    </p>
-                                                )}
-                                                <p
-                                                    class="text-[10px] uppercase tracking-wider mt-1"
-                                                    style="color: var(--text-muted);"
-                                                >
-                                                    Usado el{" "}
-                                                    {new Date(
-                                                        cu.used_at,
-                                                    ).toLocaleDateString(
-                                                        "es-ES",
+                                    {userCoupons.map((c: any) => {
+                                        const isUsed = !!c.usedAt;
+                                        const discount = c.type === "percentage"
+                                            ? `-${c.value}%`
+                                            : `-€${parseFloat(c.value || 0).toFixed(2)}`;
+                                        return (
+                                            <div class={`card p-5 flex items-center justify-between gap-4 flex-wrap${isUsed ? " opacity-55" : ""}`}>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                                                        <p class="font-mono font-bold text-brand tracking-widest text-base">
+                                                            {c.code}
+                                                        </p>
+                                                        {c.is_exclusive && (
+                                                            <span style="font-size:0.6rem;padding:0.1rem 0.45rem;border-radius:3px;background:rgba(168,85,247,0.15);color:#c084fc;border:1px solid rgba(168,85,247,0.3);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">
+                                                                Exclusivo
+                                                            </span>
+                                                        )}
+                                                        {isUsed ? (
+                                                            <span style="font-size:0.6rem;padding:0.1rem 0.45rem;border-radius:3px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.35);border:1px solid rgba(255,255,255,0.1);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">
+                                                                Usado
+                                                            </span>
+                                                        ) : (
+                                                            <span style="font-size:0.6rem;padding:0.1rem 0.45rem;border-radius:3px;background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">
+                                                                Disponible
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {c.description && (
+                                                        <p class="text-xs mt-0.5" style="color: var(--text-muted);">
+                                                            {c.description}
+                                                        </p>
                                                     )}
-                                                </p>
+                                                    <div class="flex gap-3 flex-wrap mt-1">
+                                                        {c.min_purchase > 0 && (
+                                                            <p class="text-[10px] uppercase tracking-wider" style="color: var(--text-muted);">
+                                                                Mín. €{parseFloat(c.min_purchase).toFixed(2)}
+                                                            </p>
+                                                        )}
+                                                        {c.expires_at && (
+                                                            <p class="text-[10px] uppercase tracking-wider" style="color: var(--text-muted);">
+                                                                Expira {new Date(c.expires_at).toLocaleDateString("es-ES")}
+                                                            </p>
+                                                        )}
+                                                        {isUsed && c.usedAt && (
+                                                            <p class="text-[10px] uppercase tracking-wider" style="color: var(--text-muted);">
+                                                                Usado el {new Date(c.usedAt).toLocaleDateString("es-ES")}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div class="text-right shrink-0">
+                                                    <p class="text-2xl font-bold text-brand">{discount}</p>
+                                                    <p class="text-[10px] uppercase tracking-wider mt-0.5" style="color: var(--text-muted);">
+                                                        descuento
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div class="text-right">
-                                                <p class="text-lg font-bold text-brand">
-                                                    {cu.coupons
-                                                        ?.discount_type ===
-                                                    "percentage"
-                                                        ? `-${cu.coupons.discount_value}%`
-                                                        : `-€${parseFloat(cu.coupons?.discount_value || 0).toFixed(2)}`}
-                                                </p>
-                                                <p
-                                                    class="text-[10px] uppercase tracking-wider"
-                                                    style="color: var(--text-muted);"
-                                                >
-                                                    descuento aplicado
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <div class="py-24 text-center card">
@@ -1539,11 +1583,8 @@ const tabs = [
                                             d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
                                         />
                                     </svg>
-                                    <p
-                                        class="uppercase tracking-[0.2em] text-sm"
-                                        style="color: var(--text-muted);"
-                                    >
-                                        No has usado ningún cupón todavía.
+                                    <p class="uppercase tracking-[0.2em] text-sm" style="color: var(--text-muted);">
+                                        No tienes cupones disponibles.
                                     </p>
                                 </div>
                             )
