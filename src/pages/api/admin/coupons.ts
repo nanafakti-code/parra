@@ -174,7 +174,10 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
         const couponId = url.searchParams.get('id');
         if (!couponId) return jsonResponse({ error: 'id obligatorio' }, 400);
 
-        // Delete usage records first (coupon_usage may not have ON DELETE CASCADE)
+        // Null out coupon_id on orders so the FK doesn't block deletion
+        await supabaseAdmin.from('orders').update({ coupon_id: null }).eq('coupon_id', couponId);
+
+        // Delete usage records (coupon_usage may not have ON DELETE CASCADE)
         await supabaseAdmin.from('coupon_usage').delete().eq('coupon_id', couponId);
 
         const { error } = await supabaseAdmin.from('coupons').delete().eq('id', couponId);
