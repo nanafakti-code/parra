@@ -223,50 +223,46 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
         const previousPrice = Number(previousProduct?.price || 0);
         const nextPrice = Number(data?.price || previousPrice);
 
-        if (!wasActive && isActiveNow) {
-            notifyNewProductPublished({
-                eventKey: `new-product:${data.id}:${data.updated_at || ''}`,
-                productName: data.name,
-                productSlug: data.slug,
-            }).catch((err) => {
-                console.error('[admin-products] Error encolando newsletter de publicación:', err);
-            });
-        }
+        try {
+            if (!wasActive && isActiveNow) {
+                await notifyNewProductPublished({
+                    eventKey: `new-product:${data.id}:${data.updated_at || ''}`,
+                    productName: data.name,
+                    productSlug: data.slug,
+                });
+            }
 
-        // Solo notificar restock: el producto pasó de sin stock a tener stock
-        if (updates.stock !== undefined && previousStock <= 0 && nextStock > 0) {
-            notifyStockUpdated({
-                eventKey: `stock-updated:${data.id}:${previousStock}:${nextStock}:${data.updated_at || ''}`,
-                productName: data.name,
-                productSlug: data.slug,
-                previousStock,
-                currentStock: nextStock,
-            }).catch((err) => {
-                console.error('[admin-products] Error encolando newsletter de stock:', err);
-            });
-        } else if (Array.isArray(variants) && previousVariantStock <= 0 && nextVariantStock > 0) {
-            notifyStockUpdated({
-                eventKey: `stock-updated-variants:${data.id}:${previousVariantStock}:${nextVariantStock}:${data.updated_at || ''}`,
-                productName: data.name,
-                productSlug: data.slug,
-                previousStock: previousVariantStock,
-                currentStock: nextVariantStock,
-            }).catch((err) => {
-                console.error('[admin-products] Error encolando newsletter de stock por variantes:', err);
-            });
-        }
+            // Solo notificar restock: el producto pasó de sin stock a tener stock
+            if (updates.stock !== undefined && previousStock <= 0 && nextStock > 0) {
+                await notifyStockUpdated({
+                    eventKey: `stock-updated:${data.id}:${previousStock}:${nextStock}:${data.updated_at || ''}`,
+                    productName: data.name,
+                    productSlug: data.slug,
+                    previousStock,
+                    currentStock: nextStock,
+                });
+            } else if (Array.isArray(variants) && previousVariantStock <= 0 && nextVariantStock > 0) {
+                await notifyStockUpdated({
+                    eventKey: `stock-updated-variants:${data.id}:${previousVariantStock}:${nextVariantStock}:${data.updated_at || ''}`,
+                    productName: data.name,
+                    productSlug: data.slug,
+                    previousStock: previousVariantStock,
+                    currentStock: nextVariantStock,
+                });
+            }
 
-        // Notificar bajada de precio (solo si el producto está activo)
-        if (isActiveNow && updates.price !== undefined && nextPrice < previousPrice && previousPrice > 0) {
-            notifyPriceDrop({
-                eventKey: `price-drop:${data.id}:${previousPrice}:${nextPrice}:${data.updated_at || ''}`,
-                productName: data.name,
-                productSlug: data.slug,
-                previousPrice,
-                currentPrice: nextPrice,
-            }).catch((err) => {
-                console.error('[admin-products] Error encolando newsletter de bajada de precio:', err);
-            });
+            // Notificar bajada de precio (solo si el producto está activo)
+            if (isActiveNow && updates.price !== undefined && nextPrice < previousPrice && previousPrice > 0) {
+                await notifyPriceDrop({
+                    eventKey: `price-drop:${data.id}:${previousPrice}:${nextPrice}:${data.updated_at || ''}`,
+                    productName: data.name,
+                    productSlug: data.slug,
+                    previousPrice,
+                    currentPrice: nextPrice,
+                });
+            }
+        } catch (err) {
+            console.error('[admin-products] Error en notificación de newsletter:', err);
         }
 
         return jsonResponse({ product: data, message: 'Producto actualizado' });
