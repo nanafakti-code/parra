@@ -5,6 +5,12 @@ interface Props {
     content?: Record<string, any>;
 }
 const { content = {} } = Astro.props;
+
+const buttonBg = bc(content.style_btn_bg, "var(--brand)");
+const configuredButtonText = String(content.style_btn_text || "").trim();
+const buttonText = !configuredButtonText || configuredButtonText.toLowerCase() === String(content.style_btn_bg || "").trim().toLowerCase()
+    ? "#000000"
+    : configuredButtonText;
 ---
 
 <section
@@ -63,7 +69,7 @@ const { content = {} } = Astro.props;
                     type="submit"
                     data-newsletter-submit
                     class="btn-glow whitespace-nowrap"
-                    style={`background: ${bc(content.style_btn_bg, "var(--brand)")}; color: ${content.style_btn_text || "#000000"}; --glow-color: ${bc(content.style_btn_bg, "var(--brand)")};`}
+                    style={`background: ${buttonBg}; color: ${buttonText}; text-shadow: 0 1px 0 rgba(255,255,255,0.18); --glow-color: ${buttonBg};`}
                 >
                     Suscribirme
                 </button>
