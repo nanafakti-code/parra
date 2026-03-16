@@ -92,7 +92,7 @@ const discountPercent = hasDiscount
                 <span
                     class="text-sm sm:text-lg font-bold"
                     style="color: var(--card-price-color, var(--text-primary));"
-                    >€{product.price.toFixed(2)}</span
+                    >{product.price.toFixed(2)}€</span
                 >
                 {
                     hasDiscount && (
@@ -100,7 +100,7 @@ const discountPercent = hasDiscount
                             class="text-[10px] sm:text-sm line-through"
                             style="color: var(--text-muted);"
                         >
-                            €{product.compare_price!.toFixed(2)}
+                            {product.compare_price!.toFixed(2)}€
                         </span>
                     )
                 }

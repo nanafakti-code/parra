@@ -189,7 +189,7 @@ function statusBadge(s: string) {
                                     data-label="Total"
                                     style="font-weight: 600;"
                                 >
-                                    €{parseFloat(order.total).toFixed(2)}
+                                    {parseFloat(order.total).toFixed(2)}€
                                 </td>
                                 <td data-label="Estado">
                                     <span
@@ -419,10 +419,10 @@ function statusBadge(s: string) {
                             order.email +
                             "</div></div>";
                         var totalHtml = '<div><div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.3rem;">Importe</div>';
-                        if (order.subtotal) totalHtml += '<div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Subtotal: €' + parseFloat(order.subtotal).toFixed(2) + '</div>';
-                        if (order.discount > 0) totalHtml += '<div style="font-size:0.75rem;color:#4ade80;">Descuento' + (order.coupon ? ' (' + order.coupon + ')' : '') + ': -€' + parseFloat(order.discount).toFixed(2) + '</div>';
-                        if (order.shipping_cost > 0) totalHtml += '<div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Envío: €' + parseFloat(order.shipping_cost).toFixed(2) + '</div>';
-                        totalHtml += '<div style="font-size:1.1rem;font-weight:700;font-family:Oswald,sans-serif;margin-top:0.2rem;">€' + parseFloat(order.total).toFixed(2) + '</div></div>';
+                        if (order.subtotal) totalHtml += '<div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Subtotal: ' + parseFloat(order.subtotal).toFixed(2) + '€</div>';
+                        if (order.discount > 0) totalHtml += '<div style="font-size:0.75rem;color:#4ade80;">Descuento' + (order.coupon ? ' (' + order.coupon + ')' : '') + ': -' + parseFloat(order.discount).toFixed(2) + '€</div>';
+                        if (order.shipping_cost > 0) totalHtml += '<div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Envío: ' + parseFloat(order.shipping_cost).toFixed(2) + '€</div>';
+                        totalHtml += '<div style="font-size:1.1rem;font-weight:700;font-family:Oswald,sans-serif;margin-top:0.2rem;">' + parseFloat(order.total).toFixed(2) + '€</div></div>';
                         html += totalHtml;
                         html += "</div>";
 
@@ -457,9 +457,9 @@ function statusBadge(s: string) {
                                     '</div>' +
                                     '</div>';
                                 html +=
-                                    '<div style="font-size:0.8rem;font-weight:700;font-family:Oswald,sans-serif;flex-shrink:0;">€' +
+                                    '<div style="font-size:0.8rem;font-weight:700;font-family:Oswald,sans-serif;flex-shrink:0;">' +
                                     (parseFloat(item.unit_price) * item.quantity).toFixed(2) +
-                                    '</div>';
+                                    '€</div>';
                                 html += "</div>";
                             });
                             html += "</div>";

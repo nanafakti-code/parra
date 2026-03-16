@@ -391,19 +391,18 @@ const tabs = [
                                                     </p>
                                                     {order.discount > 0 && (
                                                         <p class="text-[11px] mb-0.5" style="color: var(--text-muted);">
-                                                            Subtotal: €{parseFloat(order.subtotal).toFixed(2)}
+                                                            Subtotal: {parseFloat(order.subtotal).toFixed(2)}€
                                                         </p>
                                                     )}
                                                     {order.discount > 0 && (
                                                         <p class="text-[11px] font-semibold mb-0.5" style="color: #4ade80;">
-                                                            {order.coupons?.code ? `Cupón ${order.coupons.code}` : 'Descuento'}: -€{parseFloat(order.discount).toFixed(2)}
+                                                            {order.coupons?.code ? `Cupón ${order.coupons.code}` : 'Descuento'}: -{parseFloat(order.discount).toFixed(2)}€
                                                         </p>
                                                     )}
                                                     <p class="text-lg font-bold">
-                                                        €
                                                         {parseFloat(
                                                             order.total,
-                                                        ).toFixed(2)}
+                                                        ).toFixed(2)}€
                                                     </p>
                                                 </div>
                                             </div>
@@ -473,12 +472,11 @@ const tabs = [
                                                                     {
                                                                         item.quantity
                                                                     }{" "}
-                                                                    x €
-                                                                    {parseFloat(
+                                                                    x {parseFloat(
                                                                         item.unit_price,
                                                                     ).toFixed(
                                                                         2,
-                                                                    )}
+                                                                    )}€
                                                                     {item.size &&
                                                                         ` · Talla ${item.size}`}
                                                                 </p>
@@ -675,9 +673,9 @@ const tabs = [
                                                         {ret.refund_amount ? "Reembolso" : "Total pedido"}
                                                     </p>
                                                     <p class="text-lg font-bold">
-                                                        €{parseFloat(
+                                                        {parseFloat(
                                                             ret.refund_amount || ret.order?.total || 0,
-                                                        ).toFixed(2)}
+                                                        ).toFixed(2)}€
                                                     </p>
                                                 </div>
                                             </div>
@@ -740,10 +738,9 @@ const tabs = [
                                                                         class="text-xs uppercase tracking-wider"
                                                                         style="color: var(--text-muted);"
                                                                     >
-                                                                        {item.quantity}{" "}x €
-                                                                        {parseFloat(
+                                                                        {item.quantity}{" "}x {parseFloat(
                                                                             item.unit_price,
-                                                                        ).toFixed(2)}
+                                                                        ).toFixed(2)}€
                                                                         {item.size &&
                                                                             ` · Talla ${item.size}`}
                                                                     </p>
@@ -1610,7 +1607,7 @@ const tabs = [
                                     const isUsed = !!c.usedAt;
                                     const discountLabel = c.type === "percentage"
                                         ? `${c.value}%`
-                                        : `€${parseFloat(c.value || 0).toFixed(2)}`;
+                                        : `${parseFloat(c.value || 0).toFixed(2)}€`;
                                     return (
                                         <div style={`position:relative;overflow:hidden;border-radius:6px;display:flex;transition:border-color 0.2s,box-shadow 0.2s;${isUsed ? "opacity:0.45;background:rgba(255,255,255,0.01);border:1px solid rgba(255,255,255,0.06);" : "background:rgba(255,255,255,0.02);border:1px solid rgba(var(--brand-rgb),0.18);box-shadow:0 0 24px rgba(var(--brand-rgb),0.04),inset 0 1px 0 rgba(255,255,255,0.03);"}`}>
 
@@ -1654,7 +1651,7 @@ const tabs = [
                                                     <div style="display:flex;gap:0.9rem;flex-wrap:wrap;padding-top:0.4rem;border-top:1px solid rgba(255,255,255,0.05);">
                                                         {c.min_purchase > 0 && (
                                                             <span style="font-size:0.6rem;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.1em;">
-                                                                Mín. €{parseFloat(c.min_purchase).toFixed(2)}
+                                                                Mín. {parseFloat(c.min_purchase).toFixed(2)}€
                                                             </span>
                                                         )}
                                                         {c.expires_at && (

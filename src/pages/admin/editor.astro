@@ -2693,8 +2693,8 @@ try {
                     }
                 } else {
                     prods.forEach(function(p) {
-                        var price = p.price ? ('€' + Number(p.price).toFixed(2)) : '';
-                        var oldPrice = (p.compare_price && p.compare_price > p.price) ? ('€' + Number(p.compare_price).toFixed(2)) : '';
+                        var price = p.price ? (Number(p.price).toFixed(2) + '€') : '';
+                        var oldPrice = (p.compare_price && p.compare_price > p.price) ? (Number(p.compare_price).toFixed(2) + '€') : '';
                         var pct = (p.compare_price && p.compare_price > p.price) ? Math.round((p.compare_price - p.price) / p.compare_price * 100) : 0;
                         var catName = (p.categories && p.categories.name) ? p.categories.name : 'Guantes';
                         html += '<article style="background:transparent;border:1px solid #1F2937;border-radius:8px;overflow:hidden;">'
@@ -2829,8 +2829,8 @@ try {
                 if (prods.length === 0) prods = allProducts.slice(0,4);
 
                 function productCard(p) {
-                    var price = p.price ? ('€' + Number(p.price).toFixed(2)) : '';
-                    var oldPrice = (p.compare_price && p.compare_price > p.price) ? ('€' + Number(p.compare_price).toFixed(2)) : '';
+                    var price = p.price ? (Number(p.price).toFixed(2) + '€') : '';
+                    var oldPrice = (p.compare_price && p.compare_price > p.price) ? (Number(p.compare_price).toFixed(2) + '€') : '';
                     var pct = (p.compare_price && p.compare_price > p.price) ? Math.round((p.compare_price - p.price) / p.compare_price * 100) : 0;
                     var catName = (p.categories && p.categories.name) ? p.categories.name : 'Guantes';
                     return '<article data-sim-field="product_card" style="background:' + esc(cardBg) + ';border:1px solid ' + esc(cardBorder) + ';border-radius:8px;overflow:hidden;">'
@@ -3261,15 +3261,15 @@ try {
                         p.categories && p.categories.name
                             ? p.categories.name
                             : "";
-                    var priceHtml = "€" + parseFloat(p.price).toFixed(2);
+                    var priceHtml = parseFloat(p.price).toFixed(2) + "€";
                     if (
                         p.compare_price &&
                         parseFloat(p.compare_price) > parseFloat(p.price)
                     ) {
                         priceHtml +=
-                            ' <span class="old">€' +
+                            ' <span class="old">' +
                             parseFloat(p.compare_price).toFixed(2) +
-                            "</span>";
+                            '€</span>';
                     }
                     html +=
                         '<div class="vb-po-item" data-product-id="' +

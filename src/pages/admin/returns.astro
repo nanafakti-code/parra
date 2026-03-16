@@ -150,9 +150,9 @@ function statusBadge(s: string) {
                                     style="font-weight:600;"
                                 >
                                     {ret.refund_amount
-                                        ? `€${parseFloat(ret.refund_amount).toFixed(2)}`
+                                        ? `${parseFloat(ret.refund_amount).toFixed(2)}€`
                                         : ret.orders?.subtotal != null
-                                            ? `€${(parseFloat(ret.orders.subtotal) - parseFloat(ret.orders?.discount || 0)).toFixed(2)}`
+                                            ? `${(parseFloat(ret.orders.subtotal) - parseFloat(ret.orders?.discount || 0)).toFixed(2)}€`
                                             : "—"}
                                 </td>
                                 <td data-label="Estado">
@@ -261,7 +261,7 @@ function statusBadge(s: string) {
                 <div id="return-amount-label" style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.35rem;">Monto a reembolsar (solo producto)</div>
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:0.85rem 1rem;background:rgba(57,255,20,0.05);border-radius:8px;border:1px solid rgba(57,255,20,0.15);">
                     <div style="font-size:0.75rem;color:rgba(255,255,255,0.35);">Subtotal sin envío</div>
-                    <div id="return-amount-text" style="font-size:1.3rem;font-weight:700;font-family:'Oswald',sans-serif;color:#39FF14;letter-spacing:0.02em;">€0.00</div>
+                    <div id="return-amount-text" style="font-size:1.3rem;font-weight:700;font-family:'Oswald',sans-serif;color:#39FF14;letter-spacing:0.02em;">0.00€</div>
                 </div>
             </div>
 
@@ -374,13 +374,13 @@ function statusBadge(s: string) {
                     if (status === "pending") {
                         var refundAmount = parseFloat(subtotal || "0") - parseFloat(discount || "0");
                         amountLabel.textContent = "Monto a reembolsar (solo producto)";
-                        amountText.textContent  = "€" + refundAmount.toFixed(2);
+                        amountText.textContent  = refundAmount.toFixed(2) + "€";
                         amountBox.style.display = "block";
                         approveBtn.style.display = "inline-flex";
                         rejectBtn.style.display  = "inline-flex";
                     } else if (status === "refunded" && amount) {
                         amountLabel.textContent = "Monto reembolsado";
-                        amountText.textContent  = "€" + parseFloat(amount).toFixed(2);
+                        amountText.textContent  = parseFloat(amount).toFixed(2) + "€";
                         amountBox.style.display = "block";
                         approveBtn.style.display = "none";
                         rejectBtn.style.display  = "none";

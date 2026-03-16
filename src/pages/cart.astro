@@ -127,7 +127,7 @@ try {
                                     id="subtotal"
                                     class="font-semibold"
                                     style="color: var(--text-primary);"
-                                    >€0.00</span
+                                    >0,00€</span
                                 >
                             </div>
                             <div
@@ -158,7 +158,7 @@ try {
                                 <span
                                     id="total"
                                     class="text-lg font-bold text-brand"
-                                    >€0.00</span
+                                    >0,00€</span
                                 >
                             </div>
                         </div>
@@ -240,7 +240,7 @@ try {
     }
 
     function fmt(n: number) {
-        return '€' + n.toFixed(2);
+        return n.toFixed(2) + '€';
     }
 
     const SPINNER = `<svg class="w-4 h-4 animate-spin inline-block" fill="none" viewBox="0 0 24 24">

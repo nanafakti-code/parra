@@ -233,14 +233,14 @@ const totalRedemptions = couponsWithMeta.reduce((sum: number, c: any) => sum + c
                                     </td>
                                     <td data-label="Descuento">
                                         <span class="coupon-value-display" style={`color:${c.type === 'percentage' ? '#4ade80' : 'var(--brand)'};`}>
-                                            {c.type === "percentage" ? `${c.value}%` : `€${parseFloat(c.value).toFixed(2)}`}
+                                            {c.type === "percentage" ? `${c.value}%` : `${parseFloat(c.value).toFixed(2)}€`}
                                         </span>
                                         <span style="font-size:0.65rem;color:rgba(255,255,255,0.3);margin-left:0.3rem;">
                                             {c.type === "percentage" ? "dto." : "fijo"}
                                         </span>
                                     </td>
                                     <td data-label="Mín." style="font-size:0.78rem;color:rgba(255,255,255,0.55);">
-                                        {c.min_purchase ? `€${parseFloat(c.min_purchase).toFixed(2)}` : <span style="color:rgba(255,255,255,0.2);">—</span>}
+                                        {c.min_purchase ? `${parseFloat(c.min_purchase).toFixed(2)}€` : <span style="color:rgba(255,255,255,0.2);">—</span>}
                                     </td>
                                     <td data-label="Usos" style="font-size:0.78rem;">
                                         <span style="color:rgba(255,255,255,0.8);">{used}</span>
