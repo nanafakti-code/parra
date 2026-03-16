@@ -174,14 +174,12 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
         const couponId = url.searchParams.get('id');
         if (!couponId) return jsonResponse({ error: 'id obligatorio' }, 400);
 
-        // Null out coupon_id on orders so the FK doesn't block deletion
-        await supabaseAdmin.from('orders').update({ coupon_id: null }).eq('coupon_id', couponId);
-
-        // Delete usage records (coupon_usage may not have ON DELETE CASCADE)
-        await supabaseAdmin.from('coupon_usage').delete().eq('coupon_id', couponId);
-
-        const { error } = await supabaseAdmin.from('coupons').delete().eq('id', couponId);
-        if (error) return jsonResponse({ error: `Error al eliminar cupón: ${error.message}` }, 500);
+        // Use the DB function to delete everything in one atomic transaction
+        const { error } = await supabaseAdmin.rpc('admin_delete_coupon', { p_coupon_id: couponId });
+        if (error) {
+            console.error('[delete_coupon] rpc error:', error.message, error.details, error.hint);
+            return jsonResponse({ error: `Error al eliminar cupón: ${error.message}` }, 500);
+        }
 
         await logAdminAction(
             admin.id, 'delete_coupon', 'coupon', couponId,
@@ -189,7 +187,9 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
             request.headers.get('x-forwarded-for') || undefined,
         );
         return jsonResponse({ message: 'Cupón eliminado' });
-    } catch (err) {
-        return jsonResponse({ error: 'Error interno' }, 500);
+    } catch (err: any) {
+        console.error('[delete_coupon] unexpected error:', err?.message || err);
+        return jsonResponse({ error: `Error interno: ${err?.message || 'desconocido'}` }, 500);
     }
 };
+

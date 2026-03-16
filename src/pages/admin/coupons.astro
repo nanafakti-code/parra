@@ -592,7 +592,8 @@ const totalRedemptions = couponsWithMeta.reduce((sum: number, c: any) => sum + c
                             window.adminToast('Cupón eliminado', 'success');
                             setTimeout(function () { window.location.reload(); }, 600);
                         } else {
-                            window.adminToast('Error al eliminar', 'error');
+                            var body = await res.json().catch(function() { return {}; });
+                            window.adminToast(body.error || 'Error al eliminar', 'error');
                         }
                     } catch (err) {
                         window.adminToast('Error de conexión', 'error');
