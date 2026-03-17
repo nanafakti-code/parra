@@ -8,7 +8,7 @@ function jsonResponse(data: Record<string, unknown>, status = 200): Response {
     });
 }
 
-/** POST /api/reviews – Submit a product review (authenticated, verified purchase) */
+/** POST /api/reviews – Submit a product review (authenticated, verified purchase, per order_item + unit) */
 export const POST: APIRoute = async ({ request, locals }) => {
     const authUser = locals.user;
     if (!authUser) return jsonResponse({ error: 'No autorizado' }, 401);
@@ -20,65 +20,72 @@ export const POST: APIRoute = async ({ request, locals }) => {
         return jsonResponse({ error: 'Cuerpo de petición inválido' }, 400);
     }
 
-    const { productId, rating, title, comment } = body;
+    const { orderItemId, rating, title, comment } = body;
 
-    if (!productId || typeof rating !== 'number' || rating < 1 || rating > 5) {
-        return jsonResponse({ error: 'productId y rating (1–5) son obligatorios' }, 400);
+    if (!orderItemId || typeof rating !== 'number' || rating < 1 || rating > 5) {
+        return jsonResponse({ error: 'orderItemId y rating (1–5) son obligatorios' }, 400);
     }
 
-    // ── 1. Verify user has a delivered order OR a return containing this product ──
-    const [{ data: deliveredOrders }, { data: userReturns }] = await Promise.all([
-        supabaseAdmin
-            .from('orders')
-            .select('id')
-            .eq('user_id', authUser.id)
-            .eq('status', 'delivered'),
-        supabaseAdmin
-            .from('returns')
-            .select('order_id')
-            .eq('user_id', authUser.id),
-    ]);
-
-    const eligibleOrderIds = [
-        ...new Set([
-            ...(deliveredOrders || []).map((o: any) => o.id),
-            ...(userReturns || []).map((r: any) => r.order_id),
-        ]),
-    ];
-
-    if (eligibleOrderIds.length === 0) {
-        return jsonResponse({ error: 'No tienes ningún pedido elegible para reseñar' }, 403);
-    }
-
-    const { data: eligibleItem } = await supabaseAdmin
+    // ── 1. Obtener el order_item y verificar que pertenece al usuario ──────────
+    const { data: orderItem } = await supabaseAdmin
         .from('order_items')
-        .select('id')
-        .eq('product_id', productId)
-        .in('order_id', eligibleOrderIds)
-        .limit(1)
-        .maybeSingle();
+        .select('id, quantity, product_id, order_id')
+        .eq('id', orderItemId)
+        .single();
 
-    if (!eligibleItem) {
-        return jsonResponse({ error: 'No has comprado este producto en un pedido entregado' }, 403);
+    if (!orderItem) {
+        return jsonResponse({ error: 'Artículo no encontrado' }, 403);
     }
 
-    // ── 2. Prevent duplicate reviews ──────────────────────────────────────────
-    const { data: existingReview } = await supabaseAdmin
+    const { data: order } = await supabaseAdmin
+        .from('orders')
+        .select('id, user_id, status')
+        .eq('id', orderItem.order_id)
+        .single();
+
+    if (!order || order.user_id !== authUser.id) {
+        return jsonResponse({ error: 'No tienes permiso para reseñar este artículo' }, 403);
+    }
+
+    // Elegible si el pedido está entregado/devuelto, o si existe una devolución aprobada
+    const eligibleStatuses = ['delivered', 'partial_return', 'refunded'];
+    if (!eligibleStatuses.includes(order.status)) {
+        const { data: returnRecord } = await supabaseAdmin
+            .from('returns')
+            .select('id')
+            .eq('order_id', orderItem.order_id)
+            .eq('user_id', authUser.id)
+            .limit(1)
+            .maybeSingle();
+
+        if (!returnRecord) {
+            return jsonResponse({ error: 'No puedes reseñar este artículo todavía' }, 403);
+        }
+    }
+
+    // ── 2. Contar reseñas existentes para este order_item ─────────────────────
+    const { count: existingCount } = await supabaseAdmin
         .from('reviews')
-        .select('id')
+        .select('id', { count: 'exact', head: true })
         .eq('user_id', authUser.id)
-        .eq('product_id', productId)
-        .maybeSingle();
+        .eq('order_item_id', orderItemId);
 
-    if (existingReview) {
-        return jsonResponse({ error: 'Ya has reseñado este producto' }, 409);
+    const reviewCount = existingCount || 0;
+    if (reviewCount >= orderItem.quantity) {
+        return jsonResponse({ error: 'Ya has reseñado todas las unidades de este artículo' }, 409);
     }
 
-    // ── 3. Insert review ───────────────────────────────────────────────────────
+    // unit_index se asigna automáticamente = número de reseñas ya existentes
+    const unitIndex = reviewCount;
+
+    // ── 3. Insertar la reseña ─────────────────────────────────────────────────
     const { data, error } = await supabaseAdmin
         .from('reviews')
         .insert({
-            product_id: productId,
+            product_id: orderItem.product_id,
+            order_id: orderItem.order_id,
+            order_item_id: orderItemId,
+            unit_index: unitIndex,
             user_id: authUser.id,
             rating: Math.round(rating),
             title: title?.trim() || null,
