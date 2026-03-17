@@ -319,9 +319,10 @@ const tabs = [
                         </h2>
                         {
                             pedidosOrders.length > 0 ? (
-                                <div class="space-y-5">
-                                    {pedidosOrders.map((order: any) => (
-                                        <div class="card p-6">
+                                <>
+                                <div class="space-y-5" id="orders-list">
+                                    {pedidosOrders.map((order: any, idx: number) => (
+                                        <div class="card p-6" data-order-item hidden={idx >= 3}>
                                             <div class="flex flex-col md:flex-row md:gap-6">
                                             <div class="flex-1 min-w-0">
                                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
@@ -566,6 +567,18 @@ const tabs = [
                                         </div>
                                     ))}
                                 </div>
+                                {pedidosOrders.length > 3 && (
+                                    <div class="mt-6 text-center">
+                                        <button
+                                            id="show-more-orders"
+                                            type="button"
+                                            class="btn-outline text-xs"
+                                        >
+                                            Mostrar más
+                                        </button>
+                                    </div>
+                                )}
+                                </>
                             ) : (
                                 <div class="py-24 text-center card">
                                     <svg
@@ -609,9 +622,10 @@ const tabs = [
                         </h2>
                         {
                             returnRequests.length > 0 ? (
-                                <div class="space-y-5">
-                                    {returnRequests.map((ret: any) => (
-                                        <div class="card p-6">
+                                <>
+                                <div class="space-y-5" id="returns-list">
+                                    {returnRequests.map((ret: any, idx: number) => (
+                                        <div class="card p-6" data-return-item hidden={idx >= 3}>
                                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
                                                 <div>
                                                     <p
@@ -793,6 +807,18 @@ const tabs = [
                                         </div>
                                     ))}
                                 </div>
+                                {returnRequests.length > 3 && (
+                                    <div class="mt-6 text-center">
+                                        <button
+                                            id="show-more-returns"
+                                            type="button"
+                                            class="btn-outline text-xs"
+                                        >
+                                            Mostrar más
+                                        </button>
+                                    </div>
+                                )}
+                                </>
                             ) : (
                                 <div class="py-24 text-center card">
                                     <svg
@@ -2239,6 +2265,46 @@ const tabs = [
     }
 
     function initProfilePage() {
+        const PAGE_SIZE = 3;
+
+        function setupShowMore(itemsSelector: string, buttonId: string) {
+            const items = Array.from(
+                document.querySelectorAll<HTMLElement>(itemsSelector),
+            );
+            const button = document.getElementById(buttonId) as HTMLButtonElement | null;
+
+            if (!button || items.length <= PAGE_SIZE) {
+                if (button) button.classList.add("hidden");
+                return;
+            }
+
+            let visibleCount = PAGE_SIZE;
+
+            const render = () => {
+                items.forEach((item, index) => {
+                    item.hidden = index >= visibleCount;
+                });
+
+                const remaining = items.length - visibleCount;
+                if (remaining > 0) {
+                    button.classList.remove("hidden");
+                    button.textContent = `Mostrar más (${Math.min(PAGE_SIZE, remaining)})`;
+                } else {
+                    button.classList.add("hidden");
+                }
+            };
+
+            button.addEventListener("click", () => {
+                visibleCount = Math.min(visibleCount + PAGE_SIZE, items.length);
+                render();
+            });
+
+            render();
+        }
+
+        setupShowMore("[data-order-item]", "show-more-orders");
+        setupShowMore("[data-return-item]", "show-more-returns");
+
         // ── Tab switching client-side (sin recarga) ──────────────────────────
         const ACTIVE = ["bg-brand", "text-black"];
         const INACTIVE = ["card", "hover:text-brand"];
