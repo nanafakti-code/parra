@@ -21,24 +21,13 @@
 -- ============================================================
 
 -- ── A. Guarantee the UNIQUE constraint exists ───────────────
--- The original migration added the column with TEXT UNIQUE,
--- but concurrent environments may have diverged. This is the
--- authoritative enforcement.
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint
-        WHERE  conname    = 'orders_stripe_session_id_key'
-          AND  conrelid   = 'public.orders'::regclass
-    ) THEN
-        -- Partial unique index handles NULLs correctly:
-        -- multiple NULLs are allowed, but two non-NULL
-        -- identical values are rejected.
-        CREATE UNIQUE INDEX orders_stripe_session_id_unique
-            ON public.orders (stripe_session_id)
-            WHERE stripe_session_id IS NOT NULL;
-    END IF;
-END $$;
+-- IF NOT EXISTS makes this safe to run even if the original
+-- migration already created the column as TEXT UNIQUE.
+-- The partial index allows multiple NULLs (guest checkouts)
+-- while still rejecting two identical non-NULL session IDs.
+CREATE UNIQUE INDEX IF NOT EXISTS orders_stripe_session_id_unique
+    ON public.orders (stripe_session_id)
+    WHERE stripe_session_id IS NOT NULL;
 
 
 -- ── B. Atomic order-creation RPC ────────────────────────────
