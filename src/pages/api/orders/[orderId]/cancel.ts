@@ -180,6 +180,14 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
+    // Restore stock for each order item (cancellation only, not returns)
+    const { error: stockError } = await supabaseAdmin.rpc('restore_order_stock', {
+      p_order_id: orderId,
+    });
+    if (stockError) {
+      console.error('[cancel-order] Stock restore error:', stockError);
+    }
+
     // Send confirmation email
     try {
       await sendCancellationConfirmation({
