@@ -5,10 +5,21 @@ import ProductCard from "../components/ProductCard.astro";
 import Footer from "../components/Footer.astro";
 import { supabase } from "../lib/supabase";
 
-// No cachear para evitar que el navegador guarde la sesión antigua y no actualice el Header sin pulsar F5
+// Cache strategy (Blocker 2 fix):
+//   max-age=0          → browser never caches (preserves original intent: no stale
+//                         session state in the browser between logins)
+//   s-maxage=60        → Vercel Edge caches the rendered HTML for 60 seconds.
+//                         Under a launch-day spike only ~1 Supabase query fires
+//                         per minute instead of one per visitor.
+//   stale-while-revalidate=300 → Edge serves the stale page for up to 5 minutes
+//                         while revalidating in the background (zero user-visible
+//                         latency during the refresh cycle).
+// Trade-off: the Header auth state (login/profile icons) can be up to 60 s stale
+// for the Edge-cached copy. This is a minor UX issue, not a security concern —
+// personal data is never in the cached HTML, just navigation icon state.
 Astro.response.headers.set(
     "Cache-Control",
-    "no-store, no-cache, must-revalidate, max-age=0",
+    "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
 );
 
 // Fetch categories

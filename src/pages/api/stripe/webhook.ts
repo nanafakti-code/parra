@@ -3,13 +3,18 @@
  *
  * Webhook de Stripe — procesa eventos de pago completado.
  *
- * - Valida firma con constructEvent (raw body).
- * - Idempotente: no reprocesa si ya existe la orden para esa session.
- * - Crea la orden con los campos correctos del schema.
- * - Crea order_items con snapshots de nombre, imagen, precio.
- * - Decrementa stock de forma atómica (sin race conditions).
- * - No expone stack traces.
- * - No usa process.env.
+ * Fixes applied (Launch-Readiness Audit — Blocker 1):
+ *   - The old SELECT → INSERT idempotency check was not atomic.
+ *     A Stripe retry arriving before the first INSERT committed
+ *     could pass the check and create a duplicate order.
+ *   - Order + order_items were separate calls with no transaction.
+ *     A crash mid-loop left orphan orders with missing items.
+ *
+ * Delegates to create_order_from_webhook() RPC which:
+ *   • Runs order INSERT + all order_items INSERTs + stock decrements
+ *     inside a single PostgreSQL transaction.
+ *   • Catches unique_violation (23505) at DB level so a concurrent
+ *     Stripe retry is handled gracefully instead of creating a dupe.
  */
 
 import type { APIRoute } from 'astro';
@@ -36,7 +41,7 @@ function jsonResponse(data: Record<string, unknown>, status: number): Response {
     });
 }
 
-// ── Tipos para line items expandidos ───────────────────────────────────────────
+// ── Types ──────────────────────────────────────────────────────────────────────
 
 interface ExpandedProduct {
     name: string;
@@ -52,39 +57,16 @@ interface ExpandedLineItem {
     } | null;
 }
 
-/**
- * Decrementa stock de una variante usando RPC atómica de PostgreSQL.
- * La función SQL hace UPDATE ... WHERE stock >= quantity en una sola operación.
- */
-async function decrementVariantStock(variantId: string, quantity: number): Promise<boolean> {
-    const { data, error } = await supabaseAdmin.rpc('decrement_variant_stock_atomic', {
-        variant_id: variantId,
-        quantity: quantity,
-    });
-
-    if (error) {
-        console.warn(`[webhook] Error decrementando stock variante ${variantId}:`, error.message);
-        return false;
-    }
-
-    return data === true;
-}
-
-/**
- * Decrementa stock del producto principal usando RPC atómica de PostgreSQL.
- */
-async function decrementProductStock(productId: string, quantity: number): Promise<boolean> {
-    const { data, error } = await supabaseAdmin.rpc('decrement_product_stock_atomic', {
-        product_id: productId,
-        quantity: quantity,
-    });
-
-    if (error) {
-        console.warn(`[webhook] Error decrementando stock producto ${productId}:`, error.message);
-        return false;
-    }
-
-    return data === true;
+/** Shape of each element in the p_items JSONB array expected by the RPC. */
+interface WebhookOrderItem {
+    product_id:    string;
+    variant_id:    string;   // empty string when no variant (RPC treats '' as NULL)
+    product_name:  string;
+    product_image: string | null;
+    size:          string | null;
+    quantity:      number;
+    unit_price:    number;
+    total_price:   number;
 }
 
 // ── Handler ────────────────────────────────────────────────────────────────────
@@ -131,31 +113,20 @@ export const POST: APIRoute = async ({ request }) => {
     console.log(`[webhook] Procesando checkout.session.completed: ${stripeSessionId}`);
 
     try {
-        // 5. Idempotencia: verificar si ya existe una orden con este stripe_session_id
-        const { data: existingOrder } = await supabaseAdmin
-            .from('orders')
-            .select('id')
-            .eq('stripe_session_id', stripeSessionId)
-            .maybeSingle();
-
-        if (existingOrder) {
-            console.log(`[webhook] Orden ya existe para session ${stripeSessionId}, ignorando.`);
-            return jsonResponse({ received: true, already_processed: true }, 200);
-        }
-
-        // 6. Recuperar line items expandidos desde Stripe
-        const fullSession = await getStripe().checkout.sessions.retrieve(stripeSessionId, {
-            expand: ['line_items.data.price.product'],
-        });
+        // 5. Retrieve expanded line items from Stripe
+        const fullSession = await getStripe().checkout.sessions.retrieve(
+            stripeSessionId,
+            { expand: ['line_items.data.price.product'] },
+        );
 
         const lineItems = (fullSession.line_items?.data ?? []) as unknown as ExpandedLineItem[];
 
         if (lineItems.length === 0) {
-            console.error(`[webhook] No se encontraron line items para session ${stripeSessionId}`);
+            console.error(`[webhook] Sin line items para session ${stripeSessionId}`);
             return jsonResponse({ error: 'No line items found' }, 500);
         }
 
-        // 7. Extraer datos
+        // 6. Resolve email (required to create the order)
         const metadata = session.metadata ?? {};
         const email =
             session.customer_details?.email ??
@@ -164,169 +135,146 @@ export const POST: APIRoute = async ({ request }) => {
             '';
 
         if (!email) {
-            console.error(`[webhook] No se encontró email para session ${stripeSessionId}. La orden no puede procesarse.`);
+            console.error(`[webhook] Email no encontrado para session ${stripeSessionId}`);
             return jsonResponse({ error: 'Email is required to create order' }, 400);
         }
+
         const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
 
-        // 7b. Extraer charge ID desde payment intent
-        let stripeChargeId: string | null = null;
+        // 7. Resolve Stripe charge ID (needed for future refunds)
+        let stripeChargeId = '';
         if (session.payment_intent) {
             try {
-                const paymentIntent = await getStripe().paymentIntents.retrieve(
+                const pi = await getStripe().paymentIntents.retrieve(
                     session.payment_intent as string,
-                    { expand: ['latest_charge'] }
+                    { expand: ['latest_charge'] },
                 );
-                const latestCharge = paymentIntent.latest_charge;
-                if (latestCharge) {
-                    stripeChargeId = typeof latestCharge === 'string' ? latestCharge : latestCharge.id;
-                    console.log(`[webhook] Extracted charge ID: ${stripeChargeId}`);
+                const charge = pi.latest_charge;
+                if (charge) {
+                    stripeChargeId = typeof charge === 'string' ? charge : charge.id;
                 }
-            } catch (err: any) {
-                console.warn(`[webhook] Error retrieving payment intent: ${err.message}`);
+            } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : 'unknown';
+                console.warn(`[webhook] No se pudo obtener charge ID: ${msg}`);
             }
         }
 
-        // 8. Buscar usuario por email (puede no existir si es invitado)
-        let userId: string | null = null;
-        if (email) {
-            const { data: user } = await supabaseAdmin
-                .from('users')
-                .select('id')
-                .eq('email', email)
-                .maybeSingle();
+        // 8. Resolve user account for this email (null = guest checkout)
+        const { data: userRow } = await supabaseAdmin
+            .from('users')
+            .select('id')
+            .eq('email', email)
+            .maybeSingle();
+        const userId: string | null = userRow?.id ?? null;
 
-            userId = user?.id ?? null;
-        }
+        // 9. Build the structured items array for the RPC.
+        //    All monetary values are converted from Stripe cents → euros here.
+        const items: WebhookOrderItem[] = lineItems.flatMap((item) => {
+            const product = item.price?.product;
+            if (!product) return [];
+            const unitPrice = item.price?.unit_amount ? item.price.unit_amount / 100 : 0;
+            const qty       = item.quantity ?? 1;
+            return [{
+                product_id:    product.metadata?.productId    ?? '',
+                variant_id:    product.metadata?.variantId    ?? '',
+                size:          product.metadata?.size         ?? null,
+                product_name:  product.name,
+                product_image: product.images?.[0]            ?? null,
+                quantity:      qty,
+                unit_price:    unitPrice,
+                total_price:   unitPrice * qty,
+            }];
+        });
 
-        // 9. Crear orden en Supabase
-        const { data: order, error: orderError } = await supabaseAdmin
-            .from('orders')
-            .insert({
-                user_id: userId,
-                email: email,
-                stripe_session_id: stripeSessionId,
-                stripe_charge_id: stripeChargeId,
-                status: 'pending',
-                subtotal: amountTotal,
-                total: amountTotal,
-                shipping_name: metadata.shipping_name ?? null,
-                shipping_street: metadata.shipping_address ?? null,
-                shipping_city: metadata.shipping_city ?? null,
-                shipping_postal_code: metadata.shipping_zip ?? null,
-                shipping_phone: metadata.shipping_phone ?? null,
-            })
-            .select('*, coupons(code)')
-            .single();
+        // 10. ── ATOMIC ORDER CREATION ────────────────────────────────────────
+        //     One RPC call = one PostgreSQL transaction.
+        //     • Inserts the order row.
+        //     • Inserts ALL order_items in the same transaction.
+        //     • Decrements stock atomically for each item.
+        //     • If a Stripe retry races past the SELECT check inside the RPC,
+        //       the UNIQUE constraint on stripe_session_id fires and the
+        //       EXCEPTION handler returns already_exists=true instead of a 500.
+        const { data: rpcResult, error: rpcError } = await supabaseAdmin.rpc(
+            'create_order_from_webhook',
+            {
+                p_stripe_session_id: stripeSessionId,
+                p_stripe_charge_id:  stripeChargeId,
+                p_user_id:           userId,
+                p_email:             email,
+                p_amount_total:      amountTotal,
+                p_shipping_name:     metadata.shipping_name    ?? null,
+                p_shipping_street:   metadata.shipping_address ?? null,
+                p_shipping_city:     metadata.shipping_city    ?? null,
+                p_shipping_postal:   metadata.shipping_zip     ?? null,
+                p_shipping_phone:    metadata.shipping_phone   ?? null,
+                p_items:             items,
+            },
+        );
 
-        if (orderError || !order) {
-            console.error('[webhook] Error al crear orden:', orderError?.message);
+        if (rpcError) {
+            console.error('[webhook] Error en RPC create_order_from_webhook:', rpcError.message);
             return jsonResponse({ error: 'Failed to create order' }, 500);
         }
 
-        console.log(`[webhook] Orden creada: ${order.id}`);
-
-        // Array para guardar los items insertados y pasarlos al generador de PDF
-        const insertedItems: any[] = [];
-        let stockIssue = false;
-
-        // 10. Crear order_items y decrementar stock atómicamente
-        for (const item of lineItems) {
-            const product = item.price?.product;
-            if (!product) continue;
-
-            const productId = product.metadata?.productId;
-            const variantId = product.metadata?.variantId || null;
-            const size = product.metadata?.size || null;
-            const quantity = item.quantity ?? 1;
-            const unitPrice = item.price?.unit_amount ? item.price.unit_amount / 100 : 0;
-            const productImage = product.images?.[0] ?? null;
-
-            // 10a. Insertar order_item con todos los campos requeridos
-            const newItem = {
-                order_id: order.id,
-                product_id: productId,
-                variant_id: variantId,
-                product_name: product.name,
-                product_image: productImage,
-                size: size,
-                quantity: quantity,
-                unit_price: unitPrice,
-                total_price: unitPrice * quantity,
-            };
-
-            const { error: itemError } = await supabaseAdmin
-                .from('order_items')
-                .insert(newItem);
-
-            if (itemError) {
-                console.error(`[webhook] Error al insertar order_item: ${itemError.message}`);
-            } else {
-                insertedItems.push(newItem);
-            }
-
-            // 10b. Decrementar stock atómicamente
-            if (productId) {
-                let decremented: boolean;
-
-                if (variantId) {
-                    decremented = await decrementVariantStock(variantId, quantity);
-                } else {
-                    decremented = await decrementProductStock(productId, quantity);
-                }
-
-                if (!decremented) {
-                    stockIssue = true;
-                    console.error(
-                        `[webhook] STOCK INSUFICIENTE para ${variantId ? `variante ${variantId}` : `producto ${productId}`}` +
-                        ` (cantidad solicitada: ${quantity}) — pago ya capturado, requiere revisión manual.`,
-                    );
-                }
-            }
+        // Already processed by a previous or concurrent webhook delivery
+        if (rpcResult?.already_exists) {
+            console.log(`[webhook] Orden ya existente para session ${stripeSessionId}, ignorando.`);
+            return jsonResponse({ received: true, already_processed: true }, 200);
         }
 
-        // Si hubo problemas de stock, marcar la orden en notas para revisión del admin
-        if (stockIssue) {
-            await supabaseAdmin
-                .from('orders')
-                .update({
-                    notes: 'STOCK_ISSUE: Uno o más productos no tenían stock suficiente al procesar el pago. Revisar y reponer inventario.',
-                })
-                .eq('id', order.id);
-            console.error(`[webhook] Orden ${order.id} marcada con STOCK_ISSUE — revisar inventario urgente.`);
+        const orderId: string = rpcResult?.order_id;
+        if (!orderId) {
+            console.error('[webhook] RPC no devolvió order_id.');
+            return jsonResponse({ error: 'Order creation returned no ID' }, 500);
         }
 
-        console.log(`[webhook] Items ordenados, generando factura en PDF...`);
+        if (rpcResult?.stock_issue) {
+            console.error(`[webhook] Orden ${orderId} tiene STOCK_ISSUE — revisar inventario.`);
+        }
+
+        console.log(`[webhook] Orden ${orderId} creada. Generando email de confirmación...`);
+
+        // 11. Send confirmation email + PDF invoice.
+        //     Runs AFTER the order is safely persisted in a committed transaction.
+        //     A failure here does NOT roll back the order (payment already captured).
+        //     The /success page has a fallback: it calls /api/stripe/confirm-order
+        //     which retries when email_sent=false.
         try {
-            // Asignar items a la orden para que `generateInvoicePdf` pueda leerlos si es necesario
-            const orderForPdf = { ...order, order_items: insertedItems };
+            const { data: fullOrder } = await supabaseAdmin
+                .from('orders')
+                .select('*, order_items(*), coupons(code)')
+                .eq('id', orderId)
+                .single();
 
-            // Generar PDF de la factura
-            const pdfBuffer = await generateInvoicePdf(orderForPdf);
+            if (fullOrder) {
+                const pdfBuffer = await generateInvoicePdf(fullOrder);
+                const emailSent = await sendOrderConfirmationEmail(
+                    fullOrder,
+                    fullOrder.order_items ?? [],
+                    pdfBuffer,
+                );
 
-            // Enviar email de confirmación con la factura adjunta
-            const emailSent = await sendOrderConfirmationEmail(orderForPdf, insertedItems, pdfBuffer);
-
-            if (emailSent) {
-                // Marcar email como enviado para evitar duplicados desde el endpoint de respaldo
-                await supabaseAdmin
-                    .from('orders')
-                    .update({ email_sent: true })
-                    .eq('id', order.id);
-                console.log(`[webhook] Orden ${order.id} procesada con éxito y email enviado.`);
-            } else {
-                console.warn(`[webhook] Orden ${order.id} creada pero el email no se pudo enviar (se reintentará desde /success).`);
+                if (emailSent) {
+                    await supabaseAdmin
+                        .from('orders')
+                        .update({ email_sent: true })
+                        .eq('id', orderId);
+                    console.log(`[webhook] Email enviado para orden ${orderId}.`);
+                } else {
+                    console.warn(`[webhook] Email no enviado para orden ${orderId}. Se reintentará desde /success.`);
+                }
             }
-        } catch (emailErr: any) {
-            console.error(`[webhook] Orden creada pero falló el envío del email:`, emailErr.message);
-            // No detenemos el flujo, la orden ya fue creada y el pago completado.
+        } catch (emailErr: unknown) {
+            const msg = emailErr instanceof Error ? emailErr.message : 'Error desconocido';
+            console.error(`[webhook] Error en email/PDF (orden ${orderId}):`, msg);
+            // Order is already created and payment captured — do not rethrow.
         }
 
-        return jsonResponse({ received: true, order_id: order.id }, 200);
+        return jsonResponse({ received: true, order_id: orderId }, 200);
 
     } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Error interno';
-        console.error('[webhook] Error procesando orden:', msg);
+        console.error('[webhook] Error procesando evento:', msg);
         return jsonResponse({ error: 'Error processing order' }, 500);
     }
 };
