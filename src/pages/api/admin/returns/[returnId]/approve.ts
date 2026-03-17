@@ -226,6 +226,9 @@ export const PATCH: APIRoute = async (context) => {
         .from('orders')
         .update({
           status: newOrderStatus,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', order.id),
     ]);
 
     if (updateReturnError) {
