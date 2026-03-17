@@ -137,12 +137,16 @@ const returnStatusMap: Record<string, string> = {
     refunded: "Reembolsada",
 };
 
-// order_item_ids con devolución activa (pending) — bloquea solicitar nueva para ese artículo
-const itemsWithActiveReturn = new Set<string>(
-    returnRequests
-        .filter((r: any) => r.status === 'pending')
-        .flatMap((r: any) => (r.return_items || []).map((ri: any) => ri.order_item_id))
-);
+// order_item_id → total de unidades ya devueltas (devoluciones no rechazadas)
+// Permite detectar devoluciones parciales por cantidad
+const itemReturnedQtyMap = new Map<string, number>();
+for (const ret of returnRequests) {
+    if (ret.status === 'rejected') continue;
+    for (const ri of (ret.return_items || []) as any[]) {
+        const prev = itemReturnedQtyMap.get(ri.order_item_id) || 0;
+        itemReturnedQtyMap.set(ri.order_item_id, prev + (ri.quantity || 0));
+    }
+}
 
 // order_item_id → estado de la devolución más reciente (badge inline en Mis Pedidos)
 const itemReturnStatusMap = new Map<string, string>();
@@ -165,6 +169,7 @@ const statusMap: Record<string, string> = {
     delivered: "Entregado",
     cancelled: "Cancelado",
     refunded: "Reembolsado",
+    partial_return: "Dev. Parcial",
 };
 
 // ── Producto IDs ya reseñados por el usuario ─────────────────────────────────
@@ -375,16 +380,15 @@ const tabs = [
                                                     <span
                                                         class:list={[
                                                             "inline-block px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
-                                                            order.status ===
-                                                            "delivered"
+                                                            order.status === "delivered"
                                                                 ? "bg-brand/10 text-brand"
-                                                                : order.status ===
-                                                                    "cancelled"
+                                                                : order.status === "cancelled"
                                                                   ? "bg-red-500/10 text-red-500"
-                                                                  : order.status ===
-                                                                      "pending"
+                                                                  : order.status === "pending"
                                                                     ? "bg-amber-500/10 text-amber-500"
-                                                                    : "bg-blue-500/10 text-blue-500",
+                                                                    : order.status === "partial_return"
+                                                                      ? "bg-orange-500/10 text-orange-400"
+                                                                      : "bg-blue-500/10 text-blue-500",
                                                         ]}
                                                     >
                                                         {statusMap[
@@ -577,8 +581,8 @@ const tabs = [
                                                     </button>
                                                 )}
 
-                                                {/* Botón Solicitar Devolución: visible si al menos 1 ítem del pedido no tiene devolución activa */}
-                                                {order.status === 'delivered' && (order.order_items || []).some((oi: any) => !itemsWithActiveReturn.has(oi.id)) && (
+                                                {/* Botón Solicitar Devolución: visible si al menos 1 ítem tiene unidades disponibles para devolver */}
+                                                {['delivered', 'partial_return'].includes(order.status) && (order.order_items || []).some((oi: any) => (oi.quantity - (itemReturnedQtyMap.get(oi.id) || 0)) > 0) && (
                                                     <button
                                                         type="button"
                                                         data-order-id={order.id}
@@ -590,7 +594,7 @@ const tabs = [
                                                             size: item.size || '',
                                                             quantity: item.quantity,
                                                             unit_price: item.unit_price,
-                                                            hasActiveReturn: itemsWithActiveReturn.has(item.id),
+                                                            returnedQuantity: itemReturnedQtyMap.get(item.id) || 0,
                                                         })))}
                                                         class="request-return-btn inline-flex items-center gap-2 px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all duration-200 cursor-pointer"
                                                         style="background:rgba(59,130,246,0.08);color:#3b82f6;border:1px solid rgba(59,130,246,0.30);border-radius:6px;"
@@ -2142,7 +2146,7 @@ const tabs = [
     }
 
     // ── Modal para solicitar devolución (retorna motivo + imágenes o null) ─
-    function showReturnReasonModal(orderItems: Array<{id: string, name: string, image: string, size: string, quantity: number, unit_price: number, hasActiveReturn?: boolean}>): Promise<{ reason: string; images: string[]; items: Array<{orderItemId: string, quantity: number}> } | null> {
+    function showReturnReasonModal(orderItems: Array<{id: string, name: string, image: string, size: string, quantity: number, unit_price: number, returnedQuantity?: number}>): Promise<{ reason: string; images: string[]; items: Array<{orderItemId: string, quantity: number}> } | null> {
         return new Promise((resolve) => {
             const modal = document.getElementById("return-modal")!;
             const okBtn = document.getElementById("return-modal-ok")!;
@@ -2202,15 +2206,33 @@ const tabs = [
                 qtyWrap.appendChild(qtyLabel);
                 qtyWrap.appendChild(qtySelect);
 
-                // Si el ítem ya tiene devolución activa: mostrarlo deshabilitado con badge
-                if (item.hasActiveReturn) {
+                // Calcular unidades disponibles para devolver
+                const returnedQty = item.returnedQuantity || 0;
+                const availableQty = item.quantity - returnedQty;
+
+                if (availableQty <= 0) {
+                    // Totalmente devuelto: deshabilitar
                     cb.disabled = true;
                     row.style.opacity = "0.45";
                     row.style.cursor = "default";
                     const badge = document.createElement("span");
-                    badge.style.cssText = "font-size:0.6rem;background:rgba(245,158,11,0.12);color:#f59e0b;padding:2px 7px;border-radius:3px;white-space:nowrap;flex-shrink:0;";
-                    badge.textContent = "En revisión";
-                    qtySelect.replaceWith(badge);
+                    badge.style.cssText = "font-size:0.6rem;background:rgba(99,102,241,0.12);color:#818cf8;padding:2px 7px;border-radius:3px;white-space:nowrap;flex-shrink:0;";
+                    badge.textContent = "Devuelto";
+                    qtyWrap.replaceWith(badge);
+                } else {
+                    // Ajustar el selector al máximo disponible
+                    while (qtySelect.options.length > availableQty) {
+                        qtySelect.remove(qtySelect.options.length - 1);
+                    }
+                    if (returnedQty > 0) {
+                        // Devolución parcial: mostrar info de unidades
+                        const partialInfo = document.createElement("p");
+                        partialInfo.style.cssText = "font-size:0.6rem;margin:0.2rem 0 0;";
+                        partialInfo.style.color = "var(--text-muted)";
+                        partialInfo.textContent = `${returnedQty} devuelta${returnedQty > 1 ? 's' : ''} · ${availableQty} disponible${availableQty > 1 ? 's' : ''}`;
+                        info.appendChild(partialInfo);
+                        row.style.borderColor = "rgba(245,158,11,0.2)";
+                    }
                 }
 
                 cb.addEventListener("change", () => {

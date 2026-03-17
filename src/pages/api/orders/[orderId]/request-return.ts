@@ -121,8 +121,8 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Validate order status is delivered
-    if (order.status !== 'delivered') {
+    // Validate order status allows new return (delivered or partial return)
+    if (!['delivered', 'partial_return'].includes(order.status)) {
       return errorResponse({
         code: 'INVALID_STATUS',
         message: `Cannot request return for order with status "${order.status}". Only delivered orders can be returned.`,
@@ -130,11 +130,11 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Fetch order items, returns policy, existing return, and contact setting in parallel
+    // Fetch order items, returns policy, existing non-rejected return items, and contact setting in parallel
     const [
       { data: orderItems, error: orderItemsError },
       { data: settingsData },
-      { data: existingReturn },
+      { data: existingReturns },
       { data: contactSetting },
     ] = await Promise.all([
       supabaseAdmin
@@ -148,10 +148,9 @@ export const POST: APIRoute = async (context) => {
         .single(),
       supabaseAdmin
         .from('returns')
-        .select('id')
+        .select('id, status, return_items(order_item_id, quantity)')
         .eq('order_id', orderId)
-        .eq('status', 'pending')
-        .single(),
+        .neq('status', 'rejected'),
       supabaseAdmin
         .from('site_settings')
         .select('value')
@@ -168,6 +167,16 @@ export const POST: APIRoute = async (context) => {
     }
 
     const orderItemsMap = new Map(orderItems.map(oi => [oi.id, oi]));
+
+    // Calcular unidades ya devueltas por order_item_id (de devoluciones no rechazadas)
+    const alreadyReturnedQtyMap = new Map<string, number>();
+    for (const ret of existingReturns || []) {
+      for (const ri of (ret as any).return_items || []) {
+        const prev = alreadyReturnedQtyMap.get(ri.order_item_id) || 0;
+        alreadyReturnedQtyMap.set(ri.order_item_id, prev + ri.quantity);
+      }
+    }
+
     let refundAmount = 0;
     for (const item of selectedItems) {
       const orderItem = orderItemsMap.get(item.orderItemId);
@@ -178,10 +187,13 @@ export const POST: APIRoute = async (context) => {
           status: 400,
         });
       }
-      if (item.quantity > orderItem.quantity) {
+      const alreadyReturned = alreadyReturnedQtyMap.get(item.orderItemId) || 0;
+      const remainingQty = orderItem.quantity - alreadyReturned;
+      if (item.quantity > remainingQty) {
+        const productName = orderItem.product_name || item.orderItemId;
         return errorResponse({
           code: 'INVALID_QUANTITY',
-          message: `La cantidad a devolver (${item.quantity}) supera la cantidad comprada (${orderItem.quantity})`,
+          message: `La cantidad a devolver (${item.quantity}) supera las unidades disponibles (${remainingQty}) para "${productName}"`,
           status: 400,
         });
       }
@@ -201,14 +213,6 @@ export const POST: APIRoute = async (context) => {
       return errorResponse({
         code: 'RETURN_WINDOW_EXPIRED',
         message: `Return window has expired. Orders can be returned within ${daysLimit} days of delivery.`,
-        status: 400,
-      });
-    }
-
-    if (existingReturn) {
-      return errorResponse({
-        code: 'RETURN_ALREADY_EXISTS',
-        message: 'A return request already exists for this order',
         status: 400,
       });
     }

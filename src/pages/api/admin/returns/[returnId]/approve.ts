@@ -161,6 +161,55 @@ export const PATCH: APIRoute = async (context) => {
       });
     }
 
+    // Determinar si la devolución es total o parcial para asignar el estado correcto al pedido
+    let newOrderStatus: 'refunded' | 'partial_return' = 'refunded';
+    try {
+      // Obtener todos los ítems del pedido con sus cantidades
+      const { data: allOrderItems } = await supabaseAdmin
+        .from('order_items')
+        .select('id, quantity')
+        .eq('order_id', returnRecord.order_id);
+
+      if (allOrderItems?.length) {
+        // IDs de devoluciones ya reembolsadas para este pedido
+        const { data: refundedReturns } = await supabaseAdmin
+          .from('returns')
+          .select('id')
+          .eq('order_id', returnRecord.order_id)
+          .eq('status', 'refunded');
+
+        const refundedIds = (refundedReturns || []).map((r: any) => r.id);
+        // Incluir la devolución actual (todavía pending, pero se está aprobando ahora)
+        refundedIds.push(returnId);
+
+        let totalReturnedItems: Array<{order_item_id: string, quantity: number}> = [];
+        if (refundedIds.length > 0) {
+          const { data: returnItems } = await supabaseAdmin
+            .from('return_items')
+            .select('order_item_id, quantity')
+            .in('return_id', refundedIds);
+          totalReturnedItems = returnItems || [];
+        }
+
+        // Sumar unidades devueltas por order_item_id
+        const returnedQtyMap = new Map<string, number>();
+        for (const ri of totalReturnedItems) {
+          const prev = returnedQtyMap.get(ri.order_item_id) || 0;
+          returnedQtyMap.set(ri.order_item_id, prev + ri.quantity);
+        }
+
+        // Si todos los ítems están completamente devueltos → refunded; si no → partial_return
+        const isFullReturn = allOrderItems.every(
+          (oi: any) => (returnedQtyMap.get(oi.id) || 0) >= oi.quantity
+        );
+        newOrderStatus = isFullReturn ? 'refunded' : 'partial_return';
+      }
+    } catch (statusCheckError) {
+      console.error('[approve-return] Error determining order status:', statusCheckError);
+      // Fallback seguro: si falla la comprobación, usar partial_return para no perder datos
+      newOrderStatus = 'partial_return';
+    }
+
     // Update return record and order status in parallel (independent operations)
     const [{ error: updateReturnError }, { error: updateOrderError }] = await Promise.all([
       supabaseAdmin
@@ -176,10 +225,7 @@ export const PATCH: APIRoute = async (context) => {
       supabaseAdmin
         .from('orders')
         .update({
-          status: 'refunded',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', order.id),
+          status: newOrderStatus,
     ]);
 
     if (updateReturnError) {

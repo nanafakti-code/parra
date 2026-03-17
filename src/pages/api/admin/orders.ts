@@ -73,7 +73,7 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
             return jsonResponse({ error: 'No se puede modificar un pedido cancelado' }, 400);
         }
 
-        const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+        const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'partial_return'];
         if (!validStatuses.includes(status)) {
             return jsonResponse({ error: 'Estado inválido' }, 400);
         }
