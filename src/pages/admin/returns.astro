@@ -12,7 +12,7 @@ const statusFilter = url.searchParams.get("status") || "all";
 
 let query = supabaseAdmin
     .from("returns")
-    .select("*, orders(id, total, subtotal, discount), users(name, email)")
+    .select("*, orders(id, total, subtotal, discount), users(name, email), return_items(*)")
     .order("created_at", { ascending: false });
 
 if (statusFilter !== "all") {
@@ -188,6 +188,7 @@ function statusBadge(s: string) {
                                         data-customer-name={ret.users?.name || ""}
                                         data-customer-email={ret.users?.email || ""}
                                         data-images={JSON.stringify(ret.images || [])}
+                                        data-return-items={JSON.stringify(ret.return_items || [])}
                                     >
                                         Gestionar
                                     </button>
@@ -254,6 +255,12 @@ function statusBadge(s: string) {
             <div id="return-images-section" style="display:none;margin-bottom:1rem;">
                 <div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">Fotos del cliente</div>
                 <div id="return-images-grid" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+            </div>
+
+            <!-- Returned items -->
+            <div id="return-items-section" style="display:none;margin-bottom:1rem;">
+                <div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">Artículos a devolver</div>
+                <div id="return-items-list" style="display:flex;flex-direction:column;gap:0.4rem;"></div>
             </div>
 
             <!-- Refund amount -->
@@ -361,6 +368,32 @@ function statusBadge(s: string) {
                         imagesSection.style.display = "none";
                     }
 
+                    // Returned items
+                    var returnItemsRaw = this.getAttribute("data-return-items") || "[]";
+                    var returnItems = [];
+                    try { returnItems = JSON.parse(returnItemsRaw); } catch {}
+                    var returnItemsSection = document.getElementById("return-items-section");
+                    var returnItemsList = document.getElementById("return-items-list");
+                    returnItemsList.innerHTML = "";
+                    if (Array.isArray(returnItems) && returnItems.length > 0) {
+                        returnItems.forEach(function(item) {
+                            var row = document.createElement("div");
+                            row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0.65rem;background:rgba(255,255,255,0.02);border-radius:6px;border:1px solid rgba(255,255,255,0.05);font-size:0.75rem;gap:0.5rem;";
+                            var left = document.createElement("span");
+                            left.style.cssText = "color:rgba(255,255,255,0.65);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+                            left.textContent = (item.product_name || "—") + (item.size ? " — Talla " + item.size : "");
+                            var right = document.createElement("span");
+                            right.style.cssText = "font-weight:600;white-space:nowrap;color:rgba(255,255,255,0.85);";
+                            right.textContent = item.quantity + "× " + parseFloat(item.unit_price).toFixed(2) + "€ = " + parseFloat(item.total_price).toFixed(2) + "€";
+                            row.appendChild(left);
+                            row.appendChild(right);
+                            returnItemsList.appendChild(row);
+                        });
+                        returnItemsSection.style.display = "block";
+                    } else {
+                        returnItemsSection.style.display = "none";
+                    }
+
                     // Notes
                     document.getElementById("return-notes").value = notes;
 
@@ -372,8 +405,10 @@ function statusBadge(s: string) {
                     var amountText = document.getElementById("return-amount-text");
 
                     if (status === "pending") {
-                        var refundAmount = parseFloat(subtotal || "0") - parseFloat(discount || "0");
-                        amountLabel.textContent = "Monto a reembolsar (solo producto)";
+                        var storedAmount = parseFloat(this.getAttribute("data-amount") || "0");
+                        var calcAmount = parseFloat(subtotal || "0") - parseFloat(discount || "0");
+                        var refundAmount = storedAmount > 0 ? storedAmount : calcAmount;
+                        amountLabel.textContent = "Monto a reembolsar";
                         amountText.textContent  = refundAmount.toFixed(2) + "€";
                         amountBox.style.display = "block";
                         approveBtn.style.display = "inline-flex";

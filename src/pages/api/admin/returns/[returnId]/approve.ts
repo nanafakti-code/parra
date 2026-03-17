@@ -83,8 +83,11 @@ export const PATCH: APIRoute = async (context) => {
       });
     }
 
-    // Calculate refund amount (product only, exclude shipping)
-    const refundAmount = Math.round((order.subtotal - (order.discount || 0)) * 100); // cents
+    // Use the refund_amount stored at request time (based on selected items).
+    // Fall back to full subtotal - discount for returns created before partial returns.
+    const refundAmount = returnRecord.refund_amount
+      ? Math.round(returnRecord.refund_amount * 100)
+      : Math.round((order.subtotal - (order.discount || 0)) * 100); // cents
 
     if (refundAmount <= 0) {
       return errorResponse({
@@ -158,17 +161,26 @@ export const PATCH: APIRoute = async (context) => {
       });
     }
 
-    // Update return record
-    const { error: updateReturnError } = await supabaseAdmin
-      .from('returns')
-      .update({
-        status: 'refunded',
-        refund_amount: refundAmount / 100,
-        stripe_refund_id: refund.id,
-        admin_notes: adminNotes?.trim() || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', returnId);
+    // Update return record and order status in parallel (independent operations)
+    const [{ error: updateReturnError }, { error: updateOrderError }] = await Promise.all([
+      supabaseAdmin
+        .from('returns')
+        .update({
+          status: 'refunded',
+          refund_amount: refundAmount / 100,
+          stripe_refund_id: refund.id,
+          admin_notes: adminNotes?.trim() || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', returnId),
+      supabaseAdmin
+        .from('orders')
+        .update({
+          status: 'refunded',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', order.id),
+    ]);
 
     if (updateReturnError) {
       console.error('[approve-return] Error updating return:', updateReturnError);
@@ -178,15 +190,6 @@ export const PATCH: APIRoute = async (context) => {
         status: 500,
       });
     }
-
-    // Update order status to refunded
-    const { error: updateOrderError } = await supabaseAdmin
-      .from('orders')
-      .update({
-        status: 'refunded',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', order.id);
 
     if (updateOrderError) {
       console.error('[approve-return] Error updating order:', updateOrderError);

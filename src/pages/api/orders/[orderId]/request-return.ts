@@ -15,6 +15,8 @@ interface APIError {
   status: number;
 }
 
+interface SelectedItem { orderItemId: string; quantity: number }
+
 function errorResponse(error: APIError) {
   return new Response(JSON.stringify(error), {
     status: error.status,
@@ -34,7 +36,7 @@ export const POST: APIRoute = async (context) => {
     }
 
     const body = await context.request.json();
-    const { reason, images } = body;
+    const { reason, images, items } = body;
 
     if (!reason?.trim()) {
       return errorResponse({
@@ -42,6 +44,26 @@ export const POST: APIRoute = async (context) => {
         message: 'Return reason is required',
         status: 400,
       });
+    }
+
+    // Validate items: must be non-empty array of { orderItemId, quantity }
+    if (!Array.isArray(items) || items.length === 0) {
+      return errorResponse({
+        code: 'MISSING_ITEMS',
+        message: 'Debes seleccionar al menos un artículo para devolver',
+        status: 400,
+      });
+    }
+
+    const selectedItems: SelectedItem[] = [];    for (const item of items) {
+      if (typeof item.orderItemId !== 'string' || typeof item.quantity !== 'number' || item.quantity < 1) {
+        return errorResponse({
+          code: 'INVALID_ITEMS',
+          message: 'Formato de artículos inválido',
+          status: 400,
+        });
+      }
+      selectedItems.push({ orderItemId: item.orderItemId, quantity: Math.floor(item.quantity) });
     }
 
     // Validate images: must be an array of Cloudinary secure_url strings (max 5)
@@ -108,24 +130,73 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Fetch returns policy from site_settings
-    const { data: settingsData } = await supabaseAdmin
-      .from('site_settings')
-      .select('value')
-      .eq('key', 'returns_policy')
-      .single();
+    // Fetch order items, returns policy, existing return, and contact setting in parallel
+    const [
+      { data: orderItems, error: orderItemsError },
+      { data: settingsData },
+      { data: existingReturn },
+      { data: contactSetting },
+    ] = await Promise.all([
+      supabaseAdmin
+        .from('order_items')
+        .select('id, unit_price, quantity, product_name, product_image, size')
+        .eq('order_id', orderId),
+      supabaseAdmin
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'returns_policy')
+        .single(),
+      supabaseAdmin
+        .from('returns')
+        .select('id')
+        .eq('order_id', orderId)
+        .eq('status', 'pending')
+        .single(),
+      supabaseAdmin
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'contact')
+        .maybeSingle(),
+    ]);
+
+    if (orderItemsError || !orderItems?.length) {
+      return errorResponse({
+        code: 'ORDER_ITEMS_NOT_FOUND',
+        message: 'No se encontraron artículos para este pedido',
+        status: 404,
+      });
+    }
+
+    const orderItemsMap = new Map(orderItems.map(oi => [oi.id, oi]));
+    let refundAmount = 0;
+    for (const item of selectedItems) {
+      const orderItem = orderItemsMap.get(item.orderItemId);
+      if (!orderItem) {
+        return errorResponse({
+          code: 'INVALID_ITEM',
+          message: `El artículo ${item.orderItemId} no pertenece a este pedido`,
+          status: 400,
+        });
+      }
+      if (item.quantity > orderItem.quantity) {
+        return errorResponse({
+          code: 'INVALID_QUANTITY',
+          message: `La cantidad a devolver (${item.quantity}) supera la cantidad comprada (${orderItem.quantity})`,
+          status: 400,
+        });
+      }
+      refundAmount += orderItem.unit_price * item.quantity;
+    }
+    refundAmount = Math.round(refundAmount * 100) / 100;
 
     const returnsPolicy = settingsData?.value || { days_limit: 30 };
     const daysLimit = returnsPolicy.days_limit || 30;
 
-    // Calculate days since order updated (delivery date)
     const orderUpdatedAt = new Date(order.updated_at);
-    const now = new Date();
     const daysSinceDelivery = Math.floor(
-      (now.getTime() - orderUpdatedAt.getTime()) / (1000 * 60 * 60 * 24)
+      (Date.now() - orderUpdatedAt.getTime()) / (1000 * 60 * 60 * 24)
     );
 
-    // Validate return window
     if (daysSinceDelivery > daysLimit) {
       return errorResponse({
         code: 'RETURN_WINDOW_EXPIRED',
@@ -133,14 +204,6 @@ export const POST: APIRoute = async (context) => {
         status: 400,
       });
     }
-
-    // Check if return already exists
-    const { data: existingReturn } = await supabaseAdmin
-      .from('returns')
-      .select('id')
-      .eq('order_id', orderId)
-      .eq('status', 'pending')
-      .single();
 
     if (existingReturn) {
       return errorResponse({
@@ -159,6 +222,7 @@ export const POST: APIRoute = async (context) => {
           user_id: userId,
           reason: reason.trim(),
           status: 'pending',
+          refund_amount: refundAmount,
           ...(validImages.length > 0 ? { images: validImages } : {}),
         },
       ])
@@ -174,13 +238,30 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
+    // Insert return_items (partial return line items)
+    const returnItemsToInsert = selectedItems.map(item => {
+      const oi = orderItemsMap.get(item.orderItemId)!;
+      return {
+        return_id: returnRecord.id,
+        order_item_id: item.orderItemId,
+        product_name: oi.product_name,
+        product_image: oi.product_image || null,
+        size: oi.size || null,
+        quantity: item.quantity,
+        unit_price: oi.unit_price,
+        total_price: Math.round(oi.unit_price * item.quantity * 100) / 100,
+      };
+    });
+
+    const { error: returnItemsError } = await supabaseAdmin
+      .from('return_items')
+      .insert(returnItemsToInsert);
+    if (returnItemsError) {
+      console.error('[request-return] Error inserting return_items:', returnItemsError);
+    }
+
     // Send confirmation email to customer
     try {
-      const { data: contactSetting } = await supabaseAdmin
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'contact')
-        .maybeSingle();
       const returnAddress: string = (contactSetting?.value as any)?.address?.trim() || '';
 
       await sendReturnRequestConfirmation({

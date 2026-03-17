@@ -551,6 +551,14 @@ const tabs = [
                                                         type="button"
                                                         data-order-id={order.id}
                                                         data-order-updated={order.updated_at}
+                                                        data-order-items={JSON.stringify((order.order_items || []).map((item: any) => ({
+                                                            id: item.id,
+                                                            name: item.product_name || item.products?.name || 'Producto',
+                                                            image: item.product_image || item.products?.image || '',
+                                                            size: item.size || '',
+                                                            quantity: item.quantity,
+                                                            unit_price: item.unit_price,
+                                                        })))}
                                                         class="request-return-btn inline-flex items-center gap-2 px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all duration-200 cursor-pointer"
                                                         style="background:rgba(59,130,246,0.08);color:#3b82f6;border:1px solid rgba(59,130,246,0.30);border-radius:6px;"
                                                         onmouseover="this.style.background='#3b82f6';this.style.color='#fff';"
@@ -1803,8 +1811,23 @@ const tabs = [
     >
         <div
             class="card w-full p-8 space-y-5 overflow-y-auto"
-            style="border-color: var(--border-color); max-width: 420px; max-height: 90vh;"
+            style="border-color: var(--border-color); max-width: 540px; max-height: 90vh;"
         >
+            <!-- ── Artículos a devolver ── -->
+            <div>
+                <p class="font-display font-bold uppercase tracking-tight text-base mb-1">
+                    Artículos a devolver
+                </p>
+                <p class="text-xs" style="color: var(--text-muted);">
+                    Selecciona qué artículos y cuántas unidades quieres devolver
+                </p>
+            </div>
+            <div id="return-items-list" class="space-y-2"></div>
+            <p id="return-items-error" class="text-xs" style="display:none;color:#ef4444;">
+                Selecciona al menos un artículo para continuar
+            </p>
+            <hr style="border-color:var(--border-color);opacity:0.3;">
+            <!-- ── Motivo ── -->
             <div>
                 <p
                     class="font-display font-bold uppercase tracking-tight text-base mb-1"
@@ -2093,7 +2116,7 @@ const tabs = [
     }
 
     // ── Modal para solicitar devolución (retorna motivo + imágenes o null) ─
-    function showReturnReasonModal(): Promise<{ reason: string; images: string[] } | null> {
+    function showReturnReasonModal(orderItems: Array<{id: string, name: string, image: string, size: string, quantity: number, unit_price: number}>): Promise<{ reason: string; images: string[]; items: Array<{orderItemId: string, quantity: number}> } | null> {
         return new Promise((resolve) => {
             const modal = document.getElementById("return-modal")!;
             const okBtn = document.getElementById("return-modal-ok")!;
@@ -2102,9 +2125,72 @@ const tabs = [
             const otherText = document.getElementById("return-other-reason") as HTMLTextAreaElement;
             const uploadBtn = document.getElementById("return-upload-btn")!;
             const previewContainer = document.getElementById("return-images-preview")!;
+            const itemsList = document.getElementById("return-items-list")!;
+            const itemsError = document.getElementById("return-items-error")!;
 
             let returnImages: string[] = [];
             let clWidget: any = null;
+
+            // ── Populate items ─────────────────────────────────────────────────
+            itemsList.innerHTML = "";
+            itemsError.style.display = "none";
+            orderItems.forEach(item => {
+                const row = document.createElement("div");
+                row.style.cssText = "display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;border-radius:8px;border:1px solid rgba(59,130,246,0.1);background:rgba(59,130,246,0.03);transition:border-color 0.15s,background 0.15s;cursor:pointer;";
+
+                const cb = document.createElement("input");
+                cb.type = "checkbox";
+                cb.dataset.itemId = item.id;
+                cb.className = "return-item-cb";
+                cb.style.cssText = "cursor:pointer;flex-shrink:0;";
+
+                const info = document.createElement("div");
+                info.style.cssText = "flex:1;min-width:0;";
+                const nameEl = document.createElement("p");
+                nameEl.style.cssText = "font-size:0.75rem;font-weight:600;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+                nameEl.textContent = item.name + (item.size ? ` — Talla ${item.size}` : "");
+                const priceEl = document.createElement("p");
+                priceEl.style.cssText = "font-size:0.65rem;margin:0.15rem 0 0;";
+                priceEl.style.color = "var(--text-muted)";
+                priceEl.textContent = `${item.unit_price.toFixed(2)}€ / ud.`;
+                info.appendChild(nameEl);
+                info.appendChild(priceEl);
+
+                const qtyWrap = document.createElement("div");
+                qtyWrap.style.cssText = "display:flex;align-items:center;gap:0.4rem;flex-shrink:0;";
+                const qtyLabel = document.createElement("span");
+                qtyLabel.style.cssText = "font-size:0.65rem;";
+                qtyLabel.style.color = "var(--text-muted)";
+                qtyLabel.textContent = "Cant.:";
+                const qtySelect = document.createElement("select");
+                qtySelect.dataset.itemId = item.id;
+                qtySelect.className = "return-item-qty";
+                qtySelect.style.cssText = "background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:4px;font-size:0.7rem;padding:2px 6px;color:inherit;cursor:pointer;";
+                qtySelect.disabled = true;
+                for (let i = 1; i <= item.quantity; i++) {
+                    const opt = document.createElement("option");
+                    opt.value = String(i);
+                    opt.textContent = String(i);
+                    qtySelect.appendChild(opt);
+                }
+                qtyWrap.appendChild(qtyLabel);
+                qtyWrap.appendChild(qtySelect);
+
+                cb.addEventListener("change", () => {
+                    qtySelect.disabled = !cb.checked;
+                    row.style.borderColor = cb.checked ? "rgba(59,130,246,0.4)" : "rgba(59,130,246,0.1)";
+                    row.style.background = cb.checked ? "rgba(59,130,246,0.08)" : "rgba(59,130,246,0.03)";
+                    if (itemsError.style.display !== "none") itemsError.style.display = "none";
+                });
+                row.addEventListener("click", (e) => {
+                    if (e.target !== cb && e.target !== qtySelect) { cb.checked = !cb.checked; cb.dispatchEvent(new Event("change")); }
+                });
+
+                row.appendChild(cb);
+                row.appendChild(info);
+                row.appendChild(qtyWrap);
+                itemsList.appendChild(row);
+            });
 
             modal.classList.remove("hidden");
             modal.classList.add("flex");
@@ -2185,7 +2271,7 @@ const tabs = [
             }
             radios.forEach(r => r.addEventListener("change", onRadioChange));
 
-            function close(result: { reason: string; images: string[] } | null) {
+            function close(result: { reason: string; images: string[]; items: Array<{orderItemId: string, quantity: number}> } | null) {
                 modal.classList.add("hidden");
                 modal.classList.remove("flex");
                 document.body.style.overflow = "";
@@ -2201,11 +2287,28 @@ const tabs = [
                 otherText.value = "";
                 returnImages = [];
                 previewContainer.innerHTML = "";
+                itemsList.innerHTML = "";
+                itemsError.style.display = "none";
                 if (clWidget) { try { clWidget.destroy(); } catch {} clWidget = null; }
                 resolve(result);
             }
 
             const onOk = () => {
+                // Validate items first
+                const selectedItems: Array<{orderItemId: string, quantity: number}> = [];
+                itemsList.querySelectorAll<HTMLInputElement>(".return-item-cb").forEach(cb => {
+                    if (cb.checked) {
+                        const itemId = cb.dataset.itemId!;
+                        const qtySelect = cb.parentElement?.querySelector<HTMLSelectElement>(".return-item-qty");
+                        selectedItems.push({ orderItemId: itemId, quantity: parseInt(qtySelect?.value || "1") });
+                    }
+                });
+                if (selectedItems.length === 0) {
+                    itemsError.style.display = "block";
+                    itemsList.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                    return;
+                }
+                // Validate reason
                 const selected = Array.from(radios).find(r => r.checked);
                 if (!selected) return;
                 if (selected.value === "Otro") {
@@ -2215,9 +2318,9 @@ const tabs = [
                         otherText.focus();
                         return;
                     }
-                    close({ reason: custom, images: [...returnImages] });
+                    close({ reason: custom, images: [...returnImages], items: selectedItems });
                 } else {
-                    close({ reason: selected.value, images: [...returnImages] });
+                    close({ reason: selected.value, images: [...returnImages], items: selectedItems });
                 }
             };
             const onCancel = () => close(null);
@@ -2839,18 +2942,19 @@ const tabs = [
             .forEach((btn) => {
                 btn.addEventListener("click", async () => {
                     const orderId = btn.dataset.orderId;
-                    const updatedAt = btn.dataset.orderUpdated;
-                    if (!orderId || !updatedAt) return;
+                    if (!orderId) return;
 
-                    // Calcular días desde entrega
-                    const deliveryDate = new Date(updatedAt);
-                    const now = new Date();
-                    const daysSinceDelivery = Math.floor(
-                        (now.getTime() - deliveryDate.getTime()) / (1000 * 60 * 60 * 24),
-                    );
+                    // Parse order items from data attribute
+                    let orderItems: any[] = [];
+                    try { orderItems = JSON.parse(btn.dataset.orderItems || "[]"); } catch {}
+                    if (!orderItems.length) {
+                        const { toast } = await import("../lib/toast");
+                        toast.error("No se encontraron artículos para este pedido");
+                        return;
+                    }
 
-                    const result = await showReturnReasonModal();
-                    if (!result?.reason?.trim()) return;
+                    const result = await showReturnReasonModal(orderItems);
+                    if (!result?.reason?.trim() || !result?.items?.length) return;
 
                     btn.disabled = true;
                     const originalText = btn.innerHTML;
@@ -2866,7 +2970,7 @@ const tabs = [
                                 body: JSON.stringify({
                                     reason: result.reason.trim(),
                                     images: result.images,
-                                    notes: `Días desde entrega: ${daysSinceDelivery}`,
+                                    items: result.items,
                                 }),
                             },
                         );
