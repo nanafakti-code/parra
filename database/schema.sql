@@ -30,7 +30,7 @@ DROP TYPE IF EXISTS public.user_role CASCADE;
 -- 2. ENUMS
 -- ============================================================
 CREATE TYPE user_role AS ENUM ('customer', 'admin');
-CREATE TYPE order_status AS ENUM ('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded');
+CREATE TYPE order_status AS ENUM ('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'partial_return');
 
 -- 3. USERS (customers + admins)
 -- ============================================================
