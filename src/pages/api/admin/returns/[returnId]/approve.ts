@@ -254,8 +254,8 @@ export const PATCH: APIRoute = async (context) => {
       await supabaseAdmin.from('admin_logs').insert({
         admin_id: admin.id,
         action: 'approve_return',
-        resource_type: 'return',
-        resource_id: returnId,
+        entity_type: 'return',
+        entity_id: returnId,
         details: {
           order_id: order.id,
           refund_amount: refundAmount / 100,

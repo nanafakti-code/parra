@@ -97,6 +97,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
         .single();
 
     if (error) {
+        if (error.code === '23505') {
+            // Concurrent insert for the same unit_index — unique constraint fired
+            return jsonResponse({ error: 'Ya has reseñado todas las unidades de este artículo' }, 409);
+        }
         console.error('Error saving review:', error);
         return jsonResponse({ error: 'Error al guardar la reseña' }, 500);
     }

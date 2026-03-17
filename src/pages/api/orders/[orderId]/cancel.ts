@@ -205,13 +205,14 @@ export const POST: APIRoute = async (context) => {
       console.error('[cancel-order] Email error:', emailError);
     }
 
-    // Log admin action
+    // Log admin action (note: customer-initiated cancellation — no admin actor)
     try {
       await supabaseAdmin.from('admin_logs').insert({
-        admin_id: 'system',
+        admin_id: userId,          // the authenticated customer who cancelled
         action: 'cancel_order',
-        resource_type: 'order',
-        resource_id: orderId,
+        entity_type: 'order',
+        entity_id: orderId,
+        ip_address: null,
         details: {
           refund_amount: refundAmount / 100,
           shipping_refunded: shippingCost,
