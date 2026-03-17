@@ -142,11 +142,13 @@ const returnStatusMap: Record<string, string> = {
     refunded: "Reembolsada",
 };
 
-// IDs de pedidos que ya tienen una solicitud de devolución activa
-const ordersWithReturn = new Set(returnRequests.map((r: any) => r.order_id));
+// IDs de pedidos con devolución en estado PENDIENTE (bloquea nuevo botón de devolución)
+const ordersWithPendingReturn = new Set(
+    returnRequests.filter((r: any) => r.status === 'pending').map((r: any) => r.order_id)
+);
 
-// Pedidos que se muestran en el tab "pedidos" (excluye los que tienen devolución)
-const pedidosOrders = ordersWithItems.filter((o: any) => !ordersWithReturn.has(o.id));
+// Todos los pedidos se muestran en "Mis Pedidos" independientemente de si tienen devoluciones
+const pedidosOrders = ordersWithItems;
 
 const statusMap: Record<string, string> = {
     pending: "Pendiente",
@@ -545,8 +547,8 @@ const tabs = [
                                                     </button>
                                                 )}
 
-                                                {/* Botón Solicitar Devolución (delivered, dentro del plazo, sin devolución previa) */}
-                                                {order.status === 'delivered' && !ordersWithReturn.has(order.id) && (
+                                                {/* Botón Solicitar Devolución (delivered, dentro del plazo, sin devolución pendiente activa) */}
+                                                {order.status === 'delivered' && !ordersWithPendingReturn.has(order.id) && (
                                                     <button
                                                         type="button"
                                                         data-order-id={order.id}
