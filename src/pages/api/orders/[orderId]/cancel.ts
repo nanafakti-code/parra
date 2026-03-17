@@ -101,8 +101,11 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Calculate refund amount (product only, exclude shipping)
-    const refundAmount = Math.round((order.subtotal - (order.discount || 0)) * 100);
+    // Calculate refund amount: product cost + shipping cost.
+    // Cancellations are only allowed for 'pending'/'processing' orders (before shipment),
+    // so the full amount paid — including shipping — must be returned to the customer.
+    const shippingCost = parseFloat(order.shipping_cost) || 0;
+    const refundAmount = Math.round((order.subtotal - (order.discount || 0) + shippingCost) * 100);
 
     if (refundAmount <= 0) {
       return errorResponse({
@@ -146,7 +149,8 @@ export const POST: APIRoute = async (context) => {
         metadata: {
           order_id: orderId,
           reason: 'customer_cancellation',
-          refund_type: 'product_only',
+          refund_type: shippingCost > 0 ? 'product_and_shipping' : 'product_only',
+          shipping_refunded: shippingCost.toFixed(2),
         },
       });
 
@@ -210,6 +214,7 @@ export const POST: APIRoute = async (context) => {
         resource_id: orderId,
         details: {
           refund_amount: refundAmount / 100,
+          shipping_refunded: shippingCost,
           refund_id: refund.id,
           original_status: order.status,
         },
