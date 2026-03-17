@@ -25,16 +25,13 @@ if (!product) {
     return Astro.redirect("/shop");
 }
 
-// Cache strategy (Blocker 2 fix):
-//   max-age=0          → browser never caches (no stale session state)
-//   s-maxage=120       → Vercel Edge caches product pages for 2 minutes.
-//                         Product detail pages change less frequently than the
-//                         shop listing, so a longer TTL is appropriate.
-//   stale-while-revalidate=600 → Edge serves stale for up to 10 min during
-//                         background revalidation.
+// Cache strategy: stock data must be fresh.
+//   max-age=0     → browser never caches
+//   s-maxage=30   → Vercel Edge caches for 30 seconds
+//   stale-while-revalidate=30 → max 60 s of stale stock visible
 Astro.response.headers.set(
     "Cache-Control",
-    "public, max-age=0, s-maxage=120, stale-while-revalidate=600",
+    "public, max-age=0, s-maxage=30, stale-while-revalidate=30",
 );
 
 // Fetch images + variants + related en paralelo
