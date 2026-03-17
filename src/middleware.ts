@@ -1,31 +1,16 @@
 import { defineMiddleware } from "astro:middleware";
 import { supabase, supabaseAdmin } from "./lib/supabase";
 
-// ── Maintenance setting cache (TTL: 60 s) ────────────────────────────────
-// Evita una consulta a BD en CADA petición. El modo mantenimiento cambia
-// como mucho cada pocos minutos, así que 60 s de caché es seguro.
-let _maintenanceCache: { value: boolean; ts: number } | null = null;
-const MAINTENANCE_TTL = 60_000;
-
-/** Invalida el caché de mantenimiento (llamar al guardar el ajuste desde el admin). */
+/** Invalida el caché de mantenimiento (no-op: sin caché en entorno serverless). */
 export function invalidateMaintenanceCache() {
-    _maintenanceCache = null;
+    // En Vercel cada instancia serverless tiene su propio espacio de memoria.
+    // Un caché en memoria solo se invalida en la instancia que recibe el PATCH,
+    // por lo que otras instancias calientes seguirían sirviendo el valor viejo
+    // hasta que el TTL expirase. Se lee directamente de BD para garantizar
+    // que el cambio sea inmediato en todas las instancias.
 }
 
 async function getMaintenanceSetting(): Promise<boolean> {
-    // Override de emergencia vía variable de entorno
-    const envOverride =
-        import.meta.env.MAINTENANCE_MODE ??
-        (typeof process !== "undefined" ? process.env.MAINTENANCE_MODE : undefined);
-    if (envOverride !== undefined && String(envOverride).trim().toLowerCase() === "true") {
-        return true;
-    }
-
-    const now = Date.now();
-    if (_maintenanceCache && now - _maintenanceCache.ts < MAINTENANCE_TTL) {
-        return _maintenanceCache.value;
-    }
-
     try {
         const { data } = await supabaseAdmin
             .from("site_settings")
@@ -33,21 +18,16 @@ async function getMaintenanceSetting(): Promise<boolean> {
             .eq("key", "maintenance")
             .maybeSingle();
 
-        let enabled = false;
-        if (data?.value) {
-            const v = data.value;
-            if (typeof v === "object" && v !== null) {
-                enabled = !!v.enabled;
-            } else {
-                try {
-                    enabled = !!(JSON.parse(String(v))?.enabled);
-                } catch {
-                    enabled = String(v).trim().toLowerCase() === "true";
-                }
-            }
+        if (!data?.value) return false;
+        const v = data.value;
+        if (typeof v === "object" && v !== null) {
+            return !!v.enabled;
         }
-        _maintenanceCache = { value: enabled, ts: now };
-        return enabled;
+        try {
+            return !!(JSON.parse(String(v))?.enabled);
+        } catch {
+            return String(v).trim().toLowerCase() === "true";
+        }
     } catch (e) {
         console.error("[middleware] error reading maintenance setting", e);
         return false;
