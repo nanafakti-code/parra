@@ -109,17 +109,23 @@ for (let i = 5; i >= 0; i--) {
 }
 
 // ── Top products ───────────────────────────────────────────────────────────────
-const { data: topItems } = await supabaseAdmin
-    .from('order_items')
-    .select('product_id, quantity, products(name)')
-    .limit(500);
+// Only count items from orders that generated revenue (exclude cancelled & refunded)
+const validOrderIds = (allOrders || [])
+    .filter(o => o.status !== 'cancelled' && o.status !== 'refunded')
+    .map(o => o.id);
 
 const productSales: Record<string, { name: string; qty: number }> = {};
-(topItems || []).forEach((item: any) => {
-    const pid = item.product_id;
-    if (!productSales[pid]) productSales[pid] = { name: item.products?.name || 'Desconocido', qty: 0 };
-    productSales[pid].qty += item.quantity || 1;
-});
+if (validOrderIds.length > 0) {
+    const { data: topItems } = await supabaseAdmin
+        .from('order_items')
+        .select('product_id, product_name, quantity')
+        .in('order_id', validOrderIds);
+    (topItems || []).forEach((item: any) => {
+        const pid = item.product_id;
+        if (!productSales[pid]) productSales[pid] = { name: item.product_name || 'Desconocido', qty: 0 };
+        productSales[pid].qty += item.quantity || 1;
+    });
+}
 const topProducts = Object.values(productSales).sort((a, b) => b.qty - a.qty).slice(0, 5);
 
 // ── Daily revenue last 30 days ─────────────────────────────────────────────────
