@@ -1,0 +1,281 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../lib/admin";
+import { supabaseAdmin } from "../../lib/supabase";
+
+const adminResult = await requireAdmin(Astro);
+if (adminResult instanceof Response) return adminResult;
+const admin = adminResult;
+
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get("page") || "1");
+const filterNewsletter = url.searchParams.get("newsletter") || "all";
+const limit = 25;
+const offset = (page - 1) * limit;
+
+// ── Customers ──────────────────────────────────────────────────────────────────
+let query = supabaseAdmin
+    .from("users")
+    .select("id, name, email, phone, is_active, created_at", { count: "exact" })
+    .eq("role", "customer")
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+const { data: customersRaw, count } = await query;
+const totalPages = Math.ceil((count || 0) / limit);
+
+// ── Newsletter subscribers (by email) ─────────────────────────────────────────
+const { data: subscribers } = await supabaseAdmin
+    .from("newsletter_subscribers")
+    .select("email_normalized, subscribed");
+
+const subscriberMap = new Map<string, boolean>();
+(subscribers || []).forEach((s: any) => {
+    subscriberMap.set(s.email_normalized || s.email?.toLowerCase(), s.subscribed);
+});
+
+// ── Default addresses ─────────────────────────────────────────────────────────
+const customerIds = (customersRaw || []).map((c: any) => c.id);
+let addressMap = new Map<string, any>();
+if (customerIds.length > 0) {
+    const { data: addresses } = await supabaseAdmin
+        .from("addresses")
+        .select("user_id, street, city, postal_code, country, is_default")
+        .in("user_id", customerIds)
+        .eq("is_default", true);
+    (addresses || []).forEach((a: any) => {
+        addressMap.set(a.user_id, a);
+    });
+}
+
+// ── Order stats per customer ───────────────────────────────────────────────────
+let orderStatsMap = new Map<string, { count: number; total: number }>();
+if (customerIds.length > 0) {
+    const { data: orders } = await supabaseAdmin
+        .from("orders")
+        .select("user_id, total, status")
+        .in("user_id", customerIds)
+        .not("status", "in", '("cancelled")');
+    (orders || []).forEach((o: any) => {
+        const existing = orderStatsMap.get(o.user_id) || { count: 0, total: 0 };
+        orderStatsMap.set(o.user_id, {
+            count: existing.count + 1,
+            total: existing.total + parseFloat(o.total || 0),
+        });
+    });
+}
+
+// ── Merge data ────────────────────────────────────────────────────────────────
+const customers = (customersRaw || []).map((c: any) => {
+    const emailKey = c.email?.toLowerCase();
+    const isSubscribed = subscriberMap.has(emailKey) ? subscriberMap.get(emailKey) : null;
+    const address = addressMap.get(c.id) || null;
+    const stats = orderStatsMap.get(c.id) || { count: 0, total: 0 };
+    return { ...c, isSubscribed, address, orderCount: stats.count, totalSpent: stats.total };
+});
+
+// ── Filter by newsletter (client-side filter via query param fallback) ─────────
+const filtered = filterNewsletter === "subscribed"
+    ? customers.filter((c: any) => c.isSubscribed === true)
+    : filterNewsletter === "not_subscribed"
+    ? customers.filter((c: any) => c.isSubscribed !== true)
+    : customers;
+
+// ── KPIs ──────────────────────────────────────────────────────────────────────
+const totalCustomers = count || 0;
+const { count: activeCount } = await supabaseAdmin
+    .from("users")
+    .select("*", { count: "exact", head: true })
+    .eq("role", "customer")
+    .eq("is_active", true);
+const { count: subscribedCount } = await supabaseAdmin
+    .from("newsletter_subscribers")
+    .select("*", { count: "exact", head: true })
+    .eq("subscribed", true);
+const now = new Date();
+const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+const { count: newThisMonth } = await supabaseAdmin
+    .from("users")
+    .select("*", { count: "exact", head: true })
+    .eq("role", "customer")
+    .gte("created_at", firstOfMonth);
+---
+
+<AdminLayout title="Clientes" activeSection="customers" admin={admin}>
+    <!-- KPI cards -->
+    <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1.5rem;">
+        <div class="stat-card">
+            <div class="stat-label">Total clientes</div>
+            <div class="stat-value">{totalCustomers}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Activos</div>
+            <div class="stat-value" style="color:var(--brand);">{activeCount || 0}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Newsletter</div>
+            <div class="stat-value" style="color:#60a5fa;">{subscribedCount || 0}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Nuevos este mes</div>
+            <div class="stat-value" style="color:#FFA400;">{newThisMonth || 0}</div>
+        </div>
+    </div>
+
+    <!-- Filters + Search -->
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <div class="filter-bar" style="margin-bottom:0;">
+            <a href="/admin/customers" class={`filter-chip ${filterNewsletter === "all" ? "active" : ""}`}>Todos ({totalCustomers})</a>
+            <a href="/admin/customers?newsletter=subscribed" class={`filter-chip ${filterNewsletter === "subscribed" ? "active" : ""}`}>Con newsletter</a>
+            <a href="/admin/customers?newsletter=not_subscribed" class={`filter-chip ${filterNewsletter === "not_subscribed" ? "active" : ""}`}>Sin newsletter</a>
+        </div>
+        <div style="position:relative;max-width:340px;flex:1;">
+            <svg style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.4);" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="page-search" class="form-input" placeholder="Buscar por nombre o email..." style="padding-left:2.5rem;" />
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+        {filtered.length === 0 ? (
+            <div class="empty-state">
+                <h3>Sin clientes</h3>
+                <p>No hay clientes con este filtro.</p>
+            </div>
+        ) : (
+            <div style="overflow-x:auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
+                            <th>Newsletter</th>
+                            <th>Pedidos</th>
+                            <th>Total gastado</th>
+                            <th>Estado</th>
+                            <th>Desde</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filtered.map((c: any) => (
+                            <tr data-search={`${c.name} ${c.email}`}>
+                                <!-- Cliente -->
+                                <td data-label="Cliente">
+                                    <div style="display:flex;align-items:center;gap:0.6rem;">
+                                        <div style="width:30px;height:30px;border-radius:50%;background:rgba(var(--brand-rgb),0.08);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;">
+                                            {(c.name || "?").charAt(0).toUpperCase()}
+                                        </div>
+                                        <div style="min-width:0;">
+                                            <div style="font-weight:600;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">{c.name || "—"}</div>
+                                            <div style="font-size:0.65rem;color:rgba(255,255,255,0.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">{c.email}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <!-- Teléfono -->
+                                <td data-label="Teléfono" style="font-size:0.78rem;color:rgba(255,255,255,0.55);">
+                                    {c.phone || <span style="color:rgba(255,255,255,0.2);">—</span>}
+                                </td>
+                                <!-- Dirección -->
+                                <td data-label="Dirección" style="font-size:0.72rem;max-width:180px;">
+                                    {c.address ? (
+                                        <div>
+                                            <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{c.address.street}</div>
+                                            <div style="color:rgba(255,255,255,0.4);">{c.address.postal_code} {c.address.city}</div>
+                                        </div>
+                                    ) : (
+                                        <span style="color:rgba(255,255,255,0.2);">Sin dirección</span>
+                                    )}
+                                </td>
+                                <!-- Newsletter -->
+                                <td data-label="Newsletter">
+                                    {c.isSubscribed === true ? (
+                                        <span class="badge badge-info" style="font-size:0.65rem;">
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;margin-right:3px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            Suscrito
+                                        </span>
+                                    ) : c.isSubscribed === false ? (
+                                        <span class="badge badge-neutral" style="font-size:0.65rem;">Baja</span>
+                                    ) : (
+                                        <span style="font-size:0.65rem;color:rgba(255,255,255,0.2);">—</span>
+                                    )}
+                                </td>
+                                <!-- Pedidos -->
+                                <td data-label="Pedidos" style="font-size:0.85rem;font-weight:600;text-align:center;">
+                                    {c.orderCount > 0 ? (
+                                        <span style="color:var(--brand);">{c.orderCount}</span>
+                                    ) : (
+                                        <span style="color:rgba(255,255,255,0.25);">0</span>
+                                    )}
+                                </td>
+                                <!-- Total gastado -->
+                                <td data-label="Total gastado" style="font-weight:600;white-space:nowrap;">
+                                    {c.totalSpent > 0 ? (
+                                        <span>{c.totalSpent.toFixed(2)}€</span>
+                                    ) : (
+                                        <span style="color:rgba(255,255,255,0.25);">0.00€</span>
+                                    )}
+                                </td>
+                                <!-- Estado -->
+                                <td data-label="Estado">
+                                    {c.is_active ? (
+                                        <span class="badge badge-success">Activo</span>
+                                    ) : (
+                                        <span class="badge badge-danger">Inactivo</span>
+                                    )}
+                                </td>
+                                <!-- Fecha registro -->
+                                <td data-label="Desde" style="font-size:0.7rem;color:rgba(255,255,255,0.4);white-space:nowrap;">
+                                    {new Date(c.created_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "2-digit" })}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        )}
+    </div>
+
+    <!-- Pagination -->
+    {totalPages > 1 && (
+        <div class="pagination">
+            {page > 1 && (
+                <a href={`/admin/customers?newsletter=${filterNewsletter}&page=${page - 1}`} class="page-btn">Anterior</a>
+            )}
+            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                const p = i + 1;
+                return (
+                    <a href={`/admin/customers?newsletter=${filterNewsletter}&page=${p}`} class={`page-btn ${p === page ? "active" : ""}`}>{p}</a>
+                );
+            })}
+            {page < totalPages && (
+                <a href={`/admin/customers?newsletter=${filterNewsletter}&page=${page + 1}`} class="page-btn">Siguiente</a>
+            )}
+        </div>
+    )}
+
+    <script is:inline>
+        // Client-side search filtering
+        (function () {
+            var input = document.getElementById('page-search');
+            if (!input) return;
+            input.addEventListener('input', function () {
+                var q = this.value.toLowerCase().trim();
+                document.querySelectorAll('.data-table tbody tr[data-search]').forEach(function (row) {
+                    var text = row.getAttribute('data-search') || '';
+                    row.style.display = !q || text.toLowerCase().includes(q) ? '' : 'none';
+                });
+            });
+        })();
+    </script>
+</AdminLayout>
+
+<style>
+    @media (max-width: 640px) {
+        .stat-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+</style>

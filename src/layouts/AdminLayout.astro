@@ -57,6 +57,12 @@ const navItems = [
     },
     { id: "coupons", label: "Cupones", icon: "tag", href: "/admin/coupons" },
     {
+        id: "customers",
+        label: "Clientes",
+        icon: "users",
+        href: "/admin/customers",
+    },
+    {
         id: "products",
         label: "Productos",
         icon: "box",
@@ -1199,7 +1205,7 @@ const navItems = [
                         Ventas
                     </div>
                     {
-                        navItems.slice(1, 4).map((item) => (
+                        navItems.slice(1, 5).map((item) => (
                             <a
                                 href={item.href}
                                 class={`nav-item ${activeSection === item.id ? "active" : ""}`}
@@ -1214,7 +1220,7 @@ const navItems = [
                         Catálogo
                     </div>
                     {
-                        navItems.slice(4, 7).map((item) => (
+                        navItems.slice(5, 8).map((item) => (
                             <a
                                 href={item.href}
                                 class={`nav-item ${activeSection === item.id ? "active" : ""}`}
@@ -1229,7 +1235,7 @@ const navItems = [
                         Sistema
                     </div>
                     {
-                        navItems.slice(7).map((item) => (
+                        navItems.slice(8).map((item) => (
                             <a
                                 href={item.href}
                                 class={`nav-item ${activeSection === item.id ? "active" : ""} ${item.id === "editor" ? "desktop-only" : ""}`}
