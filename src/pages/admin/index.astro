@@ -395,20 +395,37 @@ const chartData = JSON.stringify({
 
             // Top Products
             var ctxProducts = document.getElementById('chart-products');
-            if (ctxProducts) {
+            if (ctxProducts && data.topProducts && data.topProducts.length > 0) {
                 new Chart(ctxProducts, {
                     type: 'bar',
                     data: {
-                        labels: data.topProducts.map(function(p) { return p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name; }),
+                        labels: data.topProducts.map(function(p) { return p.name.length > 22 ? p.name.substring(0, 22) + '...' : p.name; }),
                         datasets: [{
                             label: 'Unidades vendidas',
-                            data: data.topProducts.map(function(p) { return p.qty; }),
+                            data: data.topProducts.map(function(p) { return Number(p.qty); }),
                             backgroundColor: [chartColors.green, chartColors.blue, chartColors.orange, chartColors.purple, chartColors.red],
                             borderWidth: 0,
                             borderRadius: 4,
                         }],
                     },
-                    options: Object.assign({}, defaultOptions, { indexAxis: 'y' }),
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'x',
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { color: chartColors.grid }, ticks: { color: chartColors.text, font: { size: 10 }, maxRotation: 30 } },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: chartColors.grid },
+                                ticks: {
+                                    color: chartColors.text, font: { size: 10 },
+                                    stepSize: 1,
+                                    callback: function(v) { return Number.isInteger(v) ? v : null; }
+                                }
+                            },
+                        },
+                    },
                 });
             }
 
