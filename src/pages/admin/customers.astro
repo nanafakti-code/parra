@@ -123,13 +123,13 @@ const { count: newThisMonth } = await supabaseAdmin
     </div>
 
     <!-- Filters + Search -->
-    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <div class="customers-toolbar">
         <div class="filter-bar" style="margin-bottom:0;">
             <a href="/admin/customers" class={`filter-chip ${filterNewsletter === "all" ? "active" : ""}`}>Todos ({totalCustomers})</a>
             <a href="/admin/customers?newsletter=subscribed" class={`filter-chip ${filterNewsletter === "subscribed" ? "active" : ""}`}>Con newsletter</a>
             <a href="/admin/customers?newsletter=not_subscribed" class={`filter-chip ${filterNewsletter === "not_subscribed" ? "active" : ""}`}>Sin newsletter</a>
         </div>
-        <div style="position:relative;max-width:340px;flex:1;">
+        <div class="customers-search">
             <svg style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.4);" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -276,6 +276,29 @@ const { count: newThisMonth } = await supabaseAdmin
     @media (max-width: 640px) {
         .stat-grid {
             grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+
+    .customers-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    .customers-search {
+        position: relative;
+        max-width: 340px;
+        flex: 1;
+    }
+
+    @media (max-width: 768px) {
+        .customers-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .customers-search {
+            max-width: 100%;
         }
     }
 </style>
